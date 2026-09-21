@@ -206,7 +206,34 @@ export function DriveModeModal({
   };
 
   const handlePushToTruck = () => {
-    handleOpenNativeMaps();
+    const originAddress = route.origin_address;
+    const destinationAddress =
+      activeLeg?.destinationAddress ||
+      route.destination_address ||
+      route.stops[route.stops.length - 1]?.address;
+    const waypoints = route.stops.slice(0, -1);
+
+    if (!destinationAddress) return;
+
+    const isApple = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+
+    if (isApple) {
+      // Launches native Apple Maps directly onto Ram Uconnect via CarPlay
+      const originParam = originAddress ? `saddr=${encodeURIComponent(originAddress)}&` : '';
+      const appleUrl = `maps://?${originParam}daddr=${encodeURIComponent(destinationAddress)}&dirflg=d`;
+      window.location.href = appleUrl;
+    } else {
+      // Launches Google Maps Navigation directly onto Ram Uconnect via Android Auto
+      const originParam = originAddress ? `origin=${encodeURIComponent(originAddress)}&` : '';
+      const waypointsParam =
+        waypoints && waypoints.length > 0
+          ? `&waypoints=${waypoints.map((w: any) => encodeURIComponent(w.address)).join('|')}`
+          : '';
+      const googleUrl = `https://www.google.com/maps/dir/?api=1&${originParam}destination=${encodeURIComponent(
+        destinationAddress
+      )}${waypointsParam}&travelmode=driving`;
+      window.open(googleUrl, '_blank');
+    }
   };
 
   // Stop Arrival & CRA Mileage Modal

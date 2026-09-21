@@ -218,18 +218,33 @@ export function getNativeMapUrls(lat: number, lng: number, address: string) {
  * - Android/Desktop: Google Maps directions API with origin, destination & multi-stop waypoints
  */
 export function launchNativeNavigation(
-  origin: string,
-  destination: string,
-  waypoints: string[] = []
+  originAddress?: string,
+  destinationAddress?: string,
+  waypoints: (string | { address: string })[] = []
 ) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !destinationAddress) return;
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const navUrl = isIOS
-    ? `maps://?saddr=${origin}&daddr=${destination}&dirflg=d`
-    : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints.map(encodeURIComponent).join('|')}`;
+  const isApple = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
 
-  window.open(navUrl, '_blank');
+  if (isApple) {
+    // Launches native Apple Maps directly onto Ram Uconnect via CarPlay
+    const originParam = originAddress ? `saddr=${encodeURIComponent(originAddress)}&` : '';
+    const appleUrl = `maps://?${originParam}daddr=${encodeURIComponent(destinationAddress)}&dirflg=d`;
+    window.location.href = appleUrl;
+  } else {
+    // Launches Google Maps Navigation directly onto Ram Uconnect via Android Auto
+    const originParam = originAddress ? `origin=${encodeURIComponent(originAddress)}&` : '';
+    const waypointsParam =
+      waypoints && waypoints.length > 0
+        ? `&waypoints=${waypoints
+            .map((w: any) => encodeURIComponent(typeof w === 'string' ? w : w.address))
+            .join('|')}`
+        : '';
+    const googleUrl = `https://www.google.com/maps/dir/?api=1&${originParam}destination=${encodeURIComponent(
+      destinationAddress
+    )}${waypointsParam}&travelmode=driving`;
+    window.open(googleUrl, '_blank');
+  }
 }
 
 export interface CircuitLeg {

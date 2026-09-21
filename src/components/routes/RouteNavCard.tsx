@@ -190,7 +190,33 @@ export function RouteNavCard({
   };
 
   const handlePushToTruck = () => {
-    handleOpenNativeMaps();
+    const originAddress = currentRoute.origin_address;
+    const destinationAddress =
+      currentRoute.destination_address ||
+      currentRoute.stops[currentRoute.stops.length - 1]?.address;
+    const waypoints = currentRoute.stops.slice(0, -1);
+
+    if (!destinationAddress) return;
+
+    const isApple = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+
+    if (isApple) {
+      // Launches native Apple Maps directly onto Ram Uconnect via CarPlay
+      const originParam = originAddress ? `saddr=${encodeURIComponent(originAddress)}&` : '';
+      const appleUrl = `maps://?${originParam}daddr=${encodeURIComponent(destinationAddress)}&dirflg=d`;
+      window.location.href = appleUrl;
+    } else {
+      // Launches Google Maps Navigation directly onto Ram Uconnect via Android Auto
+      const originParam = originAddress ? `origin=${encodeURIComponent(originAddress)}&` : '';
+      const waypointsParam =
+        waypoints && waypoints.length > 0
+          ? `&waypoints=${waypoints.map((w: any) => encodeURIComponent(w.address)).join('|')}`
+          : '';
+      const googleUrl = `https://www.google.com/maps/dir/?api=1&${originParam}destination=${encodeURIComponent(
+        destinationAddress
+      )}${waypointsParam}&travelmode=driving`;
+      window.open(googleUrl, '_blank');
+    }
   };
 
   // Geocode Custom Address
