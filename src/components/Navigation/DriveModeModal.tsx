@@ -205,6 +205,10 @@ export function DriveModeModal({
     window.open(navUrl, '_blank');
   };
 
+  const handlePushToTruck = () => {
+    handleOpenNativeMaps();
+  };
+
   // Stop Arrival & CRA Mileage Modal
   const [showArrivalModal, setShowArrivalModal] = useState<boolean>(false);
   const [selectedPurpose, setSelectedPurpose] = useState<PurposeTag>('Sales Call / Inbound Inquiry');
@@ -786,6 +790,17 @@ export function DriveModeModal({
             title="Toggle Voice Guidance"
           >
             {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+
+          {/* Push to Truck Button */}
+          <button
+            onClick={handlePushToTruck}
+            type="button"
+            className="flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-2xl shadow-lg border border-slate-700 transition-all active:scale-95"
+            title="Push to Truck (CarPlay / Android Auto)"
+          >
+            <span className="text-base">🛻</span>
+            <span className="hidden sm:inline font-bold">Push to Truck</span>
           </button>
 
           <button

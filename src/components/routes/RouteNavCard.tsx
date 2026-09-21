@@ -189,6 +189,10 @@ export function RouteNavCard({
     window.open(navUrl, '_blank');
   };
 
+  const handlePushToTruck = () => {
+    handleOpenNativeMaps();
+  };
+
   // Geocode Custom Address
   const handleGeocodeCivic = async (addrToSearch?: string) => {
     const q = addrToSearch || civicAddress;
@@ -649,13 +653,14 @@ export function RouteNavCard({
           <span>{isNavigating ? 'Resume Navigation' : 'Start In-App Drive Mode'}</span>
         </button>
 
+        {/* Push to Truck Button */}
         <button
+          onClick={handlePushToTruck}
           type="button"
-          onClick={handleOpenNativeMaps}
-          className="w-full py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700/70 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-sm active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-lg border border-slate-700 transition-all active:scale-95 my-2"
         >
-          <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
-          <span>Open Multi-Stop in Apple / Google Maps</span>
+          <span className="text-lg">🛻</span>
+          <span>Push to Truck (CarPlay / Android Auto)</span>
         </button>
 
         <div className="grid grid-cols-2 gap-2 text-xs font-bold">
