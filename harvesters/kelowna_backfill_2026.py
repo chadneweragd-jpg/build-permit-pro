@@ -162,7 +162,7 @@ GROUND_TRUTH_KELOWNA_REGISTRY = [
         "permit_number": "BP26-001338",
         "address": "5043 Hill Spring Ct, Kelowna, BC",
         "applicant_name": "Private Applicant",
-        "contractor_name": "LAKEHOUSE CUSTOM HOMES LTD, 5014 TWINFLOWER CRES",
+        "contractor_name": "LAKEHOUSE CUSTOM HOMES LTD",
         "permit_type": "Single Family Dwelling New",
         "estimated_value": 870000.0,
         "issue_date": "2026-09-14",

@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BPPLogo } from '@/components/Common/BPPLogo';
+import { AuthService, UserProfile, PARTNER_ACCOUNTS } from '@/lib/auth-service';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   LayoutGrid,
   FileText,
@@ -15,7 +17,9 @@ import {
   ChevronRight,
   Car,
   Columns,
-  X
+  X,
+  Users,
+  Check
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,6 +34,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose
 }) => {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<UserProfile>(AuthService.getActiveUserSync());
+  const [showPartnerSwitcher, setShowPartnerSwitcher] = useState(false);
+
+  useEffect(() => {
+    const syncUser = async () => {
+      const u = await AuthService.getCurrentUser();
+      setCurrentUser(u);
+    };
+
+    syncUser();
+
+    if (isSupabaseConfigured && supabase) {
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user?.email) {
+          setCurrentUser(
+            AuthService.formatUserProfile(
+              session.user.id,
+              session.user.email,
+              session.user.user_metadata?.full_name
+            )
+          );
+        }
+      });
+
+      const handleUserChange = () => {
+        syncUser();
+      };
+      window.addEventListener('bpp_user_changed', handleUserChange);
+
+      return () => {
+        listener?.subscription?.unsubscribe();
+        window.removeEventListener('bpp_user_changed', handleUserChange);
+      };
+    }
+  }, []);
 
   const navLinks = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
@@ -126,34 +165,91 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Sidebar Footer: User Profile Card */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/40 shrink-0">
-        <Link
-          href="/settings"
-          onClick={() => isMobile && onClose?.()}
-          className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-800/80 transition-all group"
-        >
-          {/* Avatar */}
-          <div className="relative">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md border border-slate-700">
-              DE
+      <div className="p-3 border-t border-slate-800 bg-slate-950/40 shrink-0 relative">
+        {showPartnerSwitcher && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
+              <span>Switch Partner Session</span>
+              <span className="text-blue-400">Beta Testing</span>
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-1">
-              <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">
-                Dave Estimator
-              </span>
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <div className="space-y-1 mt-1">
+              {PARTNER_ACCOUNTS.map((p) => {
+                const isSelected = p.email.toLowerCase() === currentUser.email.toLowerCase();
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      AuthService.setActiveUser(p.email);
+                      setCurrentUser(p);
+                      setShowPartnerSwitcher(false);
+                    }}
+                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all text-xs ${
+                      isSelected
+                        ? 'bg-blue-600 text-white font-bold'
+                        : 'text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-bold text-[10px] shrink-0">
+                        {p.initials}
+                      </div>
+                      <div className="truncate">
+                        <span className="block font-bold truncate">{p.name}</span>
+                        <span className="block text-[10px] opacity-75 truncate">{p.email}</span>
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-2" />}
+                  </button>
+                );
+              })}
             </div>
-            <p className="text-[11px] text-slate-400 truncate">
-              Okanagan Builders Ltd &bull; Pro Scout
-            </p>
           </div>
+        )}
 
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/settings"
+            onClick={() => isMobile && onClose?.()}
+            className="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-slate-800/80 transition-all group flex-1 min-w-0"
+          >
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md border border-slate-700">
+                {currentUser.initials}
+              </div>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-1.5">
+                <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">
+                  {currentUser.name}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30 shrink-0">
+                  {currentUser.tierBadge}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                {currentUser.email}
+              </p>
+            </div>
+          </Link>
+
+          {/* Quick Partner Switcher Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowPartnerSwitcher(!showPartnerSwitcher)}
+            className={`p-2 rounded-xl transition-colors shrink-0 ml-1 ${
+              showPartnerSwitcher
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Switch Partner Session (Chad, David, Carter)"
+          >
+            <Users className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </>
   );

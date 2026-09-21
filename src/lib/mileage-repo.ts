@@ -1,5 +1,6 @@
 import { TripLeg, TripType, PurposeTag } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { AuthService } from './auth-service';
 
 const MILEAGE_STORAGE_KEY = 'bpp_trip_legs_v1';
 
@@ -99,8 +100,9 @@ export const INITIAL_TRIP_LEGS: TripLeg[] = [
 export class MileageRepository {
   private static cachedLegs: TripLeg[] | null = null;
 
-  public static getStoredLegs(): TripLeg[] {
-    if (this.cachedLegs) return this.cachedLegs;
+  public static getStoredLegs(targetUserId?: string): TripLeg[] {
+    const activeId = targetUserId || (typeof window !== 'undefined' ? AuthService.getActiveUserId() : undefined);
+    if (this.cachedLegs && !activeId) return this.cachedLegs;
 
     if (typeof window === 'undefined') {
       return INITIAL_TRIP_LEGS;
@@ -109,8 +111,10 @@ export class MileageRepository {
     try {
       const stored = localStorage.getItem(MILEAGE_STORAGE_KEY);
       if (stored) {
-        this.cachedLegs = JSON.parse(stored);
-        return this.cachedLegs!;
+        const list: TripLeg[] = JSON.parse(stored);
+        this.cachedLegs = list;
+        if (!activeId) return list;
+        return list.filter(l => !l.user_id || l.user_id === activeId);
       }
       localStorage.setItem(MILEAGE_STORAGE_KEY, JSON.stringify(INITIAL_TRIP_LEGS));
       this.cachedLegs = [...INITIAL_TRIP_LEGS];
@@ -171,6 +175,7 @@ export class MileageRepository {
   }
 
   public static async logTripLeg(entry: {
+    user_id?: string;
     origin_address: string;
     destination_address: string;
     distance_km: number;
@@ -198,6 +203,7 @@ export class MileageRepository {
 
     const newLeg: TripLeg = {
       id: `leg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      user_id: entry.user_id || AuthService.getActiveUserId(),
       origin_address: entry.origin_address,
       destination_address: entry.destination_address,
       distance_km: Number(entry.distance_km.toFixed(2)),
@@ -226,6 +232,7 @@ export class MileageRepository {
       try {
         await supabase.from('trip_legs').insert({
           id: newLeg.id.startsWith('leg-') ? undefined : newLeg.id,
+          user_id: newLeg.user_id,
           origin_address: newLeg.origin_address,
           destination_address: newLeg.destination_address,
           distance_km: newLeg.distance_km,

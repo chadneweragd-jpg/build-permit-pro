@@ -74,6 +74,7 @@ export interface TurnByTurnInstruction {
 
 export interface SavedRoute {
   id: string;
+  user_id?: string;
   title: string;
   origin_address: string;
   origin_coords: [number, number]; // [lat, lng]

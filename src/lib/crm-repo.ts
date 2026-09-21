@@ -1,5 +1,6 @@
 import { CRMDeal, DealStage, Permit } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { AuthService } from './auth-service';
 
 const CRM_DEALS_STORAGE_KEY = 'bpp_crm_deals_v1';
 
@@ -218,7 +219,8 @@ export class CRMRepository {
   /**
    * Get all deals from storage / in-memory cache
    */
-  public static getDeals(): CRMDeal[] {
+  public static getDeals(targetUserId?: string): CRMDeal[] {
+    const activeId = targetUserId || (typeof window !== 'undefined' ? AuthService.getActiveUserId() : undefined);
     if (typeof window === 'undefined') {
       return this.cachedDeals;
     }
@@ -228,7 +230,8 @@ export class CRMRepository {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          if (!activeId) return parsed;
+          return parsed.filter((d: CRMDeal) => !d.user_id || d.user_id === activeId);
         }
       }
       localStorage.setItem(CRM_DEALS_STORAGE_KEY, JSON.stringify(this.cachedDeals));
@@ -335,6 +338,7 @@ export class CRMRepository {
 
     const newDeal: CRMDeal = {
       id: `deal-${Date.now()}`,
+      user_id: AuthService.getActiveUserId(),
       permit_id: permit.id,
       permit_number: permit.permit_number,
       project_name: permit.description ? permit.description.substring(0, 45) : `${permit.address} Scope`,
@@ -363,6 +367,7 @@ export class CRMRepository {
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('crm_deals').insert({
+          user_id: newDeal.user_id,
           permit_id: permit.id.includes('-') && permit.id.length === 36 ? permit.id : null,
           project_name: newDeal.project_name,
           address: newDeal.address,

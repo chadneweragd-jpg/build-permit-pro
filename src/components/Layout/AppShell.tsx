@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ScoutVoiceAssistant } from '@/components/Scout/ScoutVoiceAssistant';
+import { BugReporter } from '@/components/feedback/BugReporter';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -36,8 +37,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </main>
       </div>
 
-      {/* Global In-App Scout AI Voice & Chat Assistant */}
+      {/* Global In-App Scout AI Voice & Chat Assistant (Bottom-Right) */}
       <ScoutVoiceAssistant />
+
+      {/* Floating In-App Bug & Feedback Widget (Bottom-Left) */}
+      <BugReporter />
     </div>
   );
 };

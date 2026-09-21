@@ -13,7 +13,7 @@
     "description": "Construct new 2-storey single family dwelling with attached double garage, 200A electrical service, ducted heat pump HVAC, wood frame timber trusses, and asphalt shingle roof.",
     "ai_summary": "Residential approved permit for 5043 Hill Spring Ct, Kelowna, BC ($870,000), involving construct new 2-storey single family dwelling with attached double garage, 200a electrical service, ducted heat .... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Roofing with immediate estimation relevance.",
     "estimated_value": 870000.0,
-    "contractor_name": "LAKEHOUSE CUSTOM HOMES LTD, 5014 TWINFLOWER CRES",
+    "contractor_name": "LAKEHOUSE CUSTOM HOMES LTD",
     "contractor_phone": "(250) 860-0100",
     "contractor_email": "estimating@contractor.bc.ca",
     "applicant_name": "Private Applicant",
@@ -61,9 +61,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "truss",
           "wood frame",
-          "timber",
-          "truss"
+          "timber"
         ]
       },
       {
@@ -180,8 +180,8 @@
         "icon": "Flame",
         "confidence": 1.0,
         "matched_terms": [
-          "hvac",
-          "plumb"
+          "plumb",
+          "hvac"
         ]
       },
       {
@@ -191,8 +191,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "fit-out",
           "steel stud",
+          "fit-out",
           "tenant improvement"
         ]
       }
@@ -227,8 +227,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "lighting",
-          "electr"
+          "electr",
+          "lighting"
         ]
       },
       {
@@ -273,7 +273,7 @@
         "confidence": 1.0,
         "matched_terms": [
           "acoustic ceiling",
-          "drywall",
+          "ceiling",
           "t-bar"
         ]
       },
@@ -316,9 +316,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "truss",
           "wood frame",
-          "timber",
-          "truss"
+          "timber"
         ]
       },
       {
@@ -489,8 +489,8 @@
         "icon": "Home",
         "confidence": 0.7,
         "matched_terms": [
-          "roof",
-          "shingle"
+          "shingle",
+          "roof"
         ]
       },
       {
@@ -556,8 +556,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "engineered wood",
-          "framing"
+          "framing",
+          "engineered wood"
         ]
       },
       {
@@ -702,9 +702,9 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
+          "electr",
           "lighting",
-          "wiring",
-          "electr"
+          "wiring"
         ]
       },
       {
@@ -758,8 +758,8 @@
         "icon": "Zap",
         "confidence": 0.7,
         "matched_terms": [
-          "lighting",
-          "electr"
+          "electr",
+          "lighting"
         ]
       },
       {
@@ -823,8 +823,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "200a",
           "panel",
+          "200a",
           "electr"
         ]
       },
@@ -835,9 +835,9 @@
         "icon": "Flame",
         "confidence": 1.0,
         "matched_terms": [
+          "plumb",
           "heat pump",
-          "hvac",
-          "plumb"
+          "hvac"
         ]
       },
       {
@@ -848,8 +848,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "framing",
-          "drywall",
-          "tenant improvement"
+          "tenant improvement",
+          "drywall"
         ]
       }
     ]
@@ -950,8 +950,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "ceiling"
+          "ceiling",
+          "drywall"
         ]
       },
       {
@@ -1125,8 +1125,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "200a",
-          "panel"
+          "panel",
+          "200a"
         ]
       },
       {
@@ -1147,9 +1147,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "truss",
           "wood frame",
-          "drywall",
-          "truss"
+          "drywall"
         ]
       },
       {
@@ -1263,8 +1263,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "600v",
-          "lighting"
+          "lighting",
+          "600v"
         ]
       },
       {
@@ -1326,7 +1326,7 @@
         "icon": "Home",
         "confidence": 1.0,
         "matched_terms": [
-          "parapet",
+          "membrane",
           "waterproofing",
           "roof"
         ]
@@ -1378,9 +1378,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "truss",
           "wood frame",
-          "timber",
-          "truss"
+          "timber"
         ]
       },
       {
@@ -1433,8 +1433,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "lighting",
-          "electr"
+          "electr",
+          "lighting"
         ]
       },
       {
@@ -1479,8 +1479,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "electr",
-          "400a",
-          "3-phase"
+          "3-phase",
+          "400a"
         ]
       },
       {
@@ -1490,9 +1490,9 @@
         "icon": "Flame",
         "confidence": 1.0,
         "matched_terms": [
-          "hvac",
+          "sprinkler",
           "mechanical",
-          "sprinkler"
+          "hvac"
         ]
       },
       {
@@ -1502,8 +1502,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "tenant improvement"
+          "tenant improvement",
+          "drywall"
         ]
       },
       {
@@ -1547,8 +1547,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "wiring",
-          "electr"
+          "electr",
+          "wiring"
         ]
       },
       {
@@ -1558,9 +1558,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "partition",
-          "ceiling"
+          "t-bar",
+          "ceiling",
+          "drywall"
         ]
       },
       {
@@ -1604,9 +1604,9 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
+          "truss",
           "wood frame",
-          "timber"
+          "drywall"
         ]
       },
       {
@@ -1820,8 +1820,8 @@
         "icon": "Layers",
         "confidence": 0.7,
         "matched_terms": [
-          "drywall",
-          "gypsum"
+          "gypsum",
+          "drywall"
         ]
       },
       {
@@ -1865,8 +1865,8 @@
         "icon": "Home",
         "confidence": 0.7,
         "matched_terms": [
-          "roof",
-          "shingle"
+          "shingle",
+          "roof"
         ]
       },
       {
@@ -1910,9 +1910,9 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "200a",
           "panel",
-          "electr"
+          "200a",
+          "3-phase"
         ]
       },
       {
@@ -1957,8 +1957,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "tpo",
-          "roof",
-          "membrane"
+          "membrane",
+          "roof"
         ]
       },
       {
@@ -2013,8 +2013,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "wood frame",
-          "drywall",
-          "gypsum"
+          "gypsum",
+          "drywall"
         ]
       },
       {
@@ -2080,8 +2080,8 @@
         "icon": "Flame",
         "confidence": 0.7,
         "matched_terms": [
-          "hvac",
-          "plumb"
+          "plumb",
+          "hvac"
         ]
       },
       {
@@ -2136,8 +2136,8 @@
         "icon": "Home",
         "confidence": 0.7,
         "matched_terms": [
-          "sbs",
-          "roof"
+          "roof",
+          "sbs"
         ]
       },
       {
@@ -2191,8 +2191,8 @@
         "icon": "Flame",
         "confidence": 1.0,
         "matched_terms": [
-          "hvac",
-          "plumb"
+          "plumb",
+          "hvac"
         ]
       },
       {
@@ -2202,8 +2202,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "tenant improvement"
+          "tenant improvement",
+          "drywall"
         ]
       }
     ]
@@ -2293,8 +2293,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "lighting",
-          "electr"
+          "electr",
+          "lighting"
         ]
       },
       {
@@ -2304,8 +2304,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "t-bar"
+          "t-bar",
+          "drywall"
         ]
       },
       {
@@ -2350,8 +2350,8 @@
         "icon": "Flame",
         "confidence": 0.7,
         "matched_terms": [
-          "heat pump",
-          "plumb"
+          "plumb",
+          "heat pump"
         ]
       },
       {
@@ -2406,8 +2406,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "steel stud",
-          "drywall",
-          "framing"
+          "framing",
+          "drywall"
         ]
       },
       {
@@ -2490,8 +2490,8 @@
         "icon": "Home",
         "confidence": 0.7,
         "matched_terms": [
-          "roof",
-          "shingle"
+          "shingle",
+          "roof"
         ]
       }
     ]
@@ -2525,8 +2525,8 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "lighting",
-          "electr"
+          "electr",
+          "lighting"
         ]
       },
       {
@@ -2582,8 +2582,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "tpo",
-          "roof",
-          "membrane"
+          "membrane",
+          "roof"
         ]
       },
       {
@@ -2593,8 +2593,8 @@
         "icon": "Zap",
         "confidence": 0.7,
         "matched_terms": [
-          "400a",
-          "3-phase"
+          "3-phase",
+          "400a"
         ]
       },
       {
@@ -2604,8 +2604,8 @@
         "icon": "Layers",
         "confidence": 0.7,
         "matched_terms": [
-          "framing",
-          "structural steel"
+          "structural steel",
+          "framing"
         ]
       },
       {
@@ -2908,8 +2908,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "drywall",
-          "tenant improvement"
+          "tenant improvement",
+          "drywall"
         ]
       },
       {
@@ -2953,8 +2953,8 @@
         "icon": "Layers",
         "confidence": 0.7,
         "matched_terms": [
-          "framing",
-          "structural steel"
+          "structural steel",
+          "framing"
         ]
       },
       {
@@ -3029,8 +3029,8 @@
         "icon": "Layers",
         "confidence": 0.7,
         "matched_terms": [
-          "timber",
-          "truss"
+          "truss",
+          "timber"
         ]
       },
       {
@@ -3082,8 +3082,8 @@
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "steel stud",
           "acoustic ceiling",
+          "steel stud",
           "partition"
         ]
       },

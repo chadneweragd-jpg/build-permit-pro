@@ -1,5 +1,6 @@
 import { SavedRoute, RouteStop, Permit, TurnByTurnInstruction } from '@/types';
 import * as turf from '@turf/turf';
+import { AuthService } from './auth-service';
 
 const ROUTES_STORAGE_KEY = 'bpp_saved_routes_v2';
 const FAVORITES_STORAGE_KEY = 'bpp_user_favorites_v2';
@@ -127,12 +128,15 @@ export const INITIAL_SAVED_ROUTES: SavedRoute[] = [
 ];
 
 export class RoutesRepository {
-  public static getSavedRoutes(): SavedRoute[] {
+  public static getSavedRoutes(targetUserId?: string): SavedRoute[] {
+    const activeId = targetUserId || (typeof window !== 'undefined' ? AuthService.getActiveUserId() : undefined);
     if (typeof window === 'undefined') return INITIAL_SAVED_ROUTES;
     try {
       const stored = localStorage.getItem(ROUTES_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const list: SavedRoute[] = JSON.parse(stored);
+        if (!activeId) return list;
+        return list.filter(r => !r.user_id || r.user_id === activeId);
       }
       localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(INITIAL_SAVED_ROUTES));
       return INITIAL_SAVED_ROUTES;
@@ -147,28 +151,35 @@ export class RoutesRepository {
   }
 
   public static saveRoute(route: SavedRoute): SavedRoute {
-    const routes = this.getSavedRoutes();
-    const idx = routes.findIndex((r) => r.id === route.id);
-    const updated = {
+    const allStored: SavedRoute[] = typeof window !== 'undefined' && localStorage.getItem(ROUTES_STORAGE_KEY)
+      ? JSON.parse(localStorage.getItem(ROUTES_STORAGE_KEY)!)
+      : [...INITIAL_SAVED_ROUTES];
+
+    const activeId = route.user_id || AuthService.getActiveUserId();
+    const updated: SavedRoute = {
       ...route,
+      user_id: activeId,
       updated_at: new Date().toISOString()
     };
 
+    const idx = allStored.findIndex((r) => r.id === route.id);
     if (idx >= 0) {
-      routes[idx] = updated;
+      allStored[idx] = updated;
     } else {
-      routes.unshift(updated);
+      allStored.unshift(updated);
     }
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(routes));
+      localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(allStored));
     }
     return updated;
   }
 
   public static createNewRoute(title?: string): SavedRoute {
+    const activeId = AuthService.getActiveUserId();
     const newRoute: SavedRoute = {
       id: `route-${Date.now()}`,
+      user_id: activeId,
       title: title || 'New Trade Route',
       origin_address: 'Downtown Kelowna (Queensway)',
       origin_coords: [49.8870, -119.4960],
@@ -183,10 +194,13 @@ export class RoutesRepository {
       directions: []
     };
 
-    const routes = this.getSavedRoutes();
-    routes.unshift(newRoute);
+    const allStored: SavedRoute[] = typeof window !== 'undefined' && localStorage.getItem(ROUTES_STORAGE_KEY)
+      ? JSON.parse(localStorage.getItem(ROUTES_STORAGE_KEY)!)
+      : [...INITIAL_SAVED_ROUTES];
+
+    allStored.unshift(newRoute);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(routes));
+      localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(allStored));
     }
     return newRoute;
   }
