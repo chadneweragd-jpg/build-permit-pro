@@ -5,8 +5,11 @@ import { SubtradeKey, WorkClass } from '@/types';
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
-  // Sync latest from Supabase
-  await PermitsRepository.fetchPermitsFromSupabase();
+  // Extract date range preset ('30d', '90d', '6m', '2026', 'all')
+  const dateRange = searchParams.get('dateRange') || searchParams.get('date_range') || undefined;
+
+  // Sync latest from Supabase with server-side date filter applied
+  await PermitsRepository.fetchPermitsFromSupabase(dateRange);
 
   const trades = searchParams.get('trades') ? (searchParams.get('trades')!.split(',') as SubtradeKey[]) : undefined;
   const minValue = searchParams.get('minValue') ? parseFloat(searchParams.get('minValue')!) : undefined;
@@ -19,7 +22,8 @@ export async function GET(req: Request) {
     minValue,
     workClasses,
     permitType,
-    searchQuery: q
+    searchQuery: q,
+    dateRange
   });
 
   return NextResponse.json({

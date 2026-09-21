@@ -12,11 +12,11 @@ export class PermitsRepository {
   /**
    * Asynchronously fetches all permits from live Supabase if available
    */
-  public static async fetchPermitsFromSupabase(): Promise<Permit[]> {
+  public static async fetchPermitsFromSupabase(dateRange?: string): Promise<Permit[]> {
     if (!isSupabaseConfigured || !supabase) return this.cachedPermits;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('permits')
         .select(`
           *,
@@ -29,8 +29,25 @@ export class PermitsRepository {
               icon_name
             )
           )
-        `)
-        .order('issue_date', { ascending: false });
+        `);
+
+      if (dateRange && dateRange !== 'all') {
+        const now = new Date();
+        if (dateRange === '30d') {
+          const d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          query = query.gte('issue_date', d.toISOString().split('T')[0]);
+        } else if (dateRange === '90d') {
+          const d = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          query = query.gte('issue_date', d.toISOString().split('T')[0]);
+        } else if (dateRange === '6m') {
+          const d = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+          query = query.gte('issue_date', d.toISOString().split('T')[0]);
+        } else if (dateRange === '2026') {
+          query = query.gte('issue_date', '2026-01-01');
+        }
+      }
+
+      const { data, error } = await query.order('issue_date', { ascending: false });
 
       if (error || !data || data.length === 0) {
         return this.cachedPermits;
@@ -107,8 +124,29 @@ export class PermitsRepository {
     workClasses?: WorkClass[];
     permitType?: string;
     searchQuery?: string;
+    dateRange?: string;
   }): Permit[] {
     let list = this.cachedPermits;
+
+    if (options.dateRange && options.dateRange !== 'all') {
+      const now = new Date();
+      let cutoff: string | null = null;
+      if (options.dateRange === '30d') {
+        const d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        cutoff = d.toISOString().split('T')[0];
+      } else if (options.dateRange === '90d') {
+        const d = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        cutoff = d.toISOString().split('T')[0];
+      } else if (options.dateRange === '6m') {
+        const d = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+        cutoff = d.toISOString().split('T')[0];
+      } else if (options.dateRange === '2026') {
+        cutoff = '2026-01-01';
+      }
+      if (cutoff) {
+        list = list.filter((p) => p.issue_date >= cutoff!);
+      }
+    }
 
     if (options.selectedTrades && options.selectedTrades.length > 0) {
       list = list.filter((p) =>

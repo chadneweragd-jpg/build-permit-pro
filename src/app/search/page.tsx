@@ -35,6 +35,7 @@ function SearchExplorerContent() {
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedPermitType, setSelectedPermitType] = useState('All Permit Types');
   const [selectedValueTier, setSelectedValueTier] = useState<number>(0);
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('90d');
   const [sortOrder, setSortOrder] = useState<'newest' | 'highest_value'>('newest');
 
   // Mobile Map vs. List Toggle View
@@ -121,6 +122,24 @@ function SearchExplorerContent() {
       list = list.filter((p) => (p.estimated_value || 0) >= selectedValueTier);
     }
 
+    if (selectedDateRange && selectedDateRange !== 'all') {
+      const now = new Date();
+      let cutoffDate: Date | null = null;
+      if (selectedDateRange === '30d') {
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else if (selectedDateRange === '90d') {
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      } else if (selectedDateRange === '6m') {
+        cutoffDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+      } else if (selectedDateRange === '2026') {
+        cutoffDate = new Date('2026-01-01T00:00:00Z');
+      }
+      if (cutoffDate) {
+        const cutoffStr = cutoffDate.toISOString().split('T')[0];
+        list = list.filter((p) => p.issue_date >= cutoffStr);
+      }
+    }
+
     // Sorting
     return [...list].sort((a, b) => {
       if (sortOrder === 'highest_value') {
@@ -128,17 +147,19 @@ function SearchExplorerContent() {
       }
       return new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime();
     });
-  }, [allPermits, selectedLocation, selectedPermitType, selectedValueTier, sortOrder]);
+  }, [allPermits, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
   const activeFilterCount =
     (selectedLocation !== 'All Locations' ? 1 : 0) +
     (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types' ? 1 : 0) +
-    (selectedValueTier > 0 ? 1 : 0);
+    (selectedValueTier > 0 ? 1 : 0) +
+    (selectedDateRange !== '90d' ? 1 : 0);
 
   const handleClearAll = () => {
     setSelectedLocation('All Locations');
     setSelectedPermitType('All Permit Types');
     setSelectedValueTier(0);
+    setSelectedDateRange('90d');
   };
 
   return (
@@ -151,6 +172,8 @@ function SearchExplorerContent() {
         setSelectedPermitType={setSelectedPermitType}
         selectedValueTier={selectedValueTier}
         setSelectedValueTier={setSelectedValueTier}
+        selectedDateRange={selectedDateRange}
+        setSelectedDateRange={setSelectedDateRange}
         onClearAll={handleClearAll}
         activeFilterCount={activeFilterCount}
       />
