@@ -32,6 +32,7 @@ import {
 import { CRMDeal, DealStage, Permit } from '@/types';
 import { CRMRepository, DEAL_STAGES } from '@/lib/crm-repo';
 import { PermitsRepository } from '@/lib/permits-repo';
+import { DealCard } from '@/components/CRM/DealCard';
 
 export default function PipelinePage() {
   const router = useRouter();
@@ -395,81 +396,15 @@ export default function PipelinePage() {
 
                 {/* Column Cards Drop Area */}
                 <div className="p-3 flex-1 space-y-3 overflow-y-auto">
-                  {columnDeals.map((deal) => {
-                    const pastDue = isPastDue(deal.follow_up_date);
-
-                    return (
-                      <div
-                        key={deal.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, deal.id)}
-                        onClick={() => handleOpenDrawer(deal)}
-                        className="group bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 shadow-sm hover:shadow-md transition-all cursor-pointer relative"
-                      >
-                        {/* Address & Permit Badge */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h3 className="font-bold text-xs text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {deal.address}
-                            </h3>
-                            {deal.permit_number && (
-                              <span className="inline-block mt-0.5 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                {deal.permit_number}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Quick Stage Mover Dropdown */}
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            className="shrink-0"
-                          >
-                            <select
-                              value={deal.stage}
-                              onChange={(e) => handleStageChange(deal.id, e.target.value as DealStage)}
-                              className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 py-0.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
-                              {DEAL_STAGES.map((s) => (
-                                <option key={s.key} value={s.key}>
-                                  {s.shortLabel}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Trade Tag & Quote Value */}
-                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
-                            {deal.subtrade_category}
-                          </span>
-                          <span className="font-mono font-black text-xs text-slate-900 dark:text-white">
-                            ${deal.quote_amount.toLocaleString('en-CA')} CAD
-                          </span>
-                        </div>
-
-                        {/* GC Contact & Follow-up Date */}
-                        <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                          <span className="truncate max-w-[140px]">
-                            {deal.general_contractor || 'General Contractor'}
-                          </span>
-
-                          {deal.follow_up_date && (
-                            <span
-                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center space-x-1 ${
-                                pastDue
-                                  ? 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 animate-pulse'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                              }`}
-                            >
-                              <Calendar className="w-3 h-3" />
-                              <span>{deal.follow_up_date.substring(5)}</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {columnDeals.map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      deal={deal}
+                      onDragStart={handleDragStart}
+                      onClick={handleOpenDrawer}
+                      onStageChange={handleStageChange}
+                    />
+                  ))}
 
                   {columnDeals.length === 0 && (
                     <div className="h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
