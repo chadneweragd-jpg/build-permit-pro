@@ -6,6 +6,7 @@ import * as maplibregl from 'maplibre-gl';
 import { SavedRoute, RouteStop, Permit, TurnByTurnInstruction, TripLeg, PurposeTag, JobRadarAlert } from '@/types';
 import { CircuitLeg, CircuitResult } from '@/lib/spatial';
 import { MileageRepository } from '@/lib/mileage-repo';
+import { CRMRepository } from '@/lib/crm-repo';
 import { JobRadarOverlay } from './JobRadarOverlay';
 import {
   getAvailableVoices,
@@ -29,7 +30,8 @@ import {
   MapPin,
   FileCheck,
   Radio,
-  Gauge
+  Gauge,
+  Columns
 } from 'lucide-react';
 
 export { speakNaturalUtil as speakNatural };
@@ -169,9 +171,55 @@ export function DriveModeModal({
 
   // Stop Arrival & CRA Mileage Modal
   const [showArrivalModal, setShowArrivalModal] = useState<boolean>(false);
-  const [selectedPurpose, setSelectedPurpose] = useState<PurposeTag>('Sales Call');
+  const [selectedPurpose, setSelectedPurpose] = useState<PurposeTag>('Sales Call / Inbound Inquiry');
   const [tripNotes, setTripNotes] = useState<string>('');
   const [isSavingLeg, setIsSavingLeg] = useState<boolean>(false);
+  const [isAddingToCrm, setIsAddingToCrm] = useState<boolean>(false);
+  const [crmAddedToast, setCrmAddedToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (showArrivalModal) {
+      const currentStop = route.stops[currentLegIndex];
+      if (currentStop?.purpose_tag) {
+        setSelectedPurpose(currentStop.purpose_tag);
+      }
+      if (currentStop?.notes) {
+        setTripNotes(currentStop.notes);
+      }
+      setCrmAddedToast(null);
+    }
+  }, [showArrivalModal, currentLegIndex, route.stops]);
+
+  const handleAddToCrmPipeline = async () => {
+    const legToLog = activeLeg || {
+      originAddress: route.origin_address,
+      destinationAddress: route.destination_address,
+      distanceKm: route.total_distance_km,
+      durationMin: route.total_duration_min,
+      permitNumber: route.stops[0]?.permit_number
+    };
+
+    setIsAddingToCrm(true);
+    try {
+      const currentStop = route.stops[currentLegIndex];
+      await CRMRepository.createManualDeal({
+        address: legToLog.destinationAddress,
+        project_name: `${legToLog.destinationAddress.split(',')[0]} Scope`,
+        general_contractor: currentStop?.permit_number ? `Permit ${currentStop.permit_number}` : 'Public / Civic Inquiry',
+        contact_name: 'On-Site Contact',
+        subtrade_category: 'General Field Scope',
+        stage: 'visited',
+        quote_amount: 0,
+        notes: tripNotes || `Customer inquiry recorded on-site during drive: ${selectedPurpose}`
+      });
+      setCrmAddedToast('✓ Deal added to CRM Pipeline as Site Visited!');
+      setTimeout(() => setCrmAddedToast(null), 4000);
+    } catch (err) {
+      console.error('Failed to add deal to CRM:', err);
+    } finally {
+      setIsAddingToCrm(false);
+    }
+  };
 
   // Live Job Radar State
   const [radarAlerts, setRadarAlerts] = useState<JobRadarAlert[]>([]);
@@ -325,11 +373,12 @@ export function DriveModeModal({
         .setLngLat([initLng, initLat])
         .addTo(map);
 
-      // Render Stop Markers
+      // Render Stop Markers: Orange for Civic Stops, Red for Permit Stops
       route.stops.forEach((stop, idx) => {
+        const isCivic = stop.is_custom_address || !stop.permit_id;
         const stopEl = document.createElement('div');
         stopEl.innerHTML = `
-          <div style="background: #10B981; color: white; font-weight: 900; font-size: 11px; width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.4);">
+          <div style="background: ${isCivic ? '#f59e0b' : '#dc2626'}; color: ${isCivic ? '#0f172a' : '#ffffff'}; font-weight: 900; font-size: 11px; width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.4);">
             ${idx + 1}
           </div>
         `;
@@ -977,17 +1026,25 @@ export function DriveModeModal({
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
                 CRA Purpose Tag
               </label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {(['Sales Call', 'Site Measure', 'Installer Check', 'Delivery', 'Office', 'Personal'] as PurposeTag[]).map((tag) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {[
+                  'Sales Call / Inbound Inquiry',
+                  'Site Measure / Pre-Walk',
+                  'Warranty / Service Check',
+                  'Installer / Crew Checkup',
+                  'Office / Base',
+                  'Personal / Lunch'
+                ].map((tag) => (
                   <button
                     key={tag}
                     type="button"
-                    onClick={() => setSelectedPurpose(tag)}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all ${
+                    onClick={() => setSelectedPurpose(tag as PurposeTag)}
+                    className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all truncate text-left ${
                       selectedPurpose === tag
                         ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30'
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
+                    title={tag}
                   >
                     {tag}
                   </button>
@@ -1004,21 +1061,37 @@ export function DriveModeModal({
                 type="text"
                 value={tripNotes}
                 onChange={(e) => setTripNotes(e.target.value)}
-                placeholder="e.g. Discussed conduit layout with superintendent on site"
+                placeholder="e.g. Discussed scope with superintendent or customer inquiry on site"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Submit Action */}
-            <div className="pt-2">
+            {/* Actions: Log Leg & Add to CRM */}
+            <div className="pt-2 space-y-2">
               <button
                 onClick={handleConfirmArrivalAndLogLeg}
                 disabled={isSavingLeg}
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center space-x-2 shadow-xl shadow-emerald-600/25 transition-all disabled:opacity-50"
+                className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center space-x-2 shadow-xl shadow-emerald-600/25 transition-all disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{isSavingLeg ? 'Logging to CRA Logbook...' : 'Log Leg & Continue Route'}</span>
+                <span>{isSavingLeg ? 'Logging to CRA Logbook...' : 'Log CRA Leg & Continue Route'}</span>
               </button>
+
+              <button
+                type="button"
+                onClick={handleAddToCrmPipeline}
+                disabled={isAddingToCrm}
+                className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                <Columns className="w-3.5 h-3.5 text-purple-400" />
+                <span>{isAddingToCrm ? 'Adding Deal to Pipeline...' : '+ Add Inquiry to CRM Pipeline (Site Visited)'}</span>
+              </button>
+
+              {crmAddedToast && (
+                <div className="text-[11px] text-emerald-400 font-bold text-center pt-1 animate-in fade-in">
+                  {crmAddedToast}
+                </div>
+              )}
             </div>
           </div>
         </div>

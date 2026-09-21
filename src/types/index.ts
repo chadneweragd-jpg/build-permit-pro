@@ -57,6 +57,9 @@ export interface RouteStop {
   estimated_value?: number;
   trades?: MatchedTrade[];
   is_completed?: boolean;
+  is_custom_address?: boolean;
+  purpose_tag?: PurposeTag;
+  notes?: string;
 }
 
 export interface TurnByTurnInstruction {
@@ -125,6 +128,12 @@ export interface SavedSearch {
 export type TripType = 'business' | 'personal';
 
 export type PurposeTag =
+  | 'Sales Call / Inbound Inquiry'
+  | 'Site Measure / Pre-Walk'
+  | 'Warranty / Service Check'
+  | 'Installer / Crew Checkup'
+  | 'Office / Base'
+  | 'Personal / Lunch'
   | 'Sales Call'
   | 'Site Measure'
   | 'Installer Check'

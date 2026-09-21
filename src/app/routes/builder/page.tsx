@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { RoutesRepository } from '@/lib/routes-repo';
 import { PermitsRepository } from '@/lib/permits-repo';
-import { SavedRoute, RouteStop, Permit, TurnByTurnInstruction, TripLeg } from '@/types';
+import { SavedRoute, RouteStop, Permit, TurnByTurnInstruction, TripLeg, PurposeTag } from '@/types';
 import {
   fetchDrivingRoute,
   generateRouteBuffer,
@@ -359,6 +359,36 @@ function RouteBuilderContent() {
     RoutesRepository.saveRoute(updated);
   };
 
+  // Handler: Add custom civic address stop
+  const handleAddCustomCivicStop = (stop: {
+    address: string;
+    lat: number;
+    lng: number;
+    purpose_tag: PurposeTag;
+    notes?: string;
+  }) => {
+    if (!currentRoute) return;
+    const newStop: RouteStop = {
+      id: `stop-civic-${Date.now()}`,
+      address: stop.address,
+      stop_order: currentRoute.stops.length + 1,
+      latitude: stop.lat,
+      longitude: stop.lng,
+      is_completed: false,
+      is_custom_address: true,
+      purpose_tag: stop.purpose_tag,
+      notes: stop.notes
+    };
+
+    const updatedStops = [...currentRoute.stops, newStop];
+    const updated = {
+      ...currentRoute,
+      stops: updatedStops
+    };
+    setCurrentRoute(updated);
+    RoutesRepository.saveRoute(updated);
+  };
+
   // Handler: Delete stop
   const handleDeleteStop = (stopId: string) => {
     if (!currentRoute) return;
@@ -447,6 +477,7 @@ function RouteBuilderContent() {
             onOptimizeCircuit={handleOptimizeCircuit}
             onDeleteStop={handleDeleteStop}
             onStartDriveMode={() => setIsDriveModeOpen(true)}
+            onAddCustomStop={handleAddCustomCivicStop}
           />
 
           {/* BPP Scout (The Corridor Slider) Card */}

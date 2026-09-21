@@ -266,7 +266,13 @@ export class MileageRepository {
     let totalPersonalKm = 0;
     let totalDeductibleCad = 0;
 
-    const purposeBreakdown: Record<PurposeTag, number> = {
+    const purposeBreakdown: Record<string, number> = {
+      'Sales Call / Inbound Inquiry': 0,
+      'Site Measure / Pre-Walk': 0,
+      'Warranty / Service Check': 0,
+      'Installer / Crew Checkup': 0,
+      'Office / Base': 0,
+      'Personal / Lunch': 0,
       'Sales Call': 0,
       'Site Measure': 0,
       'Installer Check': 0,
@@ -285,6 +291,8 @@ export class MileageRepository {
 
       if (purposeBreakdown[leg.purpose_tag] !== undefined) {
         purposeBreakdown[leg.purpose_tag] += leg.distance_km;
+      } else {
+        purposeBreakdown[leg.purpose_tag] = leg.distance_km;
       }
     }
 

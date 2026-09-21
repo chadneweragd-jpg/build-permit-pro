@@ -66,23 +66,19 @@ export async function geocodeAddress(query: string): Promise<[number, number] | 
     }
   }
 
-  // 2. OpenStreetMap Nominatim API query
+  // 2. Query internal server API proxy (/api/routes/geocode)
   try {
-    const cleanQuery = query.toLowerCase().includes('kelowna') ? query : `${query}, Kelowna, BC`;
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(cleanQuery)}`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'BuildPermitPro/1.0' },
-      signal: AbortSignal.timeout(3500)
+    const res = await fetch(`/api/routes/geocode?q=${encodeURIComponent(query)}`, {
+      signal: AbortSignal.timeout(4500)
     });
 
     if (res.ok) {
       const data = await res.json();
-      if (data && data.length > 0) {
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          return [lat, lng];
-        }
+      if (data && data.latitude && data.longitude) {
+        return [data.latitude, data.longitude];
+      }
+      if (data && data.coordinates) {
+        return [data.coordinates[1], data.coordinates[0]];
       }
     }
   } catch (err) {
@@ -94,7 +90,7 @@ export async function geocodeAddress(query: string): Promise<[number, number] | 
 
 /**
  * Calculates a driving route between origin and destination coordinates.
- * Queries OSRM router with seamless curved fallback if network is unreachable.
+ * Queries internal server directions proxy with seamless curved fallback.
  */
 export async function fetchDrivingRoute(
   startLng: number,
@@ -103,10 +99,14 @@ export async function fetchDrivingRoute(
   destLat: number
 ): Promise<RouteGeometry> {
   try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'BuildPermitPro/1.0' },
-      signal: AbortSignal.timeout(4000)
+    const res = await fetch('/api/routes/directions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        origin: [startLng, startLat],
+        destination: [destLng, destLat]
+      }),
+      signal: AbortSignal.timeout(5000)
     });
     if (res.ok) {
       const data = await res.json();
@@ -264,13 +264,12 @@ export async function fetchMultiStopCircuit(
     };
   }
 
-  const coordsQuery = sequence.map((p) => `${p.lng},${p.lat}`).join(';');
-  const url = `https://router.project-osrm.org/route/v1/driving/${coordsQuery}?overview=full&geometries=geojson&steps=true`;
-
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'BuildPermitPro/1.0' },
-      signal: AbortSignal.timeout(6000)
+    const res = await fetch('/api/routes/directions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ points: sequence }),
+      signal: AbortSignal.timeout(7000)
     });
     if (res.ok) {
       const data = await res.json();

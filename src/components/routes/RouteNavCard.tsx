@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { SavedRoute } from '@/types';
+import { SavedRoute, PurposeTag } from '@/types';
 import { CircuitResult } from '@/lib/spatial';
 import {
   Navigation,
@@ -16,7 +16,11 @@ import {
   Home,
   Bookmark,
   Check,
-  MapPin
+  MapPin,
+  Plus,
+  Tag,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 export const DEFAULT_BASE_STORAGE_KEY = 'bpp_default_base_address';
@@ -25,6 +29,15 @@ interface DefaultBaseAddress {
   address: string;
   coords: [number, number]; // [lat, lng]
 }
+
+export const PURPOSE_TAG_OPTIONS: PurposeTag[] = [
+  'Sales Call / Inbound Inquiry',
+  'Site Measure / Pre-Walk',
+  'Warranty / Service Check',
+  'Installer / Crew Checkup',
+  'Office / Base',
+  'Personal / Lunch'
+];
 
 interface RouteNavCardProps {
   currentRoute: SavedRoute;
@@ -39,6 +52,13 @@ interface RouteNavCardProps {
   onOptimizeCircuit: () => void;
   onDeleteStop: (stopId: string) => void;
   onStartDriveMode: () => void;
+  onAddCustomStop?: (stop: {
+    address: string;
+    lat: number;
+    lng: number;
+    purpose_tag: PurposeTag;
+    notes?: string;
+  }) => void;
 }
 
 export function RouteNavCard({
@@ -53,10 +73,23 @@ export function RouteNavCard({
   onUseMyLocation,
   onOptimizeCircuit,
   onDeleteStop,
-  onStartDriveMode
+  onStartDriveMode,
+  onAddCustomStop
 }: RouteNavCardProps) {
   const [defaultBase, setDefaultBase] = useState<DefaultBaseAddress | null>(null);
   const [justSavedDefault, setJustSavedDefault] = useState<boolean>(false);
+
+  // Custom Civic Stop State
+  const [isAddCivicOpen, setIsAddCivicOpen] = useState(false);
+  const [civicAddress, setCivicAddress] = useState('');
+  const [civicPurpose, setCivicPurpose] = useState<PurposeTag>('Sales Call / Inbound Inquiry');
+  const [civicNotes, setCivicNotes] = useState('');
+  const [isGeocodingCivic, setIsGeocodingCivic] = useState(false);
+  const [civicGeocodeResult, setCivicGeocodeResult] = useState<{
+    coords: [number, number]; // [lat, lng]
+    address: string;
+  } | null>(null);
+  const [civicGeocodeError, setCivicGeocodeError] = useState<string | null>(null);
 
   // Load default base address from localStorage on mount
   useEffect(() => {
@@ -118,6 +151,81 @@ export function RouteNavCard({
     { label: 'YLW Airport', address: '5500 Airport Way, Kelowna, BC' },
     { label: 'Bartle & Gibson', address: '1850 Kirschner Rd, Kelowna, BC' }
   ];
+
+  // Geocode Custom Address
+  const handleGeocodeCivic = async (addrToSearch?: string) => {
+    const q = addrToSearch || civicAddress;
+    if (!q || q.trim().length === 0) return;
+    setIsGeocodingCivic(true);
+    setCivicGeocodeError(null);
+    try {
+      const res = await fetch(`/api/routes/geocode?q=${encodeURIComponent(q.trim())}`);
+      if (res.ok) {
+        const data = await res.json();
+        const lat = data.latitude ?? (data.coordinates ? data.coordinates[1] : null);
+        const lng = data.longitude ?? (data.coordinates ? data.coordinates[0] : null);
+        if (lat !== null && lng !== null) {
+          setCivicGeocodeResult({
+            coords: [lat, lng],
+            address: data.address || data.displayName || q
+          });
+        } else {
+          setCivicGeocodeError('Could not resolve coordinates for address');
+        }
+      } else {
+        setCivicGeocodeError('Could not resolve coordinates in Okanagan region');
+      }
+    } catch {
+      setCivicGeocodeError('Geocoding request timed out');
+    } finally {
+      setIsGeocodingCivic(false);
+    }
+  };
+
+  // Add Custom Civic Stop to Route
+  const handleAddCivicStop = async () => {
+    if (!civicAddress.trim()) return;
+
+    let targetCoords = civicGeocodeResult?.coords;
+    let resolvedAddr = civicGeocodeResult?.address || civicAddress;
+
+    if (!targetCoords) {
+      setIsGeocodingCivic(true);
+      try {
+        const res = await fetch(`/api/routes/geocode?q=${encodeURIComponent(civicAddress.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          const lat = data.latitude ?? (data.coordinates ? data.coordinates[1] : null);
+          const lng = data.longitude ?? (data.coordinates ? data.coordinates[0] : null);
+          if (lat !== null && lng !== null) {
+            targetCoords = [lat, lng];
+            resolvedAddr = data.address || data.displayName || civicAddress;
+          }
+        }
+      } catch {}
+      setIsGeocodingCivic(false);
+    }
+
+    if (!targetCoords) {
+      setCivicGeocodeError('Please enter a valid address or select a preset below.');
+      return;
+    }
+
+    if (onAddCustomStop) {
+      onAddCustomStop({
+        address: resolvedAddr,
+        lat: targetCoords[0],
+        lng: targetCoords[1],
+        purpose_tag: civicPurpose,
+        notes: civicNotes
+      });
+      setCivicAddress('');
+      setCivicNotes('');
+      setCivicGeocodeResult(null);
+      setCivicGeocodeError(null);
+      setIsAddCivicOpen(false);
+    }
+  };
 
   return (
     <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4.5 space-y-4">
@@ -268,23 +376,158 @@ export function RouteNavCard({
         )}
       </div>
 
+      {/* UNIVERSAL CIVIC ADDRESS INPUT (NON-PERMIT STOPS) */}
+      <div className="border border-amber-500/30 bg-amber-500/5 rounded-xl p-3 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setIsAddCivicOpen(!isAddCivicOpen)}
+            className="flex items-center space-x-1.5 text-xs font-extrabold text-amber-600 dark:text-amber-400 hover:underline"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Add Civic Address Stop (Non-Permit)</span>
+          </button>
+          <span className="text-[10px] text-amber-700/70 dark:text-amber-300/70 font-semibold">
+            Service Calls & Inquiries
+          </span>
+        </div>
+
+        {isAddCivicOpen && (
+          <div className="space-y-2.5 pt-1 animate-in fade-in duration-150">
+            {/* Address Input Field */}
+            <div>
+              <div className="flex items-center space-x-2 bg-white dark:bg-slate-900 border border-amber-400/40 rounded-xl px-3 py-2 text-xs">
+                <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <input
+                  type="text"
+                  value={civicAddress}
+                  onChange={(e) => {
+                    setCivicAddress(e.target.value);
+                    setCivicGeocodeResult(null);
+                    setCivicGeocodeError(null);
+                  }}
+                  onBlur={() => handleGeocodeCivic()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleGeocodeCivic();
+                    }
+                  }}
+                  placeholder="e.g. 720 Sutherland Ave, Kelowna or 2475 Dobbin Rd"
+                  className="w-full bg-transparent font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleGeocodeCivic()}
+                  disabled={isGeocodingCivic || !civicAddress.trim()}
+                  className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] shrink-0 disabled:opacity-50"
+                >
+                  {isGeocodingCivic ? 'Locating...' : 'Locate'}
+                </button>
+              </div>
+
+              {/* Geocode Confirmation Status */}
+              {civicGeocodeResult && (
+                <div className="flex items-center space-x-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 pl-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>
+                    ✓ Located at [{civicGeocodeResult.coords[0].toFixed(4)}, {civicGeocodeResult.coords[1].toFixed(4)}]
+                  </span>
+                </div>
+              )}
+
+              {civicGeocodeError && (
+                <div className="flex items-center space-x-1.5 text-[11px] text-red-500 font-medium mt-1.5 pl-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  <span>{civicGeocodeError}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Presets for Common Service Stops */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto text-[10px]">
+              <span className="text-slate-400 font-bold shrink-0">Sample Stops:</span>
+              {[
+                '720 Sutherland Ave, Kelowna',
+                '2475 Dobbin Rd, West Kelowna',
+                '1850 Kirschner Rd, Kelowna'
+              ].map((sample) => (
+                <button
+                  key={sample}
+                  type="button"
+                  onClick={() => {
+                    setCivicAddress(sample);
+                    handleGeocodeCivic(sample);
+                  }}
+                  className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-300 border border-amber-400/30 hover:bg-amber-500/10 shrink-0 font-medium"
+                >
+                  {sample.split(',')[0]}
+                </button>
+              ))}
+            </div>
+
+            {/* Purpose Tag Selector */}
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                Purpose Tag:
+              </label>
+              <select
+                value={civicPurpose}
+                onChange={(e) => setCivicPurpose(e.target.value as PurposeTag)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none"
+              >
+                {PURPOSE_TAG_OPTIONS.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Stop Notes */}
+            <div>
+              <input
+                type="text"
+                value={civicNotes}
+                onChange={(e) => setCivicNotes(e.target.value)}
+                placeholder="Job notes (e.g. Inbound inquiry regarding commercial service entrance)"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+              />
+            </div>
+
+            {/* Action to Add to Route */}
+            <button
+              type="button"
+              onClick={handleAddCivicStop}
+              disabled={isGeocodingCivic || !civicAddress.trim()}
+              className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs flex items-center justify-center space-x-1.5 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Non-Permit Stop to Route</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Sequential Stop List with Leg Metrics */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
             Sequential Stops ({currentRoute.stops.length})
           </span>
-          <span className="text-[10px] text-slate-400">Drag or delete stops</span>
+          <span className="text-[10px] text-slate-400">Order & Purpose</span>
         </div>
 
         <div className="space-y-2">
           {currentRoute.stops.length === 0 ? (
             <div className="p-4 text-center text-slate-400 text-xs border border-dashed border-slate-300 dark:border-slate-700 rounded-xl">
-              No stops added. Pick permits below or from the map to add stops.
+              No stops added. Add municipal permits or civic addresses above.
             </div>
           ) : (
             currentRoute.stops.map((stop, idx) => {
               const legInfo = circuitResult?.legs?.[idx];
+              const isCivic = stop.is_custom_address || !stop.permit_id;
+
               return (
                 <div key={stop.id} className="space-y-1">
                   {idx > 0 && legInfo && (
@@ -299,6 +542,8 @@ export function RouteNavCard({
                     className={`border rounded-xl p-2.5 flex items-center justify-between text-xs transition-colors ${
                       stop.is_completed
                         ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800'
+                        : isCivic
+                        ? 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-300/60 dark:border-amber-700/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
                     }`}
                   >
@@ -307,16 +552,32 @@ export function RouteNavCard({
                         className={`w-5 h-5 rounded-full font-bold text-[10px] flex items-center justify-center shrink-0 ${
                           stop.is_completed
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            : isCivic
+                            ? 'bg-amber-500 text-slate-950 font-black'
+                            : 'bg-blue-600 text-white'
                         }`}
                       >
                         {stop.is_completed ? '✓' : idx + 1}
                       </span>
                       <div className="min-w-0">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="font-mono text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-1 rounded">
-                            {stop.permit_number || `Stop ${idx + 1}`}
-                          </span>
+                        <div className="flex items-center space-x-1.5 flex-wrap gap-1">
+                          {isCivic ? (
+                            <span className="text-[9px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 px-1 rounded flex items-center space-x-0.5">
+                              <MapPin className="w-2.5 h-2.5" />
+                              <span>Civic Stop</span>
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-1 rounded">
+                              {stop.permit_number || `Stop ${idx + 1}`}
+                            </span>
+                          )}
+
+                          {stop.purpose_tag && (
+                            <span className="text-[9px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1 rounded">
+                              {stop.purpose_tag.split('/')[0].trim()}
+                            </span>
+                          )}
+
                           <span className="font-bold text-slate-900 dark:text-white truncate">
                             {stop.address}
                           </span>
@@ -327,7 +588,8 @@ export function RouteNavCard({
                     <button
                       type="button"
                       onClick={() => onDeleteStop(stop.id)}
-                      className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
+                      className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors shrink-0 ml-2"
+                      title="Remove stop"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
