@@ -145,6 +145,52 @@ export function DriveModeModal({
     setIsNavigating(true);
   };
 
+  // --- SCREEN WAKE LOCK API (KEEP SCREEN AWAKE DURING ACTIVE NAVIGATION) ---
+  useEffect(() => {
+    let wakeLock: any = null;
+
+    const requestWakeLock = async () => {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const setting = localStorage.getItem('bpp_screen_wake_lock_enabled');
+          if (setting === 'false') return;
+        }
+
+        if (typeof navigator !== 'undefined' && 'wakeLock' in navigator && isNavigating) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+          console.log('BPP Drive Mode: Screen Wake Lock active (phone will not sleep)');
+        }
+      } catch (err) {
+        console.warn('Screen Wake Lock error or not supported:', err);
+      }
+    };
+
+    // 1. Request lock on navigation start
+    if (isNavigating) {
+      requestWakeLock();
+    }
+
+    // 2. Re-acquire lock if user switches tabs or answers a phone call and returns
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isNavigating) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // 3. Release lock when exiting Drive Mode or unmounting
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+          wakeLock = null;
+          console.log('BPP Drive Mode: Screen Wake Lock released');
+        });
+      }
+    };
+  }, [isNavigating]);
+
   // --- VOICE SELECTOR & SPEECH SYNTHESIS STATE ---
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');

@@ -18,9 +18,12 @@ import {
   ExternalLink,
   Lock,
   Volume2,
-  Play
+  Play,
+  Smartphone
 } from 'lucide-react';
 import { getAvailableVoices, testVoice, saveSelectedVoice, VOICE_STORAGE_KEY, VoiceOption } from '@/lib/voice-utils';
+
+const WAKE_LOCK_STORAGE_KEY = 'bpp_screen_wake_lock_enabled';
 
 export default function SettingsPage() {
   const [currentTier, setCurrentTier] = useState<SubscriptionTier>('pro_scout');
@@ -34,6 +37,10 @@ export default function SettingsPage() {
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [isTestingVoice, setIsTestingVoice] = useState<boolean>(false);
+
+  // Screen Wake Lock State
+  const [wakeLockEnabled, setWakeLockEnabled] = useState<boolean>(true);
+  const [isWakeLockSupported, setIsWakeLockSupported] = useState<boolean>(true);
 
   useEffect(() => {
     setCurrentTier(PermitsRepository.getCurrentTier());
@@ -54,6 +61,15 @@ export default function SettingsPage() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = updateVoices;
     }
+
+    // Load Screen Wake Lock preference
+    const savedWakeLock = typeof localStorage !== 'undefined' ? localStorage.getItem(WAKE_LOCK_STORAGE_KEY) : null;
+    if (savedWakeLock !== null) {
+      setWakeLockEnabled(savedWakeLock === 'true');
+    }
+    if (typeof window !== 'undefined') {
+      setIsWakeLockSupported('wakeLock' in navigator);
+    }
   }, []);
 
   const handleVoiceChange = (voiceName: string) => {
@@ -65,6 +81,14 @@ export default function SettingsPage() {
     setIsTestingVoice(true);
     testVoice(selectedVoice);
     setTimeout(() => setIsTestingVoice(false), 2200);
+  };
+
+  const handleWakeLockToggle = () => {
+    const next = !wakeLockEnabled;
+    setWakeLockEnabled(next);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(WAKE_LOCK_STORAGE_KEY, String(next));
+    }
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -227,6 +251,74 @@ export default function SettingsPage() {
             <div className="text-[11px] text-slate-400 flex items-center space-x-1.5">
               <span className="text-emerald-500 font-bold">✓</span>
               <span>Preferences automatically save to local storage and sync with In-App Drive Mode.</span>
+            </div>
+          </div>
+
+          {/* In-Cab Screen Wake Lock Settings */}
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                <span>Screen Wake Lock (Keep Screen Awake)</span>
+              </h2>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  wakeLockEnabled
+                    ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30'
+                    : 'text-slate-500 bg-slate-100 dark:bg-slate-800'
+                }`}
+              >
+                {wakeLockEnabled ? 'ACTIVE / ON' : 'DISABLED'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Prevent mobile and tablet displays from sleeping, locking, or dimming during active turn-by-turn commercial navigation. Automatically re-acquires lock when returning from phone calls or backgrounded apps.
+            </p>
+
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span>Keep Screen Awake in Drive Mode</span>
+                  {isWakeLockSupported && (
+                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      • Screen Wake Lock API Supported
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] text-slate-400 block">
+                  {wakeLockEnabled
+                    ? 'Display will stay illuminated during active navigation routes.'
+                    : 'Display will follow default device sleep timeout.'}
+                </span>
+              </div>
+
+              {/* User Toggle Switch */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={wakeLockEnabled}
+                onClick={handleWakeLockToggle}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  wakeLockEnabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    wakeLockEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-400 flex items-center space-x-1.5">
+              <span className="text-emerald-500 font-bold">✓</span>
+              <span>
+                {isWakeLockSupported
+                  ? 'Compatible with iOS Safari (iOS 16.4+), Android Chrome, Microsoft Edge, and Desktop browsers.'
+                  : 'Note: If accessing via an older browser, the device operating system display timeout will apply.'}
+              </span>
             </div>
           </div>
 
