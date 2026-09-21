@@ -20,7 +20,8 @@ import {
   Plus,
   Tag,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 
 export const DEFAULT_BASE_STORAGE_KEY = 'bpp_default_base_address';
@@ -164,6 +165,28 @@ export function RouteNavCard({
     }
     setIsNavigating(true);
     onStartDriveMode();
+  };
+
+  const handleOpenNativeMaps = () => {
+    const origin = currentRoute.origin_address || '1665 Rutland Rd, Kelowna, BC';
+    const destination =
+      currentRoute.destination_address ||
+      currentRoute.stops[currentRoute.stops.length - 1]?.address ||
+      origin;
+    const waypoints = currentRoute.stops
+      .slice(0, -1)
+      .map((s) => s.address)
+      .filter(Boolean);
+
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const navUrl = isIOS
+      ? `maps://?saddr=${origin}&daddr=${destination}&dirflg=d`
+      : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+          origin
+        )}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints
+          .map(encodeURIComponent)
+          .join('|')}`;
+    window.open(navUrl, '_blank');
   };
 
   // Geocode Custom Address
@@ -624,6 +647,15 @@ export function RouteNavCard({
         >
           <Play className="w-4 h-4 fill-white" />
           <span>{isNavigating ? 'Resume Navigation' : 'Start In-App Drive Mode'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleOpenNativeMaps}
+          className="w-full py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700/70 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-sm active:scale-[0.98]"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+          <span>Open Multi-Stop in Apple / Google Maps</span>
         </button>
 
         <div className="grid grid-cols-2 gap-2 text-xs font-bold">

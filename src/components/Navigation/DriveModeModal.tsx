@@ -31,7 +31,8 @@ import {
   FileCheck,
   Radio,
   Gauge,
-  Columns
+  Columns,
+  ExternalLink
 } from 'lucide-react';
 
 export { speakNaturalUtil as speakNatural };
@@ -179,6 +180,29 @@ export function DriveModeModal({
     setIsTestingVoice(true);
     testVoice(selectedVoice);
     setTimeout(() => setIsTestingVoice(false), 2200);
+  };
+
+  const handleOpenNativeMaps = () => {
+    const origin = route.origin_address || '1665 Rutland Rd, Kelowna, BC';
+    const destination =
+      activeLeg?.destinationAddress ||
+      route.destination_address ||
+      route.stops[route.stops.length - 1]?.address ||
+      origin;
+    const waypoints = route.stops
+      .slice(0, -1)
+      .map((s) => s.address)
+      .filter(Boolean);
+
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const navUrl = isIOS
+      ? `maps://?saddr=${origin}&daddr=${destination}&dirflg=d`
+      : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+          origin
+        )}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints
+          .map(encodeURIComponent)
+          .join('|')}`;
+    window.open(navUrl, '_blank');
   };
 
   // Stop Arrival & CRA Mileage Modal
@@ -762,6 +786,15 @@ export function DriveModeModal({
             title="Toggle Voice Guidance"
           >
             {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenNativeMaps}
+            className="p-2.5 sm:p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-blue-400 hover:text-white transition-colors"
+            title="Open Multi-Stop in Apple / Google Maps"
+          >
+            <ExternalLink className="w-5 h-5" />
           </button>
 
           <button

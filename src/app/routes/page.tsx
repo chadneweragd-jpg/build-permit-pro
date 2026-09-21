@@ -21,7 +21,7 @@ import {
   Play,
   Car
 } from 'lucide-react';
-import { getNativeMapUrls } from '@/lib/spatial';
+import { getNativeMapUrls, launchNativeNavigation } from '@/lib/spatial';
 
 export default function RoutesHubPage() {
   const router = useRouter();
@@ -193,6 +193,21 @@ export default function RoutesHubPage() {
                   </div>
 
                   <div className="flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const origin = route.origin_address || '1665 Rutland Rd, Kelowna, BC';
+                        const destination = route.destination_address || origin;
+                        const waypoints = route.stops.map((s) => s.address).filter(Boolean);
+                        launchNativeNavigation(origin, destination, waypoints);
+                      }}
+                      title="Open Multi-Stop Route in Apple / Google Maps"
+                      className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[11px] flex items-center space-x-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3 text-blue-500" />
+                      <span>Maps</span>
+                    </button>
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

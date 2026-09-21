@@ -212,6 +212,26 @@ export function getNativeMapUrls(lat: number, lng: number, address: string) {
   };
 }
 
+/**
+ * Launches native turn-by-turn mobile navigation:
+ * - iOS: Apple Maps deep link with origin, destination & driving mode flag (d)
+ * - Android/Desktop: Google Maps directions API with origin, destination & multi-stop waypoints
+ */
+export function launchNativeNavigation(
+  origin: string,
+  destination: string,
+  waypoints: string[] = []
+) {
+  if (typeof window === 'undefined') return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const navUrl = isIOS
+    ? `maps://?saddr=${origin}&daddr=${destination}&dirflg=d`
+    : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints.map(encodeURIComponent).join('|')}`;
+
+  window.open(navUrl, '_blank');
+}
+
 export interface CircuitLeg {
   legIndex: number;
   originAddress: string;
