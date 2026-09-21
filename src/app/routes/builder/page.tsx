@@ -476,7 +476,15 @@ function RouteBuilderContent() {
             onUseMyLocation={handleUseMyLocation}
             onOptimizeCircuit={handleOptimizeCircuit}
             onDeleteStop={handleDeleteStop}
-            onStartDriveMode={() => setIsDriveModeOpen(true)}
+            onStartDriveMode={() => {
+              if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const unlock = new SpeechSynthesisUtterance('Navigation started');
+                unlock.volume = 0.5;
+                window.speechSynthesis.speak(unlock);
+              }
+              setIsDriveModeOpen(true);
+            }}
             onAddCustomStop={handleAddCustomCivicStop}
           />
 

@@ -127,10 +127,22 @@ export function DriveModeModal({
   const [gpsStatusText, setGpsStatusText] = useState<string>('Acquiring Satellite Lock...');
 
   // Vehicle Position & Telemetry State
+  const [isNavigating, setIsNavigating] = useState<boolean>(true);
   const [isSimulating, setIsSimulating] = useState<boolean>(true);
   const [simProgress, setSimProgress] = useState<number>(0); // 0 to 1 along current leg
   const [vehicleCoords, setVehicleCoords] = useState<[number, number]>(resolvedOriginLngLat);
   const [speedKmh, setSpeedKmh] = useState<number>(navMode === 'gps' ? 0 : 50);
+
+  const handleStartNavigation = () => {
+    // Prime mobile audio engine immediately on tap
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const unlock = new SpeechSynthesisUtterance('Navigation started');
+      unlock.volume = 0.5;
+      window.speechSynthesis.speak(unlock);
+    }
+    setIsNavigating(true);
+  };
 
   // --- VOICE SELECTOR & SPEECH SYNTHESIS STATE ---
   const [voices, setVoices] = useState<VoiceOption[]>([]);
@@ -890,7 +902,15 @@ export function DriveModeModal({
 
               {/* Pause / Resume Button */}
               <button
-                onClick={() => setIsSimulating(!isSimulating)}
+                onClick={() => {
+                  if (!isSimulating) {
+                    handleStartNavigation();
+                    setIsSimulating(true);
+                  } else {
+                    setIsSimulating(false);
+                    setIsNavigating(false);
+                  }
+                }}
                 className="p-3 bg-slate-950/90 hover:bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-xl flex items-center space-x-2 text-xs font-bold transition-all"
               >
                 {isSimulating ? <Pause className="w-4 h-4 text-amber-400" /> : <Play className="w-4 h-4 text-emerald-400" />}

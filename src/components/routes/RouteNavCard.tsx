@@ -152,6 +152,20 @@ export function RouteNavCard({
     { label: 'Bartle & Gibson', address: '1850 Kirschner Rd, Kelowna, BC' }
   ];
 
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
+
+  const handleStartNavigation = () => {
+    // Prime mobile audio engine immediately on tap
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const unlock = new SpeechSynthesisUtterance('Navigation started');
+      unlock.volume = 0.5;
+      window.speechSynthesis.speak(unlock);
+    }
+    setIsNavigating(true);
+    onStartDriveMode();
+  };
+
   // Geocode Custom Address
   const handleGeocodeCivic = async (addrToSearch?: string) => {
     const q = addrToSearch || civicAddress;
@@ -605,11 +619,11 @@ export function RouteNavCard({
       <div className="space-y-2 pt-2">
         <button
           type="button"
-          onClick={onStartDriveMode}
+          onClick={handleStartNavigation}
           className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-center space-x-2 shadow-xl shadow-blue-600/30 transition-all active:scale-[0.98]"
         >
           <Play className="w-4 h-4 fill-white" />
-          <span>Start In-App Drive Mode</span>
+          <span>{isNavigating ? 'Resume Navigation' : 'Start In-App Drive Mode'}</span>
         </button>
 
         <div className="grid grid-cols-2 gap-2 text-xs font-bold">
