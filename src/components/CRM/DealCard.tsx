@@ -31,33 +31,31 @@ export const DealCard: React.FC<DealCardProps> = ({
       draggable={Boolean(onDragStart)}
       onDragStart={(e) => onDragStart?.(e, deal.id)}
       onClick={() => onClick?.(deal)}
-      className={`group rounded-xl p-3.5 border transition-all cursor-pointer relative ${
+      className={`relative p-4 rounded-xl transition-all cursor-pointer ${
         isOverdue
-          ? 'bg-red-50/80 dark:bg-red-950/30 border-red-500 dark:border-red-500 shadow-lg shadow-red-500/20 ring-2 ring-red-500/60 dark:ring-red-500/50 animate-pulse'
-          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 shadow-sm hover:shadow-md'
+          ? 'border-2 border-red-500 bg-red-50/60 dark:bg-red-950/40 shadow-lg shadow-red-500/10 animate-pulse'
+          : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md'
       }`}
     >
+      {/* Overdue Alert Badge */}
+      {isOverdue && (
+        <div className="absolute -top-2.5 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-10">
+          ⚠️ Overdue Follow-Up
+        </div>
+      )}
+
       {/* Address & Permit Badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center space-x-1.5 flex-wrap">
-            <h3
-              className={`font-bold text-xs truncate transition-colors ${
-                isOverdue
-                  ? 'text-red-700 dark:text-red-300 group-hover:text-red-800 dark:group-hover:text-red-200'
-                  : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
-              }`}
-            >
-              {deal.address}
-            </h3>
-
-            {isOverdue && (
-              <span className="inline-flex items-center space-x-0.5 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-red-600 text-white shadow-xs">
-                <AlertCircle className="w-2.5 h-2.5" />
-                <span>Overdue</span>
-              </span>
-            )}
-          </div>
+          <h3
+            className={`font-bold text-xs truncate transition-colors ${
+              isOverdue
+                ? 'text-red-700 dark:text-red-300'
+                : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+            }`}
+          >
+            {deal.address}
+          </h3>
 
           {deal.permit_number && (
             <span className="inline-block mt-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
