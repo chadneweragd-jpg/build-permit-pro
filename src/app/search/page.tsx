@@ -228,32 +228,40 @@ function SearchExplorerContent() {
 
         {/* Right: Slideout Permit Details Sheet */}
         {selectedPermit && (
-          <PermitDetailsSheet
-            permit={selectedPermit}
-            onClose={() => setSelectedPermit(null)}
-          />
+          <>
+            <div
+              onClick={() => setSelectedPermit(null)}
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-35 md:hidden"
+            />
+            <PermitDetailsSheet
+              permit={selectedPermit}
+              onClose={() => setSelectedPermit(null)}
+            />
+          </>
         )}
 
         {/* Floating View Toggle Pill Button on Mobile */}
-        <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-          <button
-            onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-xl shadow-blue-600/40 border border-blue-400/30 transition-all cursor-pointer"
-            aria-label="Toggle between Map and List view"
-          >
-            {mobileView === 'list' ? (
-              <>
-                <span className="text-sm">🗺️</span>
-                <span>Map</span>
-              </>
-            ) : (
-              <>
-                <span className="text-sm">📋</span>
-                <span>List</span>
-              </>
-            )}
-          </button>
-        </div>
+        {!selectedPermit && (
+          <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+            <button
+              onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+              className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-xl shadow-blue-600/40 border border-blue-400/30 transition-all cursor-pointer"
+              aria-label="Toggle between Map and List view"
+            >
+              {mobileView === 'list' ? (
+                <>
+                  <span className="text-sm">🗺️</span>
+                  <span>Map</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm">📋</span>
+                  <span>List</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -60,6 +60,45 @@ export function ScoutVoiceAssistant() {
   const [isListening, setIsListening] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
 
+  // Auto-Hide on mobile when Permit Detail Drawer is open
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    const handleDrawer = (e: any) => {
+      setIsDrawerOpen(!!e.detail?.isOpen);
+    };
+    window.addEventListener('bpp:permit-drawer', handleDrawer);
+
+    if (typeof document !== 'undefined') {
+      setIsDrawerOpen(document.body.getAttribute('data-permit-drawer-open') === 'true');
+    }
+
+    const observer =
+      typeof MutationObserver !== 'undefined' && typeof document !== 'undefined'
+        ? new MutationObserver(() => {
+            const openInDom = document.body.getAttribute('data-permit-drawer-open') === 'true';
+            setIsDrawerOpen(openInDom);
+          })
+        : null;
+
+    if (observer && typeof document !== 'undefined') {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['data-permit-drawer-open'] });
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('bpp:permit-drawer', handleDrawer);
+      observer?.disconnect();
+    };
+  }, []);
+
   // Voices
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
@@ -284,8 +323,11 @@ export function ScoutVoiceAssistant() {
 
   // 1. Floating Launch Trigger Button (Bottom Right)
   if (!isOpen) {
+    // If drawer is open on mobile, hide floating button to prevent covering actions
+    if (isMobile && isDrawerOpen) return null;
+
     return (
-      <div className="fixed bottom-6 right-6 z-40 flex items-center space-x-2">
+      <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-30 transition-all duration-200 flex items-center space-x-2">
         <button
           onClick={() => {
             setIsOpen(true);
