@@ -1,0 +1,285 @@
+import rawPermits from '@/data/permits.json';
+import { CRMStatus, Permit, SavedSearch, SubscriptionTier, SubtradeKey, UserPermitStatus, WorkClass } from '@/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+
+const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
+const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
+const CURRENT_TIER_KEY = 'bpp_current_tier_v1';
+
+export class PermitsRepository {
+  private static cachedPermits: Permit[] = rawPermits as unknown as Permit[];
+
+  /**
+   * Asynchronously fetches all permits from live Supabase if available
+   */
+  public static async fetchPermitsFromSupabase(): Promise<Permit[]> {
+    if (!isSupabaseConfigured || !supabase) return this.cachedPermits;
+
+    try {
+      const { data, error } = await supabase
+        .from('permits')
+        .select(`
+          *,
+          permit_subtrades (
+            confidence_score,
+            subtrades (
+              slug,
+              name,
+              color_hex,
+              icon_name
+            )
+          )
+        `)
+        .order('issue_date', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        return this.cachedPermits;
+      }
+
+      const mapped: Permit[] = data.map((row: any) => {
+        const existingFallback = this.cachedPermits.find(
+          (p) => p.permit_number === row.permit_number
+        );
+
+        const trades = (row.permit_subtrades || []).map((st: any) => ({
+          subtrade_key: st.subtrades?.slug as SubtradeKey,
+          name: st.subtrades?.name || '',
+          confidence: Number(st.confidence_score || 1.0),
+          color: st.subtrades?.color_hex || '#3B82F6',
+          icon: st.subtrades?.icon_name || 'Zap',
+          matched_terms: []
+        }));
+
+        return {
+          id: row.id,
+          municipality_id: row.municipality_id || existingFallback?.municipality_id || '22222222-2222-2222-2222-222222222222',
+          permit_number: row.permit_number,
+          issue_date: row.issue_date,
+          application_date: row.application_date || row.issue_date,
+          address: row.address,
+          city_region: row.city_region || 'Kelowna',
+          legal_description: row.legal_description || '',
+          permit_type: row.permit_type,
+          work_class: row.work_class,
+          description: row.description,
+          ai_summary: row.ai_summary || existingFallback?.ai_summary || '',
+          estimated_value: Number(row.estimated_value || 0),
+          contractor_name: row.contractor_name || 'Owner / Builder',
+          contractor_phone: row.contractor_phone || '(250) 555-0100',
+          contractor_email: row.contractor_email || 'contact@builder.bc.ca',
+          applicant_name: row.applicant_name || row.contractor_name,
+          status: row.status || 'Issued',
+          latitude: Number(row.latitude || 49.888),
+          longitude: Number(row.longitude || -119.496),
+          trades: trades.length > 0 ? trades : (existingFallback?.trades || [])
+        };
+      });
+
+      this.cachedPermits = mapped;
+      return mapped;
+    } catch {
+      return this.cachedPermits;
+    }
+  }
+
+  /**
+   * Retrieves all permits, sorted by issue date descending
+   */
+  public static getAllPermits(): Permit[] {
+    return this.cachedPermits;
+  }
+
+  /**
+   * Retrieves a permit by ID or permit number
+   */
+  public static getPermitById(idOrNumber: string): Permit | undefined {
+    return this.cachedPermits.find(
+      (p) => p.id === idOrNumber || p.permit_number.toLowerCase() === idOrNumber.toLowerCase()
+    );
+  }
+
+  /**
+   * Filter permits by subtrades, valuation, work class, search query
+   */
+  public static filterPermits(options: {
+    selectedTrades?: SubtradeKey[];
+    minValue?: number;
+    workClasses?: WorkClass[];
+    permitType?: string;
+    searchQuery?: string;
+  }): Permit[] {
+    let list = this.cachedPermits;
+
+    if (options.selectedTrades && options.selectedTrades.length > 0) {
+      list = list.filter((p) =>
+        p.trades.some((t) => options.selectedTrades!.includes(t.subtrade_key))
+      );
+    }
+
+    if (options.minValue && options.minValue > 0) {
+      list = list.filter((p) => p.estimated_value >= options.minValue!);
+    }
+
+    if (options.workClasses && options.workClasses.length > 0) {
+      list = list.filter((p) => options.workClasses!.includes(p.work_class));
+    }
+
+    if (options.permitType && options.permitType !== 'All Permit Types' && options.permitType !== 'All Types') {
+      const pt = options.permitType.toLowerCase();
+      if (pt.includes('single') || pt.includes('sfd')) {
+        list = list.filter((p) =>
+          p.permit_type.toLowerCase().includes('single') ||
+          p.permit_type.toLowerCase().includes('sfd') ||
+          p.description.toLowerCase().includes('single family') ||
+          p.description.toLowerCase().includes('sfd')
+        );
+      } else if (pt.includes('multi')) {
+        list = list.filter((p) =>
+          p.permit_type.toLowerCase().includes('multi') ||
+          (p.work_class === 'Residential' && !p.permit_type.toLowerCase().includes('single'))
+        );
+      } else if (pt.includes('commercial')) {
+        list = list.filter((p) =>
+          p.work_class === 'Commercial' || p.permit_type.toLowerCase().includes('commercial')
+        );
+      } else if (pt.includes('tenant') || pt.includes('renovation')) {
+        list = list.filter((p) =>
+          p.permit_type.toLowerCase().includes('tenant') ||
+          p.permit_type.toLowerCase().includes('renovation') ||
+          p.description.toLowerCase().includes('renovation') ||
+          p.description.toLowerCase().includes('addition') ||
+          p.description.toLowerCase().includes('tenant')
+        );
+      } else {
+        list = list.filter((p) => p.permit_type.toLowerCase().includes(pt));
+      }
+    }
+
+    if (options.searchQuery && options.searchQuery.trim().length > 0) {
+      const q = options.searchQuery.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.permit_number.toLowerCase().includes(q) ||
+          p.address.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          p.contractor_name.toLowerCase().includes(q) ||
+          p.applicant_name.toLowerCase().includes(q)
+      );
+    }
+
+    // Always return sorted by issue date descending
+    return [...list].sort(
+      (a, b) => new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime()
+    );
+  }
+
+  /**
+   * CRM Status & Notes management (persisted in browser localStorage)
+   */
+  public static getCRMStatuses(): Record<string, UserPermitStatus> {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = localStorage.getItem(CRM_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  public static updateCRMStatus(
+    permitId: string,
+    status: CRMStatus,
+    notes?: string,
+    reminderDate?: string,
+    estimatedBid?: number
+  ): UserPermitStatus {
+    const all = this.getCRMStatuses();
+    const existing = all[permitId] || {
+      permit_id: permitId,
+      status: 'New',
+      notes: '',
+      updated_at: new Date().toISOString()
+    };
+
+    const updated: UserPermitStatus = {
+      ...existing,
+      status,
+      notes: notes !== undefined ? notes : existing.notes,
+      reminder_date: reminderDate !== undefined ? reminderDate : existing.reminder_date,
+      estimated_bid: estimatedBid !== undefined ? estimatedBid : existing.estimated_bid,
+      updated_at: new Date().toISOString()
+    };
+
+    all[permitId] = updated;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CRM_STORAGE_KEY, JSON.stringify(all));
+    }
+    return updated;
+  }
+
+  /**
+   * Saved searches for daily 6:00 AM alerts
+   */
+  public static getSavedSearches(): SavedSearch[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem(SAVED_SEARCHES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+
+    // Default seed saved search
+    return [
+      {
+        id: 'search-default-1',
+        name: 'Kelowna High-Value Commercial & Electrical',
+        subtrade_keys: ['electrical', 'commercial_doors'],
+        min_value: 1000000,
+        work_classes: ['Commercial', 'Industrial'],
+        daily_email_alert: true,
+        email: 'estimator@contractor.ca',
+        created_at: new Date().toISOString()
+      }
+    ];
+  }
+
+  public static saveSearch(search: Omit<SavedSearch, 'id' | 'created_at'>): SavedSearch {
+    const searches = this.getSavedSearches();
+    const newSearch: SavedSearch = {
+      ...search,
+      id: `search-${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    searches.push(newSearch);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(searches));
+    }
+    return newSearch;
+  }
+
+  public static deleteSavedSearch(id: string) {
+    const searches = this.getSavedSearches().filter((s) => s.id !== id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(searches));
+    }
+  }
+
+  /**
+   * Current Subscription Tier (supports active switching for demo & testing)
+   */
+  public static getCurrentTier(): SubscriptionTier {
+    if (typeof window === 'undefined') return 'pro_scout';
+    try {
+      const stored = localStorage.getItem(CURRENT_TIER_KEY) as SubscriptionTier;
+      if (stored && ['solo', 'pro_scout', 'supplier'].includes(stored)) {
+        return stored;
+      }
+    } catch {}
+    return 'pro_scout'; // Default to full scout experience
+  }
+
+  public static setCurrentTier(tier: SubscriptionTier) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CURRENT_TIER_KEY, tier);
+    }
+  }
+}
