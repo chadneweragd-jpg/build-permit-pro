@@ -37,6 +37,9 @@ function SearchExplorerContent() {
   const [selectedValueTier, setSelectedValueTier] = useState<number>(0);
   const [sortOrder, setSortOrder] = useState<'newest' | 'highest_value'>('newest');
 
+  // Mobile Map vs. List Toggle View
+  const [mobileView, setMobileView] = useState<'map' | 'list'>('list');
+
   // Selected Permit for slideout detail sheet
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(allPermits[0] || null);
 
@@ -155,7 +158,11 @@ function SearchExplorerContent() {
       {/* Main Split Master-Detail & Map Body */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Panel: Master Feed */}
-        <aside className="w-full md:w-[380px] lg:w-[420px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 h-full z-10">
+        <aside
+          className={`w-full md:w-[380px] lg:w-[420px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col shrink-0 h-full z-10 ${
+            mobileView === 'map' ? 'hidden md:flex' : 'flex'
+          }`}
+        >
           {/* Feed Header */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center space-x-2">
@@ -203,7 +210,13 @@ function SearchExplorerContent() {
         </aside>
 
         {/* Center: MapLibre Vector Map Engine */}
-        <div className="flex-1 relative h-full w-full min-h-[500px] bg-slate-950">
+        <div
+          className={`flex-1 relative w-full h-full min-h-[400px] bg-slate-950 ${
+            mobileView === 'list'
+              ? 'hidden md:block'
+              : 'block h-[calc(100vh-120px)] md:h-full'
+          }`}
+        >
           <MapContainer
             permits={filteredPermits}
             selectedPermit={selectedPermit}
@@ -220,6 +233,27 @@ function SearchExplorerContent() {
             onClose={() => setSelectedPermit(null)}
           />
         )}
+
+        {/* Floating View Toggle Pill Button on Mobile */}
+        <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+          <button
+            onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-xl shadow-blue-600/40 border border-blue-400/30 transition-all cursor-pointer"
+            aria-label="Toggle between Map and List view"
+          >
+            {mobileView === 'list' ? (
+              <>
+                <span className="text-sm">🗺️</span>
+                <span>Map</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm">📋</span>
+                <span>List</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -13,16 +13,22 @@ import {
   Settings,
   ShieldCheck,
   ChevronRight,
-  LogOut,
   Car,
-  Columns
+  Columns,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  className = '',
+  isOpen = false,
+  onClose
+}) => {
   const pathname = usePathname();
 
   const navLinks = [
@@ -36,15 +42,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
-  return (
-    <aside
-      className={`w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col shrink-0 h-screen select-none ${className}`}
-    >
+  const renderNavContent = (isMobile = false) => (
+    <>
       {/* Top Branding Section */}
-      <div className="h-16 px-5 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/dashboard" className="block focus:outline-none">
+      <div className="h-16 px-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <Link
+          href="/dashboard"
+          onClick={() => isMobile && onClose?.()}
+          className="block focus:outline-none"
+        >
           <BPPLogo size="md" showText={true} />
         </Link>
+        {isMobile && (
+          <button
+            onClick={onClose}
+            aria-label="Close navigation"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Links */}
@@ -64,6 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             <Link
               key={item.label}
               href={item.href}
+              onClick={() => isMobile && onClose?.()}
               className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                 isActive
                   ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20'
@@ -71,14 +89,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
               }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                <Icon
+                  className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
+                  }`}
+                />
                 <span>{item.label}</span>
               </div>
 
               <div className="flex items-center space-x-2">
-                {(item as any).badge && !isActive && (
+                {item.badge && !isActive && (
                   <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                    {(item as any).badge}
+                    {item.badge}
                   </span>
                 )}
                 {isActive && (
@@ -104,9 +126,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
       </nav>
 
       {/* Sidebar Footer: User Profile Card */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/40">
+      <div className="p-3 border-t border-slate-800 bg-slate-950/40 shrink-0">
         <Link
           href="/settings"
+          onClick={() => isMobile && onClose?.()}
           className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-800/80 transition-all group"
         >
           {/* Avatar */}
@@ -132,6 +155,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
           <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar: Hidden on mobile (<768px), flex on md+ */}
+      <aside
+        className={`hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 text-slate-300 shrink-0 h-screen select-none ${className}`}
+      >
+        {renderNavContent(false)}
+      </aside>
+
+      {/* Mobile Drawer (screens < 768px): slide out from left */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Panel */}
+          <aside
+            className="relative w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200 select-none"
+          >
+            {renderNavContent(true)}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
