@@ -222,6 +222,13 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     }
   }, [selectedPermit, mapLoaded]);
 
+  // Render Blue Route Line over Raster Basemap
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !routeGeometry) return;
+    renderRouteLine(map, routeGeometry);
+  }, [routeGeometry, mapLoaded]);
+
   const handleZoomIn = () => mapRef.current?.zoomIn();
   const handleZoomOut = () => mapRef.current?.zoomOut();
 
@@ -324,3 +331,59 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 };
 
 export default MapContainer;
+
+/**
+ * Draws solid vibrant blue route line ON TOP of raster basemap and auto-fits the camera bounds
+ */
+export function renderRouteLine(map: maplibregl.Map, routeGeoJSON: any) {
+  if (!map || !routeGeoJSON) return;
+
+  const applyLayer = () => {
+    // If source already exists, update its data
+    if (map.getSource('bpp-route-source')) {
+      (map.getSource('bpp-route-source') as maplibregl.GeoJSONSource).setData(routeGeoJSON);
+    } else {
+      // Add source
+      map.addSource('bpp-route-source', {
+        type: 'geojson',
+        data: routeGeoJSON
+      });
+
+      // Add line layer ON TOP of the raster tiles
+      map.addLayer({
+        id: 'bpp-route-layer',
+        type: 'line',
+        source: 'bpp-route-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#2563EB', // Solid vibrant blue
+          'line-width': 6,
+          'line-opacity': 0.95
+        }
+      });
+    }
+
+    // Automatically zoom/pan map so the entire route from start to finish is in view
+    try {
+      const coords = routeGeoJSON.geometry?.coordinates || routeGeoJSON.coordinates;
+      if (coords && coords.length > 0) {
+        const bounds = coords.reduce(
+          (b: maplibregl.LngLatBounds, c: [number, number]) => b.extend(c),
+          new maplibregl.LngLatBounds(coords[0], coords[0])
+        );
+        map.fitBounds(bounds, { padding: 80, duration: 1000 });
+      }
+    } catch (err) {
+      console.error('fitBounds error:', err);
+    }
+  };
+
+  if (map.isStyleLoaded()) {
+    applyLayer();
+  } else {
+    map.once('styledata', applyLayer);
+  }
+}

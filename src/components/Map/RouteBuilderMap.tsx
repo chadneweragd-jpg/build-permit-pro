@@ -182,6 +182,19 @@ export const RouteBuilderMap: React.FC<RouteBuilderMapProps> = ({
     if (source && source.setData) {
       source.setData(routeGeometry || { type: 'FeatureCollection', features: [] });
     }
+
+    try {
+      const coords = (routeGeometry as any)?.geometry?.coordinates || (routeGeometry as any)?.coordinates;
+      if (coords && coords.length > 0) {
+        const bounds = coords.reduce(
+          (b: maplibregl.LngLatBounds, c: [number, number]) => b.extend(c),
+          new maplibregl.LngLatBounds(coords[0], coords[0])
+        );
+        mapRef.current.fitBounds(bounds, { padding: 80, duration: 1000 });
+      }
+    } catch (err) {
+      console.error('RouteBuilderMap fitBounds error:', err);
+    }
   }, [routeGeometry]);
 
   // Update Corridor Leads Layer
