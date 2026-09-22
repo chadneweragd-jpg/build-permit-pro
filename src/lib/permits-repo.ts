@@ -1,6 +1,7 @@
 import rawPermits from '@/data/permits.json';
 import { CRMStatus, Permit, SavedSearch, SubscriptionTier, SubtradeKey, UserPermitStatus, WorkClass } from '@/types';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { isValidPhoneNumber, isValidEmail } from '@/lib/contact-utils';
 
 const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
 const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
@@ -82,8 +83,8 @@ export class PermitsRepository {
           ai_summary: row.ai_summary || existingFallback?.ai_summary || '',
           estimated_value: Number(row.estimated_value || 0),
           contractor_name: row.contractor_name || 'Owner / Builder',
-          contractor_phone: row.contractor_phone || '(250) 555-0100',
-          contractor_email: row.contractor_email || 'contact@builder.bc.ca',
+          contractor_phone: isValidPhoneNumber(row.contractor_phone) ? row.contractor_phone : undefined,
+          contractor_email: isValidEmail(row.contractor_email) ? row.contractor_email : undefined,
           applicant_name: row.applicant_name || row.contractor_name,
           status: row.status || 'Issued',
           latitude: Number(row.latitude || 49.888),
@@ -274,7 +275,7 @@ export class PermitsRepository {
         min_value: 1000000,
         work_classes: ['Commercial', 'Industrial'],
         daily_email_alert: true,
-        email: 'estimator@contractor.ca',
+        email: '',
         created_at: new Date().toISOString()
       }
     ];

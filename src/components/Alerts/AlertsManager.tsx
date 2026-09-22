@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { SavedSearch, SubtradeKey, WorkClass } from '@/types';
 import { PermitsRepository } from '@/lib/permits-repo';
 import { SUBTRADES_CATALOG } from '@/lib/trades-data';
+import { AuthService } from '@/lib/auth-service';
 import {
   Bell,
   Mail,
@@ -22,7 +23,7 @@ import {
 export const AlertsManager: React.FC = () => {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [searchName, setSearchName] = useState('');
-  const [email, setEmail] = useState('estimator@okanagan-contractor.ca');
+  const [email, setEmail] = useState('');
   const [selectedTrades, setSelectedTrades] = useState<SubtradeKey[]>(['electrical', 'commercial_doors']);
   const [minValue, setMinValue] = useState<number>(1000000);
   const [dailyEmail, setDailyEmail] = useState<boolean>(true);
@@ -38,6 +39,10 @@ export const AlertsManager: React.FC = () => {
 
   useEffect(() => {
     loadSearches();
+    const activeEmail = AuthService.getActiveUserEmail();
+    if (activeEmail) {
+      setEmail(activeEmail);
+    }
   }, []);
 
   const handleCreateSearch = (e: React.FormEvent) => {

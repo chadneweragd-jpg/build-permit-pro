@@ -174,8 +174,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 50000.0,
         "applicant_name": "E. Houston Contracting",
         "contractor_name": "E. HOUSTON CONTRACTING LTD",
-        "contractor_phone": "(250) 862-5200",
-        "contractor_email": "info@ehouston.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Interior fit-out, tenant improvement, steel stud drywall partitions, LED electrical retrofit and branch circuits, new plumbing fixtures and HVAC duct modifications."
     },
     {
@@ -189,8 +189,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 47500.0,
         "applicant_name": "Okahill Building",
         "contractor_name": "OKAHILL BUILDING CONTRACTORS LTD",
-        "contractor_phone": "(250) 765-8819",
-        "contractor_email": "estimating@okahill.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Unit alterations including structural framing reinforcement, drywall partition walls, new commercial doors, 200A electrical service disconnect and distribution."
     },
     {
@@ -204,8 +204,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 25000.0,
         "applicant_name": "Innovation Drywall",
         "contractor_name": "Innovation Drywall Ltd",
-        "contractor_phone": "(250) 762-9011",
-        "contractor_email": "office@innovationdrywall.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Drywall repair, acoustic ceiling grid replacement, T-bar ceiling and drywall mudding for commercial retail unit."
     },
     {
@@ -219,8 +219,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 100000.0,
         "applicant_name": "Duo Projects Ltd",
         "contractor_name": "DUO PROJECTS LTD",
-        "contractor_phone": "(250) 868-3860",
-        "contractor_email": "build@duoprojects.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Tenant improvement for medical clinic including plumbing rough-in, multi-zone HVAC heat pump distribution, 200A electrical panel upgrade, framing and drywall partitions."
     },
     {
@@ -234,8 +234,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 21100.0,
         "applicant_name": "Plan B Contractors",
         "contractor_name": "PLAN B CONTRACTORS INC",
-        "contractor_phone": "(250) 861-5500",
-        "contractor_email": "info@planbcontractors.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Retail tenant improvements, interior partition framing, drywall, electrical wiring, lighting fixtures, emergency lighting and exit signage."
     },
     {
@@ -249,8 +249,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 10000.0,
         "applicant_name": "Kelbrook Construction",
         "contractor_name": "Kelbrook Construction Corp",
-        "contractor_phone": "(250) 763-7722",
-        "contractor_email": "admin@kelbrook.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Storefront renovation, commercial glass entrance doors, drywall repairs, lighting retrofit and electrical connections."
     },
     {
@@ -264,8 +264,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 514897.0,
         "applicant_name": "TKI Construction Ltd",
         "contractor_name": "TKI CONSTRUCTION LTD",
-        "contractor_phone": "(250) 860-2211",
-        "contractor_email": "tenders@tkiconstruction.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Tenant Fit-Out - Orchard Park Mall tenant improvement with complete mechanical HVAC rooftop units, 400A 3-phase electrical distribution, drywall partitions, acoustic ceilings, and fire sprinkler modifications."
     },
     {
@@ -279,8 +279,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 150000.0,
         "applicant_name": "Mundi Construction Ltd",
         "contractor_name": "MUNDI CONSTRUCTION LTD",
-        "contractor_phone": "(250) 862-9800",
-        "contractor_email": "estimating@mundiconstruction.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Office renovation on 3rd floor. Includes drywall partition walls, T-bar ceiling, electrical wiring for workstations, HVAC zone dampers and diffusers."
     },
     {
@@ -294,8 +294,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 380000.0,
         "applicant_name": "Team Construction Management",
         "contractor_name": "TEAM CONSTRUCTION MANAGEMENT (1981) LTD",
-        "contractor_phone": "(250) 860-3232",
-        "contractor_email": "info@teamconstruction.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Healthcare professional facility fit-out. Specialized plumbing lines, dedicated HVAC filtration, medical grade electrical panels, acoustic drywall and soundproofing."
     },
     {
@@ -309,8 +309,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 275000.0,
         "applicant_name": "Reotech Construction Ltd",
         "contractor_name": "REOTECH CONSTRUCTION LTD",
-        "contractor_phone": "(250) 861-1203",
-        "contractor_email": "tenders@reotech.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Industrial warehouse and office tenant improvement with overhead roll-up bay doors, loading dock leveler repairs, 600V 3-phase power drops, and high-bay LED lighting."
     },
     {
@@ -324,8 +324,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 85000.0,
         "applicant_name": "Callahan Property Group",
         "contractor_name": "CALLAHAN PROPERTY GROUP LTD",
-        "contractor_phone": "(250) 763-1250",
-        "contractor_email": "properties@callahan.bc.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Commercial plaza facade upgrade, architectural sheet metal roofing flashings, parapet waterproofing membrane, and commercial storefront aluminum doors."
     },
     {
@@ -339,8 +339,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 62000.0,
         "applicant_name": "I J Samra Construction",
         "contractor_name": "I J SAMRA CONSTRUCTION LTD",
-        "contractor_phone": "(250) 765-6626",
-        "contractor_email": "samra_const@telus.net",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Commercial retail unit renovation, wood frame and steel stud partitions, gypsum drywall finishing, rough-in plumbing for washrooms, electrical service update."
     },
     {
@@ -354,8 +354,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 1250000.0,
         "applicant_name": "ITC BC Builders Inc",
         "contractor_name": "ITC BC BUILDERS INC",
-        "contractor_phone": "(250) 862-8850",
-        "contractor_email": "estimating.bc@itc-group.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Multi-family mixed use podium renovation, structural framing modifications, 2-ply SBS roofing membrane replacement, commercial glazing and plumbing stack renewals."
     },
     {
@@ -369,8 +369,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 420000.0,
         "applicant_name": "Norson Construction LLP",
         "contractor_name": "NORSON CONSTRUCTION LLP",
-        "contractor_phone": "(250) 860-8800",
-        "contractor_email": "bids@norson.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Community sports facility upgrade, HVAC rooftop unit replacement, mechanical ducting, 400A electrical service disconnect, and acoustic ceiling tiles."
     },
     {
@@ -384,8 +384,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 95000.0,
         "applicant_name": "Interior Pool & Spa",
         "contractor_name": "INTERIOR POOL & SPA",
-        "contractor_phone": "(250) 868-4808",
-        "contractor_email": "service@interiorpoolandspa.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Commercial aquatic recreation facility mechanical upgrade, high-efficiency boiler installation, circulation pumps, gas line connection, and 100A subpanel."
     },
     {
@@ -399,8 +399,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 2800000.0,
         "applicant_name": "Mission Group",
         "contractor_name": "Mission Group Commercial",
-        "contractor_phone": "(250) 717-3000",
-        "contractor_email": "commercial@missiongroup.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Retail Building - Construction of multi-tenant retail building, structural steel framing, commercial glass storefront entrances, 600A electrical service, TPO flat roof membrane, and rooftop HVAC units."
     },
     {
@@ -414,8 +414,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 8500000.0,
         "applicant_name": "Centurion Construction",
         "contractor_name": "Centurion Construction Ltd",
-        "contractor_phone": "(250) 861-8844",
-        "contractor_email": "admin@centurionconstruction.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Multi-Family Residential - 6-storey residential wood-frame building over concrete parkade, 3-phase power distribution, central heat pumps, sprinkler plumbing system, and fire-rated drywall."
     },
     {
@@ -429,8 +429,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 450000.0,
         "applicant_name": "Shoreline Construction",
         "contractor_name": "Shoreline Construction Management",
-        "contractor_phone": "(250) 862-3400",
-        "contractor_email": "info@shorelineconstruction.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - South Pandosy retail revitalization, facade upgrade, new commercial overhead folding doors, electrical branch circuits, plumbing fixtures, and acoustic ceilings."
     },
     {
@@ -444,8 +444,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 1800000.0,
         "applicant_name": "Emil Anderson",
         "contractor_name": "Emil Anderson Construction",
-        "contractor_phone": "(250) 762-9999",
-        "contractor_email": "tenders@eac.bc.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Industrial Commercial Warehouse - Pre-engineered steel building, heavy commercial overhead doors, 3 loading docks with levelers, 400A 600V electrical service, and gas unit heaters."
     },
     {
@@ -459,8 +459,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 3400000.0,
         "applicant_name": "Marwest Construction",
         "contractor_name": "Marwest Construction Ltd",
-        "contractor_phone": "(250) 860-7711",
-        "contractor_email": "kelowna@marwest.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Mixed Use - Brewery and taproom buildout, high-capacity commercial plumbing and grease traps, 400A electrical service, commercial ventilation exhaust hood, and concrete slab cutting."
     },
     {
@@ -474,8 +474,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 650000.0,
         "applicant_name": "Scott Construction",
         "contractor_name": "Scott Construction Management",
-        "contractor_phone": "(250) 868-9900",
-        "contractor_email": "estimating@scottconstructiongroup.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Renovation - Auto dealership service bay addition, 4 commercial overhead bay doors, heavy concrete slab-on-grade, in-floor hydronic heating, and compressed air lines."
     },
     {
@@ -489,8 +489,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 1100000.0,
         "applicant_name": "Worman Commercial",
         "contractor_name": "Worman Commercial",
-        "contractor_phone": "(250) 762-2255",
-        "contractor_email": "build@worman.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Commercial Office Building - Tenant improvements on 2nd and 3rd floors, interior steel stud framing, gypsum drywall, glass office partitions, energy efficient LED lighting, and VRF HVAC heat pumps."
     },
 
@@ -506,8 +506,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 1450000.0,
         "applicant_name": "Edgecombe Builders",
         "contractor_name": "Edgecombe Builders Group",
-        "contractor_phone": "(250) 862-2288",
-        "contractor_email": "info@edgecombebuilders.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "New Single Family Dwelling - Construct 2-storey luxury single family residence with engineered wood framing, 200A electrical service, ducted heat pump HVAC, asphalt shingle roofing, and overhead garage doors."
     },
     {
@@ -521,8 +521,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 120000.0,
         "applicant_name": "Kodiak Projects",
         "contractor_name": "Kodiak Projects Ltd",
-        "contractor_phone": "(250) 808-7272",
-        "contractor_email": "projects@kodiakprojects.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Renovation - Interior renovation, kitchen and master bathroom plumbing overhaul, electrical rewiring with subpanel, drywall installation and mudding."
     },
     {
@@ -536,8 +536,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 280000.0,
         "applicant_name": "Gibson Contracting",
         "contractor_name": "Gibson Contracting Ltd",
-        "contractor_phone": "(250) 860-1441",
-        "contractor_email": "bids@gibsoncontracting.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Addition - 2-storey addition with wood frame construction, standing seam metal roof, heat pump split system, new electrical subpanel and recessed lighting."
     },
     {
@@ -551,8 +551,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 175000.0,
         "applicant_name": "Sun-West Construction",
         "contractor_name": "Sun-West Construction",
-        "contractor_phone": "(250) 763-9191",
-        "contractor_email": "info@sunwestkelowna.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Renovation - Full home renovation, replacement of roof shingles, new exterior sliding doors and windows, electrical service upgrade to 200A, and drywall finishing."
     },
     {
@@ -566,8 +566,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 1280000.0,
         "applicant_name": "San Marc Homes",
         "contractor_name": "San Marc Homes Inc",
-        "contractor_phone": "(250) 764-5555",
-        "contractor_email": "sales@sanmarchomes.com",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "New Single Family Dwelling - Construct custom 2-storey residential home with walkout basement, post and beam framing, 200A service with EV rough-in, radiant hydronic floor heating and central AC."
     },
     {
@@ -581,8 +581,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 85000.0,
         "applicant_name": "Okanagan Valley Homes",
         "contractor_name": "Okanagan Valley Homes",
-        "contractor_phone": "(250) 861-9444",
-        "contractor_email": "admin@ovhomes.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Renovation - Basement suite development, fire-rated drywall ceiling, plumbing rough-in for second kitchen and bathroom, electrical circuits and electric baseboard heating."
     },
     {
@@ -596,8 +596,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 310000.0,
         "applicant_name": "Hovbrender Construction",
         "contractor_name": "Hovbrender Construction",
-        "contractor_phone": "(250) 862-4411",
-        "contractor_email": "info@hovbrender.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Renovation - Waterfront home envelope renovation, replacement of flat roof SBS membrane, commercial grade sliding patio doors, new HVAC heat pump, and interior drywall."
     },
     {
@@ -611,8 +611,8 @@ OFFICIAL_APPROVED_PERMITS_FEED = [
         "estimated_value": 350000.0,
         "applicant_name": "Fawdry Homes",
         "contractor_name": "Fawdry Homes Ltd",
-        "contractor_phone": "(250) 868-8090",
-        "contractor_email": "build@fawdryhomes.ca",
+        "contractor_phone": None,
+        "contractor_email": None,
         "description": "Single Family Dwelling Addition - Detached garage and secondary carriage house, wood frame timber trusses, 100A subpanel, overhead garage bay doors, asphalt shingle roofing, and drywall."
     }
 ]
@@ -834,8 +834,8 @@ def run_kelowna_harvester():
             "ai_summary": ai_summary,
             "estimated_value": float(raw.get("estimated_value", 50000.0)),
             "contractor_name": raw.get("contractor_name", "Owner / Builder"),
-            "contractor_phone": raw.get("contractor_phone", "(250) 860-0100"),
-            "contractor_email": raw.get("contractor_email", "contact@builder.bc.ca"),
+            "contractor_phone": raw.get("contractor_phone") or None,
+            "contractor_email": raw.get("contractor_email") or None,
             "applicant_name": raw.get("applicant_name", raw.get("contractor_name", "Applicant")),
             "status": "Issued",
             "latitude": lat,

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Permit, JobRadarAlert } from '@/types';
-import { Radio, X, Plus, Phone, ExternalLink, Zap, ShieldAlert } from 'lucide-react';
+import { Radio, X, Plus, Phone, ExternalLink, Zap, ShieldAlert, Compass } from 'lucide-react';
+import { isValidPhoneNumber } from '@/lib/contact-utils';
 
 interface JobRadarOverlayProps {
   alerts: JobRadarAlert[];
@@ -140,9 +141,9 @@ export function JobRadarOverlay({
                 <span>+ Add Next Stop</span>
               </button>
 
-              {permit.contractor_phone ? (
+              {isValidPhoneNumber(permit.contractor_phone) ? (
                 <a
-                  href={`tel:${permit.contractor_phone}`}
+                  href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
                   className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center space-x-1.5 transition-colors border border-slate-700"
                 >
                   <Phone className="w-3.5 h-3.5 text-blue-400" />
@@ -153,7 +154,7 @@ export function JobRadarOverlay({
                   onClick={() => onDismissAlert(permit.id)}
                   className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center space-x-1.5 transition-colors border border-slate-700"
                 >
-                  <span>Ignore</span>
+                  <span>Dismiss</span>
                 </button>
               )}
             </div>

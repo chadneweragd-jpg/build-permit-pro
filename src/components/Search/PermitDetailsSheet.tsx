@@ -20,8 +20,12 @@ import {
   HardHat,
   ChevronRight,
   Compass,
-  Kanban
+  Kanban,
+  ShieldAlert,
+  Send,
+  ExternalLink
 } from 'lucide-react';
+import { isValidPhoneNumber, isValidEmail, formatPhoneNumber } from '@/lib/contact-utils';
 
 interface PermitDetailsSheetProps {
   permit: Permit | null;
@@ -41,6 +45,9 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
   const [pipelineQuote, setPipelineQuote] = useState('');
   const [pipelineNotes, setPipelineNotes] = useState('');
   const [pipelineToast, setPipelineToast] = useState<string | null>(null);
+
+  const hasValidPhone = isValidPhoneNumber(permit?.contractor_phone);
+  const hasValidEmail = isValidEmail(permit?.contractor_email);
 
   useEffect(() => {
     if (permit) {
@@ -144,20 +151,31 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <span className="truncate">+ Add To Route</span>
           </button>
 
-          {/* Contact Details Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowContact(!showContact)}
-            className={`py-3 px-2 rounded-xl border flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95 ${
-              showContact
-                ? 'bg-amber-500 text-slate-950 border-amber-600 font-extrabold shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700'
-            }`}
-            title="Toggle Contractor Contact Info"
-          >
-            <Phone className="w-4 h-4 shrink-0" />
-            <span className="truncate">Contact</span>
-          </button>
+          {/* Call GC or Contact Details Toggle */}
+          {hasValidPhone ? (
+            <a
+              href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
+              className="py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30"
+              title={`Call ${permit.contractor_name || 'Contractor'}`}
+            >
+              <Phone className="w-4 h-4 shrink-0" />
+              <span className="truncate">Call GC</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowContact(!showContact)}
+              className={`py-3 px-2 rounded-xl border flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95 ${
+                showContact
+                  ? 'bg-amber-500 text-slate-950 border-amber-600 font-extrabold shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700'
+              }`}
+              title="Toggle Contractor Contact Info"
+            >
+              <Building className="w-4 h-4 shrink-0" />
+              <span className="truncate">Contacts</span>
+            </button>
+          )}
         </div>
 
         {/* Secondary: BPP Scout Drive Mode & Pipeline */}
@@ -205,26 +223,80 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
 
       {/* Contact Details Card (when Contact button clicked) */}
       {showContact && (
-        <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800/40 text-xs animate-in fade-in">
-          <div className="flex items-center space-x-2 font-bold text-amber-900 dark:text-amber-300 mb-2">
-            <Building className="w-4 h-4" />
-            <span>Contractor & Builder Contacts</span>
+        <div className="p-4 bg-amber-50/90 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800/40 text-xs animate-in fade-in space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 font-bold text-amber-900 dark:text-amber-300">
+              <Building className="w-4 h-4" />
+              <span>Contractor & Builder Contacts</span>
+            </div>
+            {!hasValidPhone && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60">
+                <ShieldAlert className="w-3 h-3 text-amber-700 dark:text-amber-300" />
+                Public Record — No Direct Phone Listed
+              </span>
+            )}
           </div>
-          <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
+
+          <div className="space-y-2 text-slate-700 dark:text-slate-300">
             <p>
-              Company: <strong>{permit.contractor_name || 'Contractor On File'}</strong>
+              Company: <strong className="text-slate-900 dark:text-white">{permit.contractor_name || 'Owner / Builder'}</strong>
             </p>
-            <p className="flex items-center space-x-2">
-              <Phone className="w-3.5 h-3.5 text-amber-600" />
-              <span>{permit.contractor_phone || '(250) 860-3100'}</span>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Applicant: {permit.applicant_name || 'Public Record Applicant'}
             </p>
-            <p className="flex items-center space-x-2">
-              <Mail className="w-3.5 h-3.5 text-amber-600" />
-              <span>{permit.contractor_email || 'estimating@contractor.ca'}</span>
-            </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Applicant: {permit.applicant_name}
-            </p>
+
+            {hasValidPhone && (
+              <div className="flex items-center justify-between pt-1.5 border-t border-amber-200 dark:border-amber-800/40">
+                <div className="flex items-center space-x-2 font-mono font-bold text-slate-900 dark:text-white">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{formatPhoneNumber(permit.contractor_phone)}</span>
+                </div>
+                <a
+                  href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
+                  className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center space-x-1.5 shadow-sm"
+                >
+                  <Phone className="w-3 h-3" />
+                  <span>Call GC</span>
+                </a>
+              </div>
+            )}
+
+            {hasValidEmail && (
+              <div className="flex items-center justify-between pt-1.5 border-t border-amber-200 dark:border-amber-800/40">
+                <div className="flex items-center space-x-2 truncate mr-2 font-medium">
+                  <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span className="truncate">{permit.contractor_email}</span>
+                </div>
+                <a
+                  href={`mailto:${permit.contractor_email}?subject=${encodeURIComponent(`Tender Inquiry: Permit ${permit.permit_number} - ${permit.address}`)}`}
+                  className="shrink-0 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center space-x-1.5 shadow-sm"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Send Tender</span>
+                </a>
+              </div>
+            )}
+
+            {!hasValidPhone && !hasValidEmail && (
+              <div className="pt-2 border-t border-amber-200 dark:border-amber-800/40 flex flex-wrap gap-2">
+                <Link
+                  href={`/routes/builder?destination=${permit.id}`}
+                  className="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all text-center"
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Scout Jobsite</span>
+                </Link>
+                <a
+                  href="https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 border border-amber-300 dark:border-amber-800/60 shadow-xs transition-all text-center"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>View Municipal Record</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -150,4 +150,11 @@ export class AuthService {
   public static getActiveUserId(): string {
     return this.getActiveUserSync().id;
   }
+
+  /**
+   * Returns the active user's email address
+   */
+  public static getActiveUserEmail(): string {
+    return this.getActiveUserSync().email;
+  }
 }

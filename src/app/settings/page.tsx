@@ -22,15 +22,16 @@ import {
   Smartphone
 } from 'lucide-react';
 import { getAvailableVoices, testVoice, saveSelectedVoice, VOICE_STORAGE_KEY, VoiceOption } from '@/lib/voice-utils';
+import { AuthService } from '@/lib/auth-service';
 
 const WAKE_LOCK_STORAGE_KEY = 'bpp_screen_wake_lock_enabled';
 
 export default function SettingsPage() {
   const [currentTier, setCurrentTier] = useState<SubscriptionTier>('pro_scout');
   const [selectedHub, setSelectedHub] = useState('okanagan-valley');
-  const [fullName, setFullName] = useState('Dave Estimator');
-  const [companyName, setCompanyName] = useState('Okanagan Builders Ltd');
-  const [phone, setPhone] = useState('(250) 860-3100');
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [phone, setPhone] = useState('');
   const [saveToast, setSaveToast] = useState(false);
 
   // In-Cab Voice Settings State
@@ -69,6 +70,15 @@ export default function SettingsPage() {
     }
     if (typeof window !== 'undefined') {
       setIsWakeLockSupported('wakeLock' in navigator);
+
+      const activeEmail = AuthService.getActiveUserEmail();
+      const savedName = localStorage.getItem('bpp_user_fullname');
+      const savedCompany = localStorage.getItem('bpp_user_company');
+      const savedPhone = localStorage.getItem('bpp_user_phone');
+
+      setFullName(savedName || (activeEmail ? activeEmail.split('@')[0] : 'Estimator'));
+      setCompanyName(savedCompany || 'Subtrade Contracting');
+      setPhone(savedPhone || '');
     }
   }, []);
 
@@ -93,6 +103,11 @@ export default function SettingsPage() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('bpp_user_fullname', fullName);
+      localStorage.setItem('bpp_user_company', companyName);
+      localStorage.setItem('bpp_user_phone', phone);
+    }
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2500);
   };
