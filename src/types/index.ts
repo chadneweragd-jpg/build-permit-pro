@@ -19,6 +19,22 @@ export interface MatchedTrade {
   matched_terms: string[];
 }
 
+export interface VerifiedBuilder {
+  id: string;
+  company_name: string;
+  normalized_name: string;
+  category?: string;
+  association?: string;
+  city?: string;
+  province?: string;
+  primary_phone?: string;
+  email?: string;
+  website?: string;
+  physical_address?: string;
+  key_principal?: string;
+  similarity_score?: number;
+}
+
 export interface Permit {
   id: string;
   municipality_id: string;
@@ -43,6 +59,8 @@ export interface Permit {
   trades: MatchedTrade[];
   distance_meters?: number; // Spatial distance when along a route corridor
   is_favorite?: boolean;
+  tier?: 1 | 2; // 1 = Verified Builder, 2 = Standard Permittee
+  verified_builder?: VerifiedBuilder | null;
 }
 
 export interface RouteStop {

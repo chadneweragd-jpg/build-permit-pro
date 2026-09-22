@@ -69,7 +69,18 @@ export function PermitTable({ permits, onAddToRoute }: PermitTableProps) {
                       {valStr}
                     </td>
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
-                      {p.contractor_name || 'Not Listed'}
+                      <div className="flex flex-col">
+                        <span className="truncate max-w-[180px]">{p.contractor_name || 'Not Listed'}</span>
+                        {p.tier === 1 ? (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            ✓ Verified Builder
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[9px] font-semibold text-slate-400 mt-0.5">
+                            Standard Permittee
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex flex-wrap gap-1 max-w-[220px]">

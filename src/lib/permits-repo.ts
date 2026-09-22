@@ -2,13 +2,16 @@ import rawPermits from '@/data/permits.json';
 import { CRMStatus, Permit, SavedSearch, SubscriptionTier, SubtradeKey, UserPermitStatus, WorkClass } from '@/types';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { isValidPhoneNumber, isValidEmail } from '@/lib/contact-utils';
+import { enrichPermitWithBuilder } from '@/lib/builders-service';
 
 const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
 const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
 const CURRENT_TIER_KEY = 'bpp_current_tier_v1';
 
 export class PermitsRepository {
-  private static cachedPermits: Permit[] = rawPermits as unknown as Permit[];
+  private static cachedPermits: Permit[] = (rawPermits as unknown as Permit[]).map((p) =>
+    enrichPermitWithBuilder(p)
+  );
 
   /**
    * Asynchronously fetches all permits from live Supabase if available
@@ -93,8 +96,9 @@ export class PermitsRepository {
         };
       });
 
-      this.cachedPermits = mapped;
-      return mapped;
+      const enrichedMapped = mapped.map((p) => enrichPermitWithBuilder(p));
+      this.cachedPermits = enrichedMapped;
+      return enrichedMapped;
     } catch {
       return this.cachedPermits;
     }

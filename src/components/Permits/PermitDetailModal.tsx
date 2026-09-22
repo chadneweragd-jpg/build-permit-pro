@@ -262,10 +262,37 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
               </span>
               <div className="space-y-1.5 mt-2">
                 <div>
-                  <span className="text-slate-400">General Contractor:</span>
-                  <p className="font-bold text-slate-900">{permit.contractor_name || 'Not Listed'}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">General Contractor:</span>
+                    {permit.tier === 1 ? (
+                      <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded">
+                        ✓ Verified Builder
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                        Standard Permittee
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-bold text-slate-900 mt-0.5">{permit.contractor_name || 'Not Listed'}</p>
+                  {permit.verified_builder && (
+                    <div className="mt-1 pt-1 border-t border-slate-200 text-[11px] space-y-0.5 text-slate-600">
+                      {permit.verified_builder.key_principal && (
+                        <p>Principal: <span className="font-semibold text-slate-800">{permit.verified_builder.key_principal}</span></p>
+                      )}
+                      {permit.verified_builder.primary_phone && (
+                        <p>Phone: <a href={`tel:${permit.verified_builder.primary_phone.replace(/\D/g, '')}`} className="text-blue-600 hover:underline font-mono">{permit.verified_builder.primary_phone}</a></p>
+                      )}
+                      {permit.verified_builder.email && (
+                        <p>Email: <a href={`mailto:${permit.verified_builder.email}`} className="text-blue-600 hover:underline">{permit.verified_builder.email}</a></p>
+                      )}
+                      {permit.verified_builder.website && (
+                        <p><a href={permit.verified_builder.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline font-medium">↗ Official Website</a></p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div className="pt-1 border-t border-slate-200">
                   <span className="text-slate-400">Applicant / Owner:</span>
                   <p className="font-bold text-slate-900">{permit.applicant_name || 'Not Listed'}</p>
                 </div>

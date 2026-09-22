@@ -38,7 +38,6 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
   onClose,
   onAddToRouteSuccess
 }) => {
-  const [showContact, setShowContact] = useState(false);
   const [addedToast, setAddedToast] = useState<string | null>(null);
   const [isPipelinePopupOpen, setIsPipelinePopupOpen] = useState(false);
   const [pipelineStage, setPipelineStage] = useState<DealStage>('watched');
@@ -101,13 +100,22 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
       {/* Header */}
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between bg-slate-50 dark:bg-slate-950/60 shrink-0">
         <div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center flex-wrap gap-2">
             <span className="font-mono text-xs font-black bg-slate-900 text-white dark:bg-blue-600 px-2 py-0.5 rounded">
               {permit.permit_number}
             </span>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
               {permit.city_region || 'Kelowna'}, BC
             </span>
+            {permit.tier === 1 ? (
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                ✓ Verified Builder
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-slate-400 bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                Standard Permittee
+              </span>
+            )}
           </div>
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white mt-1.5 leading-snug">
             {permit.address}
@@ -124,8 +132,8 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
       </div>
 
       {/* Primary Action Buttons Bar with Safe Area Padding */}
-      <div className="pb-6 px-4 pt-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-2.5 text-xs font-bold shrink-0">
-        {/* Prominent Action Button Row: [Open in Maps], [+ Add To Route], [Contact] */}
+      <div className="pb-4 px-4 pt-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-2.5 text-xs font-bold shrink-0">
+        {/* Prominent Action Button Row: [Open in Maps], [+ Add To Route], [Call Builder / Scout Site] */}
         <div className="grid grid-cols-3 gap-2">
           {/* Open in Maps */}
           <button
@@ -151,7 +159,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <span className="truncate">+ Add To Route</span>
           </button>
 
-          {/* Call GC or Contact Details Toggle */}
+          {/* Call Builder or Scout Jobsite */}
           {hasValidPhone ? (
             <a
               href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
@@ -159,22 +167,17 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
               title={`Call ${permit.contractor_name || 'Contractor'}`}
             >
               <Phone className="w-4 h-4 shrink-0" />
-              <span className="truncate">Call GC</span>
+              <span className="truncate">{permit.tier === 1 ? 'Call Builder' : 'Call GC'}</span>
             </a>
           ) : (
-            <button
-              type="button"
-              onClick={() => setShowContact(!showContact)}
-              className={`py-3 px-2 rounded-xl border flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95 ${
-                showContact
-                  ? 'bg-amber-500 text-slate-950 border-amber-600 font-extrabold shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700'
-              }`}
-              title="Toggle Contractor Contact Info"
+            <Link
+              href={`/routes/builder?destination=${permit.id}`}
+              className="py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95"
+              title="Scout Jobsite in Drive Mode"
             >
-              <Building className="w-4 h-4 shrink-0" />
-              <span className="truncate">Contacts</span>
-            </button>
+              <Compass className="w-4 h-4 shrink-0 text-amber-500" />
+              <span className="truncate">Scout Site</span>
+            </Link>
           )}
         </div>
 
@@ -221,88 +224,133 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
         </div>
       )}
 
-      {/* Contact Details Card (when Contact button clicked) */}
-      {showContact && (
-        <div className="p-4 bg-amber-50/90 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800/40 text-xs animate-in fade-in space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 font-bold text-amber-900 dark:text-amber-300">
-              <Building className="w-4 h-4" />
-              <span>Contractor & Builder Contacts</span>
-            </div>
-            {!hasValidPhone && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60">
-                <ShieldAlert className="w-3 h-3 text-amber-700 dark:text-amber-300" />
-                Public Record — No Direct Phone Listed
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-2 text-slate-700 dark:text-slate-300">
-            <p>
-              Company: <strong className="text-slate-900 dark:text-white">{permit.contractor_name || 'Owner / Builder'}</strong>
-            </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Applicant: {permit.applicant_name || 'Public Record Applicant'}
-            </p>
-
-            {hasValidPhone && (
-              <div className="flex items-center justify-between pt-1.5 border-t border-amber-200 dark:border-amber-800/40">
-                <div className="flex items-center space-x-2 font-mono font-bold text-slate-900 dark:text-white">
-                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{formatPhoneNumber(permit.contractor_phone)}</span>
-                </div>
-                <a
-                  href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
-                  className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center space-x-1.5 shadow-sm"
-                >
-                  <Phone className="w-3 h-3" />
-                  <span>Call GC</span>
-                </a>
-              </div>
-            )}
-
-            {hasValidEmail && (
-              <div className="flex items-center justify-between pt-1.5 border-t border-amber-200 dark:border-amber-800/40">
-                <div className="flex items-center space-x-2 truncate mr-2 font-medium">
-                  <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="truncate">{permit.contractor_email}</span>
-                </div>
-                <a
-                  href={`mailto:${permit.contractor_email}?subject=${encodeURIComponent(`Tender Inquiry: Permit ${permit.permit_number} - ${permit.address}`)}`}
-                  className="shrink-0 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center space-x-1.5 shadow-sm"
-                >
-                  <Send className="w-3 h-3" />
-                  <span>Send Tender</span>
-                </a>
-              </div>
-            )}
-
-            {!hasValidPhone && !hasValidEmail && (
-              <div className="pt-2 border-t border-amber-200 dark:border-amber-800/40 flex flex-wrap gap-2">
-                <Link
-                  href={`/routes/builder?destination=${permit.id}`}
-                  className="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all text-center"
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>Scout Jobsite</span>
-                </Link>
-                <a
-                  href="https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 border border-amber-300 dark:border-amber-800/60 shadow-xs transition-all text-center"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>View Municipal Record</span>
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        {/* Tier 1 / Tier 2 Contractor & Builder Verification Card */}
+        {permit.tier === 1 && permit.verified_builder ? (
+          <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/60 rounded-2xl p-4 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Building className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200">
+                  Verified Builder Dossier
+                </span>
+              </div>
+              <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                ✓ Verified Builder
+              </span>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  {permit.verified_builder.company_name}
+                </h3>
+                {permit.verified_builder.association && (
+                  <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    {permit.verified_builder.association}
+                  </span>
+                )}
+              </div>
+              {permit.verified_builder.key_principal && (
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  Principal / Key Contact: <strong className="text-slate-900 dark:text-white">{permit.verified_builder.key_principal}</strong>
+                </p>
+              )}
+              {permit.verified_builder.physical_address && (
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                  <span>{permit.verified_builder.physical_address}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Quick Action Dial & Tender Email */}
+            <div className="pt-2 border-t border-emerald-200/80 dark:border-emerald-800/40 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {permit.verified_builder.primary_phone && (
+                <a
+                  href={`tel:${permit.verified_builder.primary_phone.replace(/\D/g, '')}`}
+                  className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 transition-all"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call {formatPhoneNumber(permit.verified_builder.primary_phone)}</span>
+                </a>
+              )}
+              {permit.verified_builder.email && (
+                <a
+                  href={`mailto:${permit.verified_builder.email}?subject=${encodeURIComponent(`Tender Inquiry: Permit ${permit.permit_number} - ${permit.address}`)}`}
+                  className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 transition-all truncate"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Email Estimating</span>
+                </a>
+              )}
+            </div>
+
+            {permit.verified_builder.website && (
+              <a
+                href={permit.verified_builder.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>↗ Official Website ({permit.verified_builder.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})</span>
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Building className="w-4 h-4 text-slate-500" />
+                <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  Permit Contractor / Applicant
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-500 bg-slate-200/80 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                Standard Permittee
+              </span>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">
+                {permit.contractor_name || 'Owner / Builder'}
+              </p>
+              {permit.applicant_name && permit.applicant_name !== permit.contractor_name && (
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Applicant: {permit.applicant_name}
+                </p>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px]">
+              <span className="inline-flex items-center gap-1 text-slate-400 font-medium">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                Public Record — No Direct Phone Listed
+              </span>
+            </div>
+
+            <div className="pt-1 flex flex-wrap gap-2">
+              <Link
+                href={`/routes/builder?destination=${permit.id}`}
+                className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center"
+              >
+                <Compass className="w-3.5 h-3.5 text-blue-500" />
+                <span>Scout Jobsite</span>
+              </Link>
+              <a
+                href="https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Municipal Record</span>
+              </a>
+            </div>
+          </div>
+        )}
         {/* Valuation & Issue Date Metric Bar */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-700/80">
