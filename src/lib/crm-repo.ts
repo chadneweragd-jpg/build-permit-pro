@@ -19,9 +19,9 @@ export const DEAL_STAGES: {
     label: 'Watched / Leads',
     shortLabel: 'Leads',
     color: 'slate',
-    bgLight: 'bg-slate-100 dark:bg-slate-800/60',
-    borderLight: 'border-slate-300 dark:border-slate-700',
-    badgeBg: 'bg-slate-200 dark:bg-slate-700',
+    bgLight: 'bg-slate-100/80 dark:bg-slate-900/40',
+    borderLight: 'border-slate-300 dark:border-slate-800',
+    badgeBg: 'bg-slate-200 dark:bg-slate-800',
     badgeText: 'text-slate-800 dark:text-slate-200'
   },
   {
@@ -29,8 +29,8 @@ export const DEAL_STAGES: {
     label: 'Site Visited',
     shortLabel: 'Visited',
     color: 'blue',
-    bgLight: 'bg-blue-50/70 dark:bg-blue-950/30',
-    borderLight: 'border-blue-200 dark:border-blue-900',
+    bgLight: 'bg-blue-50/70 dark:bg-slate-900/40 dark:bg-blue-950/10',
+    borderLight: 'border-blue-200 dark:border-blue-800/50',
     badgeBg: 'bg-blue-100 dark:bg-blue-900/50',
     badgeText: 'text-blue-700 dark:text-blue-300'
   },
@@ -39,8 +39,8 @@ export const DEAL_STAGES: {
     label: 'In Estimating',
     shortLabel: 'Estimating',
     color: 'amber',
-    bgLight: 'bg-amber-50/70 dark:bg-amber-950/30',
-    borderLight: 'border-amber-200 dark:border-amber-900',
+    bgLight: 'bg-amber-50/70 dark:bg-slate-900/40 dark:bg-amber-950/10',
+    borderLight: 'border-amber-300 dark:border-amber-400/50',
     badgeBg: 'bg-amber-100 dark:bg-amber-900/50',
     badgeText: 'text-amber-800 dark:text-amber-300'
   },
@@ -49,8 +49,8 @@ export const DEAL_STAGES: {
     label: 'Quote Sent',
     shortLabel: 'Quoted',
     color: 'purple',
-    bgLight: 'bg-purple-50/70 dark:bg-purple-950/30',
-    borderLight: 'border-purple-200 dark:border-purple-900',
+    bgLight: 'bg-purple-50/70 dark:bg-slate-900/40 dark:bg-purple-950/10',
+    borderLight: 'border-purple-200 dark:border-purple-800/50',
     badgeBg: 'bg-purple-100 dark:bg-purple-900/50',
     badgeText: 'text-purple-700 dark:text-purple-300'
   },
@@ -59,8 +59,8 @@ export const DEAL_STAGES: {
     label: 'Won / Booked',
     shortLabel: 'Won',
     color: 'emerald',
-    bgLight: 'bg-emerald-50/70 dark:bg-emerald-950/30',
-    borderLight: 'border-emerald-200 dark:border-emerald-900',
+    bgLight: 'bg-emerald-50/70 dark:bg-slate-900/40 dark:bg-emerald-950/10',
+    borderLight: 'border-emerald-200 dark:border-emerald-800/50',
     badgeBg: 'bg-emerald-100 dark:bg-emerald-900/50',
     badgeText: 'text-emerald-700 dark:text-emerald-300'
   }

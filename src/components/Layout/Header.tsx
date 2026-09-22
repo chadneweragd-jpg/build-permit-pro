@@ -46,10 +46,62 @@ export const Header: React.FC<HeaderProps> = ({ onSearchSubmit, onOpenMobileMenu
     localStorage.setItem('bpp_theme', nextTheme ? 'dark' : 'light');
   };
 
+  // Initialize searchVal from URL on mount & sync on external reset
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const initialQ = new URLSearchParams(window.location.search).get('q');
+      if (initialQ) {
+        setSearchVal(initialQ);
+      }
+    }
+
+    const handleSync = (e: Event) => {
+      const customEvent = e as CustomEvent<{ query: string }>;
+      if (typeof customEvent.detail?.query === 'string') {
+        setSearchVal(customEvent.detail.query);
+      }
+    };
+
+    window.addEventListener('bpp:global-search-sync', handleSync);
+    return () => window.removeEventListener('bpp:global-search-sync', handleSync);
+  }, []);
+
+  // 250ms debounced live search broadcast & URL sync
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('bpp:global-search', { detail: { query: searchVal } })
+        );
+
+        if (window.location.pathname === '/search') {
+          const url = new URL(window.location.href);
+          if (searchVal.trim()) {
+            url.searchParams.set('q', searchVal.trim());
+          } else {
+            url.searchParams.delete('q');
+          }
+          window.history.replaceState(null, '', url.pathname + url.search);
+        }
+      }
+
+      if (onSearchSubmit) {
+        onSearchSubmit(searchVal);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchVal, onSearchSubmit]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchVal.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchVal.trim())}`);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('bpp:global-search', { detail: { query: searchVal } })
+      );
+      if (window.location.pathname !== '/search') {
+        router.push(searchVal.trim() ? `/search?q=${encodeURIComponent(searchVal.trim())}` : '/search');
+      }
     }
   };
 

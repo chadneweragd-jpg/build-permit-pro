@@ -47,7 +47,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
     : '#';
 
   const websiteUrl = builder.website
-    ? (builder.website.startsWith('http') ? builder.website : `https://${builder.website}`)
+    ? (/^https?:\/\//i.test(builder.website) ? builder.website : `https://${builder.website}`)
     : '#';
 
   return (
@@ -85,24 +85,30 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
             📞 Call {builder.primary_phone}
           </a>
         ) : (
-          <button disabled className="rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed">
-            No Phone Listed
+          <button
+            disabled
+            className="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
+            title="No builder phone on file"
+          >
+            📞 No Phone Listed
           </button>
         )}
 
-        {/* Email Estimating Button (FIXED) */}
+        {/* Email Estimating Button (Native OS Mail Handler, NO target="_blank") */}
         {builder.email ? (
           <a
             href={mailtoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95"
           >
             ✉️ Email Estimating
           </a>
         ) : (
-          <button disabled className="rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed">
-            No Email Listed
+          <button
+            disabled
+            className="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
+            title="No estimator email on file"
+          >
+            ✉️ Email Estimating
           </button>
         )}
       </div>

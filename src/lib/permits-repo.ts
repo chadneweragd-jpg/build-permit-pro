@@ -199,15 +199,22 @@ export class PermitsRepository {
     }
 
     if (options.searchQuery && options.searchQuery.trim().length > 0) {
-      const q = options.searchQuery.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.permit_number.toLowerCase().includes(q) ||
-          p.address.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.contractor_name.toLowerCase().includes(q) ||
-          p.applicant_name.toLowerCase().includes(q)
-      );
+      const q = options.searchQuery.trim().toLowerCase();
+      list = list.filter((permit: any) => {
+        const contractor = (permit.contractor_name || permit.contractor || '').toLowerCase();
+        const applicant = (permit.applicant_name || permit.applicant || '').toLowerCase();
+        const address = (permit.site_address || permit.address || '').toLowerCase();
+        const permitNum = (permit.permit_number || permit.permit_no || '').toLowerCase();
+        const subtype = (permit.permit_type || permit.project_subtype || permit.subtype || permit.description || '').toLowerCase();
+
+        return (
+          contractor.includes(q) ||
+          applicant.includes(q) ||
+          address.includes(q) ||
+          permitNum.includes(q) ||
+          subtype.includes(q)
+        );
+      });
     }
 
     // Always return sorted by issue date descending

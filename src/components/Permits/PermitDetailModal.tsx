@@ -297,8 +297,6 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
                               `Could you please let us know the best contact or share the plans when available?\n\n` +
                               `Thank you,\n`
                             )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                           >
                             {permit.verified_builder.email}

@@ -37,12 +37,35 @@ function SearchExplorerContent() {
   const [selectedValueTier, setSelectedValueTier] = useState<number>(0);
   const [selectedDateRange, setSelectedDateRange] = useState<string>('90d');
   const [sortOrder, setSortOrder] = useState<'newest' | 'highest_value'>('newest');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
 
   // Mobile Map vs. List Toggle View
   const [mobileView, setMobileView] = useState<'map' | 'list'>('list');
 
   // Selected Permit for slideout detail sheet
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(allPermits[0] || null);
+
+  // Sync with bpp:global-search custom event & popstate
+  useEffect(() => {
+    const handleGlobalSearch = (e: Event) => {
+      const customEvent = e as CustomEvent<{ query: string }>;
+      if (typeof customEvent.detail?.query === 'string') {
+        setSearchQuery(customEvent.detail.query);
+      }
+    };
+
+    const handlePopState = () => {
+      const q = new URLSearchParams(window.location.search).get('q') || '';
+      setSearchQuery(q);
+    };
+
+    window.addEventListener('bpp:global-search', handleGlobalSearch);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('bpp:global-search', handleGlobalSearch);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Auto-select permit and open slideout sheet when permitId query param is present
   useEffect(() => {
@@ -83,6 +106,26 @@ function SearchExplorerContent() {
   // Filtered and sorted permits
   const filteredPermits = useMemo(() => {
     let list = allPermits;
+
+    // Multi-field Live Search Filter
+    if (searchQuery.trim()) {
+      const queryLower = searchQuery.trim().toLowerCase();
+      list = list.filter((permit: any) => {
+        const contractor = (permit.contractor_name || permit.contractor || '').toLowerCase();
+        const applicant = (permit.applicant_name || permit.applicant || '').toLowerCase();
+        const address = (permit.site_address || permit.address || '').toLowerCase();
+        const permitNum = (permit.permit_number || permit.permit_no || '').toLowerCase();
+        const subtype = (permit.permit_type || permit.project_subtype || permit.subtype || permit.description || '').toLowerCase();
+
+        return (
+          contractor.includes(queryLower) ||
+          applicant.includes(queryLower) ||
+          address.includes(queryLower) ||
+          permitNum.includes(queryLower) ||
+          subtype.includes(queryLower)
+        );
+      });
+    }
 
     if (selectedLocation !== 'All Locations') {
       list = list.filter((p) => (p.city_region || 'Kelowna').toLowerCase() === selectedLocation.toLowerCase());
@@ -147,19 +190,29 @@ function SearchExplorerContent() {
       }
       return new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime();
     });
-  }, [allPermits, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
+  }, [allPermits, searchQuery, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
   const activeFilterCount =
     (selectedLocation !== 'All Locations' ? 1 : 0) +
     (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types' ? 1 : 0) +
     (selectedValueTier > 0 ? 1 : 0) +
-    (selectedDateRange !== '90d' ? 1 : 0);
+    (selectedDateRange !== '90d' ? 1 : 0) +
+    (searchQuery.trim() ? 1 : 0);
 
   const handleClearAll = () => {
     setSelectedLocation('All Locations');
     setSelectedPermitType('All Permit Types');
     setSelectedValueTier(0);
     setSelectedDateRange('90d');
+    setSearchQuery('');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('bpp:global-search-sync', { detail: { query: '' } })
+      );
+      const url = new URL(window.location.href);
+      url.searchParams.delete('q');
+      window.history.replaceState(null, '', url.pathname + url.search);
+    }
   };
 
   return (
@@ -188,13 +241,36 @@ function SearchExplorerContent() {
         >
           {/* Feed Header */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-wrap gap-1">
               <span className="text-xs font-black text-slate-900 dark:text-white">
                 {filteredPermits.length} Permits
               </span>
               <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full">
                 Okanagan Hub
               </span>
+              {searchQuery.trim() && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60 px-2 py-0.5 rounded-full">
+                  <SearchIcon className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                  <span className="truncate max-w-[120px]">&ldquo;{searchQuery}&rdquo;</span>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(
+                          new CustomEvent('bpp:global-search-sync', { detail: { query: '' } })
+                        );
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('q');
+                        window.history.replaceState(null, '', url.pathname + url.search);
+                      }
+                    }}
+                    className="hover:text-red-500 ml-0.5 font-black text-xs leading-none"
+                    title="Clear search"
+                  >
+                    &times;
+                  </button>
+                </span>
+              )}
             </div>
 
             {/* Sort Dropdown */}
