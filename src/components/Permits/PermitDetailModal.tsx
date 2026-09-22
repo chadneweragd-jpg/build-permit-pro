@@ -284,10 +284,38 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
                         <p>Phone: <a href={`tel:${permit.verified_builder.primary_phone.replace(/\D/g, '')}`} className="text-blue-600 hover:underline font-mono">{permit.verified_builder.primary_phone}</a></p>
                       )}
                       {permit.verified_builder.email && (
-                        <p>Email: <a href={`mailto:${permit.verified_builder.email}`} className="text-blue-600 hover:underline">{permit.verified_builder.email}</a></p>
+                        <p>
+                          Email:{' '}
+                          <a
+                            href={`mailto:${permit.verified_builder.email}?subject=${encodeURIComponent(
+                              `Subtrade Bid Inquiry: Permit ${permit.permit_number} (${permit.address})`
+                            )}&body=${encodeURIComponent(
+                              `Hi ${permit.verified_builder.key_principal || 'Estimating Team'},\n\n` +
+                              `I saw the recently approved permit ${permit.permit_number} for ${permit.address} ` +
+                              `(${permit.permit_type}, estimated value: $${Number(permit.estimated_value || 0).toLocaleString()}).\n\n` +
+                              `We are an Okanagan contractor specializing in subtrade services and would like to review the project scope and submit a tender for this job.\n\n` +
+                              `Could you please let us know the best contact or share the plans when available?\n\n` +
+                              `Thank you,\n`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {permit.verified_builder.email}
+                          </a>
+                        </p>
                       )}
                       {permit.verified_builder.website && (
-                        <p><a href={permit.verified_builder.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline font-medium">↗ Official Website</a></p>
+                        <p>
+                          <a
+                            href={permit.verified_builder.website.startsWith('http') ? permit.verified_builder.website : `https://${permit.verified_builder.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-700 hover:underline font-medium"
+                          >
+                            ↗ Official Website
+                          </a>
+                        </p>
                       )}
                     </div>
                   )}

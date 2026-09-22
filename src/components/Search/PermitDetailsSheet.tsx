@@ -26,6 +26,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { isValidPhoneNumber, isValidEmail, formatPhoneNumber } from '@/lib/contact-utils';
+import { BuilderDossier } from '@/components/BuilderDossier';
 
 interface PermitDetailsSheetProps {
   permit: Permit | null;
@@ -228,77 +229,15 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {/* Tier 1 / Tier 2 Contractor & Builder Verification Card */}
         {permit.tier === 1 && permit.verified_builder ? (
-          <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/60 rounded-2xl p-4 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Building className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200">
-                  Verified Builder Dossier
-                </span>
-              </div>
-              <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                ✓ Verified Builder
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  {permit.verified_builder.company_name}
-                </h3>
-                {permit.verified_builder.association && (
-                  <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                    {permit.verified_builder.association}
-                  </span>
-                )}
-              </div>
-              {permit.verified_builder.key_principal && (
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                  Principal / Key Contact: <strong className="text-slate-900 dark:text-white">{permit.verified_builder.key_principal}</strong>
-                </p>
-              )}
-              {permit.verified_builder.physical_address && (
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                  <span>{permit.verified_builder.physical_address}</span>
-                </p>
-              )}
-            </div>
-
-            {/* Quick Action Dial & Tender Email */}
-            <div className="pt-2 border-t border-emerald-200/80 dark:border-emerald-800/40 grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {permit.verified_builder.primary_phone && (
-                <a
-                  href={`tel:${permit.verified_builder.primary_phone.replace(/\D/g, '')}`}
-                  className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 transition-all"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call {formatPhoneNumber(permit.verified_builder.primary_phone)}</span>
-                </a>
-              )}
-              {permit.verified_builder.email && (
-                <a
-                  href={`mailto:${permit.verified_builder.email}?subject=${encodeURIComponent(`Tender Inquiry: Permit ${permit.permit_number} - ${permit.address}`)}`}
-                  className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 transition-all truncate"
-                >
-                  <Mail className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">Email Estimating</span>
-                </a>
-              )}
-            </div>
-
-            {permit.verified_builder.website && (
-              <a
-                href={permit.verified_builder.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>↗ Official Website ({permit.verified_builder.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})</span>
-              </a>
-            )}
-          </div>
+          <BuilderDossier
+            permit={{
+              permit_number: permit.permit_number,
+              address: permit.address,
+              sub_type: permit.permit_type,
+              value: permit.estimated_value
+            }}
+            builder={permit.verified_builder}
+          />
         ) : (
           <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
             <div className="flex items-center justify-between">
