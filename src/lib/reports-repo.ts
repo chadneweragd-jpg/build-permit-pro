@@ -1,6 +1,7 @@
-import rawPermits from '@/data/permits.json';
 import { Permit, SubtradeKey } from '@/types';
 import { SUBTRADES_CATALOG } from './trades-data';
+import { PermitsRepository } from './permits-repo';
+import { getSelectedCityId, SUPPORTED_CITIES } from './cities';
 
 export interface VolumeTrendPoint {
   month: string;
@@ -31,14 +32,23 @@ export interface ContractorLeaderboardItem {
 }
 
 export class ReportsRepository {
-  private static permits: Permit[] = rawPermits as unknown as Permit[];
+  /**
+   * Retrieves permits strictly filtered by active city ('kelowna', 'calgary', or custom)
+   */
+  public static getPermits(cityId?: string): Permit[] {
+    const city = cityId || getSelectedCityId();
+    return PermitsRepository.getPermitsByCity(city);
+  }
 
-  public static getExecutiveMetrics() {
-    const totalPermits = this.permits.length;
-    const totalValuation = this.permits.reduce((acc, p) => acc + (p.estimated_value || 0), 0);
+  public static getExecutiveMetrics(cityId?: string) {
+    const permits = this.getPermits(cityId);
+    const totalPermits = permits.length;
+    const totalValuation = permits.reduce((acc, p) => acc + (p.estimated_value || 0), 0);
     const avgValuation = totalPermits > 0 ? totalValuation / totalPermits : 0;
-    const commercialCount = this.permits.filter((p) => p.work_class === 'Commercial' || p.work_class === 'Industrial').length;
-    const commercialRatio = Math.round((commercialCount / totalPermits) * 100);
+    const commercialCount = permits.filter(
+      (p) => p.work_class === 'Commercial' || p.work_class === 'Industrial'
+    ).length;
+    const commercialRatio = totalPermits > 0 ? Math.round((commercialCount / totalPermits) * 100) : 0;
 
     return {
       totalPermits,
@@ -48,28 +58,57 @@ export class ReportsRepository {
     };
   }
 
-  public static getMonthlyTrends(): VolumeTrendPoint[] {
-    const monthMap: Record<string, { count: number; val: number }> = {
-      'Apr 2026': { count: 8, val: 24.5 },
-      'May 2026': { count: 12, val: 38.2 },
-      'Jun 2026': { count: 19, val: 62.0 },
-      'Jul 2026': { count: 24, val: 84.5 },
-      'Aug 2026': { count: 32, val: 124.0 },
-      'Sep 2026': { count: 41, val: 182.5 }
+  public static getMonthlyTrends(cityId?: string): VolumeTrendPoint[] {
+    const permits = this.getPermits(cityId);
+
+    // Group permits by YYYY-MM
+    const map = new Map<string, { count: number; val: number }>();
+    for (const p of permits) {
+      if (!p.issue_date) continue;
+      const ym = p.issue_date.substring(0, 7);
+      if (!map.has(ym)) {
+        map.set(ym, { count: 0, val: 0 });
+      }
+      const cur = map.get(ym)!;
+      cur.count += 1;
+      cur.val += p.estimated_value || 0;
+    }
+
+    const monthFormatter = (ym: string) => {
+      const [year, month] = ym.split('-');
+      const d = new Date(Number(year), Number(month) - 1, 1);
+      return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     };
 
-    return Object.entries(monthMap).map(([month, data]) => ({
-      month,
-      count: data.count,
-      valuationMillions: data.val
-    }));
+    if (map.size > 0) {
+      const sortedKeys = Array.from(map.keys()).sort();
+      const displayKeys = sortedKeys.slice(-6);
+      return displayKeys.map((ym) => {
+        const d = map.get(ym)!;
+        return {
+          month: monthFormatter(ym),
+          count: d.count,
+          valuationMillions: Math.max(0.1, Math.round((d.val / 1000000) * 10) / 10)
+        };
+      });
+    }
+
+    return [
+      { month: 'Apr 2026', count: 0, valuationMillions: 0 },
+      { month: 'May 2026', count: 0, valuationMillions: 0 },
+      { month: 'Jun 2026', count: 0, valuationMillions: 0 },
+      { month: 'Jul 2026', count: 0, valuationMillions: 0 },
+      { month: 'Aug 2026', count: 0, valuationMillions: 0 },
+      { month: 'Sep 2026', count: 0, valuationMillions: 0 }
+    ];
   }
 
-  public static getSubtradeValuationBreakdown(): TradeValuationSummary[] {
+  public static getSubtradeValuationBreakdown(cityId?: string): TradeValuationSummary[] {
+    const permits = this.getPermits(cityId);
     const tradeMap: Record<string, { totalValuation: number; count: number }> = {};
     let overallValuation = 0;
 
-    for (const permit of this.permits) {
+    for (const permit of permits) {
       const val = permit.estimated_value || 0;
       overallValuation += val;
 
@@ -99,11 +138,13 @@ export class ReportsRepository {
     return summaries.sort((a, b) => b.totalValuation - a.totalValuation);
   }
 
-  public static getMunicipalityBreakdown(): MunicipalityBreakdown[] {
+  public static getMunicipalityBreakdown(cityId?: string): MunicipalityBreakdown[] {
+    const permits = this.getPermits(cityId);
+    const targetCity = SUPPORTED_CITIES[cityId || getSelectedCityId()] || SUPPORTED_CITIES.kelowna;
     const muniMap: Record<string, { val: number; count: number }> = {};
 
-    for (const permit of this.permits) {
-      const muni = permit.city_region || 'Kelowna';
+    for (const permit of permits) {
+      const muni = permit.city_region || targetCity.name;
       if (!muniMap[muni]) {
         muniMap[muni] = { val: 0, count: 0 };
       }
@@ -120,11 +161,22 @@ export class ReportsRepository {
       .sort((a, b) => b.totalValuation - a.totalValuation);
   }
 
-  public static getTopContractorsLeaderboard(): ContractorLeaderboardItem[] {
+  public static getTopContractorsLeaderboard(cityId?: string): ContractorLeaderboardItem[] {
+    const permits = this.getPermits(cityId);
     const map: Record<string, { count: number; val: number; trades: Set<string> }> = {};
 
-    for (const permit of this.permits) {
-      const name = permit.contractor_name || 'General Contractor On File';
+    for (const permit of permits) {
+      const name = (permit.contractor_name || '').trim();
+      const lower = name.toLowerCase();
+      if (
+        !name ||
+        lower === 'owner / builder' ||
+        lower === 'applicant on file' ||
+        lower === 'unknown' ||
+        lower === 'private'
+      ) {
+        continue;
+      }
       if (!map[name]) {
         map[name] = { count: 0, val: 0, trades: new Set() };
       }
@@ -144,7 +196,10 @@ export class ReportsRepository {
       .slice(0, 10);
   }
 
-  public static exportExecutiveCSV() {
+  public static exportExecutiveCSV(cityId?: string) {
+    const permits = this.getPermits(cityId);
+    const targetCity = SUPPORTED_CITIES[cityId || getSelectedCityId()] || SUPPORTED_CITIES.kelowna;
+
     const headers = [
       'Permit Number',
       'Issue Date',
@@ -158,7 +213,7 @@ export class ReportsRepository {
       'Estimator AI Flash Summary'
     ];
 
-    const rows = this.permits.map((p) => [
+    const rows = permits.map((p) => [
       `"${p.permit_number}"`,
       `"${p.issue_date}"`,
       `"${p.address.replace(/"/g, '""')}"`,
@@ -171,11 +226,15 @@ export class ReportsRepository {
       `"${(p.ai_summary || '').replace(/"/g, '""')}"`
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const csvContent =
+      'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `BPP_Executive_Market_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      'download',
+      `BPP_${targetCity.name}_Executive_Market_Report_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

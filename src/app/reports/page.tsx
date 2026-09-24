@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ReportsRepository } from '@/lib/reports-repo';
 import { MileageRepository, CRA_RATE_TIER_1 } from '@/lib/mileage-repo';
 import { TripLeg } from '@/types';
+import { SUPPORTED_CITIES, getSelectedCityId } from '@/lib/cities';
+import { PermitsRepository } from '@/lib/permits-repo';
 import {
   BarChart3,
   Download,
@@ -25,13 +27,46 @@ import {
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<'market' | 'mileage'>('market');
+  const [activeCityId, setActiveCityId] = useState<string>('kelowna');
+  const [permitsVersion, setPermitsVersion] = useState<number>(0);
 
-  // Market Intelligence Data
-  const metrics = useMemo(() => ReportsRepository.getExecutiveMetrics(), []);
-  const monthlyTrends = useMemo(() => ReportsRepository.getMonthlyTrends(), []);
-  const tradeBreakdown = useMemo(() => ReportsRepository.getSubtradeValuationBreakdown(), []);
-  const municipalityBreakdown = useMemo(() => ReportsRepository.getMunicipalityBreakdown(), []);
-  const contractorLeaderboard = useMemo(() => ReportsRepository.getTopContractorsLeaderboard(), []);
+  useEffect(() => {
+    setActiveCityId(getSelectedCityId());
+
+    const handleCityChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ cityId: string }>;
+      if (customEvent.detail?.cityId) {
+        setActiveCityId(customEvent.detail.cityId);
+      }
+    };
+
+    window.addEventListener('bpp:city-change', handleCityChange);
+    return () => window.removeEventListener('bpp:city-change', handleCityChange);
+  }, []);
+
+  // Ingest live Calgary permits if Calgary is selected
+  useEffect(() => {
+    if (activeCityId === 'calgary') {
+      fetch('/api/ingest/calgary?limit=150')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.permits && data.permits.length > 0) {
+            PermitsRepository.appendPermits(data.permits);
+            setPermitsVersion((v) => v + 1);
+          }
+        })
+        .catch((err) => console.warn('Calgary permit ingestion error:', err));
+    }
+  }, [activeCityId]);
+
+  const activeCity = SUPPORTED_CITIES[activeCityId] || SUPPORTED_CITIES.kelowna;
+
+  // Market Intelligence Data strictly isolated by active city
+  const metrics = useMemo(() => ReportsRepository.getExecutiveMetrics(activeCityId), [activeCityId, permitsVersion]);
+  const monthlyTrends = useMemo(() => ReportsRepository.getMonthlyTrends(activeCityId), [activeCityId, permitsVersion]);
+  const tradeBreakdown = useMemo(() => ReportsRepository.getSubtradeValuationBreakdown(activeCityId), [activeCityId, permitsVersion]);
+  const municipalityBreakdown = useMemo(() => ReportsRepository.getMunicipalityBreakdown(activeCityId), [activeCityId, permitsVersion]);
+  const contractorLeaderboard = useMemo(() => ReportsRepository.getTopContractorsLeaderboard(activeCityId), [activeCityId, permitsVersion]);
 
   // Mileage & CRA Logbook Data
   const [allLegs, setAllLegs] = useState<TripLeg[]>([]);
@@ -81,7 +116,7 @@ export default function ReportsPage() {
   }).format(metrics.avgValuation);
 
   const handleExportMarketCSV = () => {
-    ReportsRepository.exportExecutiveCSV();
+    ReportsRepository.exportExecutiveCSV(activeCityId);
   };
 
   const handlePrintReport = () => {
@@ -161,7 +196,7 @@ export default function ReportsPage() {
           {/* Action Row */}
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              Okanagan Regional Tender Intelligence (2026)
+              {activeCity.region} Regional Tender Intelligence (2026)
             </span>
             <div className="flex items-center space-x-2">
               <button
@@ -194,7 +229,7 @@ export default function ReportsPage() {
                   {formattedTotalVal}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">Okanagan Flagship Hub</p>
+              <p className="text-[11px] text-slate-400 mt-1">{activeCity.hub}</p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -250,13 +285,13 @@ export default function ReportsPage() {
                     Monthly Permit Volume & Dollar Growth (2026)
                   </h2>
                 </div>
-                <span className="text-[11px] text-slate-400 font-semibold">City of Kelowna Official Feed</span>
+                <span className="text-[11px] text-slate-400 font-semibold">City of {activeCity.name} Official Feed</span>
               </div>
 
               {/* Bar Visualization */}
               <div className="h-64 flex items-end justify-between space-x-3 pt-8">
                 {monthlyTrends.map((t) => {
-                  const maxVal = 200;
+                  const maxVal = Math.max(10, ...monthlyTrends.map((x) => x.valuationMillions));
                   const heightPercent = Math.max(12, Math.round((t.valuationMillions / maxVal) * 100));
 
                   return (
@@ -326,7 +361,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 text-center">
-                Classified across authentic Kelowna building permits
+                Classified across authentic {activeCity.name} building permits
               </div>
             </div>
           </div>
@@ -337,7 +372,7 @@ export default function ReportsPage() {
               <div className="flex items-center space-x-2">
                 <HardHat className="w-5 h-5 text-amber-500" />
                 <h2 className="font-extrabold text-sm text-slate-900 dark:text-white">
-                  Top 10 Active Kelowna Builders & General Contractors Leaderboard
+                  Top 10 Active {activeCity.name} Builders & General Contractors Leaderboard
                 </h2>
               </div>
               <span className="text-xs text-slate-400">By aggregate tender valuation</span>

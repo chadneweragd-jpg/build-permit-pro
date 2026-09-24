@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { BPPLogo } from '@/components/Common/BPPLogo';
 import { AuthService, UserProfile, PARTNER_ACCOUNTS } from '@/lib/auth-service';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { SUPPORTED_CITIES, getSelectedCityId } from '@/lib/cities';
 import {
   LayoutGrid,
   FileText,
@@ -36,6 +37,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<UserProfile>(AuthService.getActiveUserSync());
   const [showPartnerSwitcher, setShowPartnerSwitcher] = useState(false);
+  const [activeCityId, setActiveCityId] = useState<string>('kelowna');
+
+  useEffect(() => {
+    setActiveCityId(getSelectedCityId());
+
+    const handleCityChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ cityId: string }>;
+      if (customEvent.detail?.cityId) {
+        setActiveCityId(customEvent.detail.cityId);
+      }
+    };
+
+    window.addEventListener('bpp:city-change', handleCityChange);
+    return () => window.removeEventListener('bpp:city-change', handleCityChange);
+  }, []);
+
+  const activeCity = SUPPORTED_CITIES[activeCityId] || SUPPORTED_CITIES.kelowna;
 
   useEffect(() => {
     const syncUser = async () => {
@@ -155,12 +173,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="px-3 py-2 bg-slate-800/60 rounded-xl border border-slate-700/60 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-white font-bold">Okanagan Valley</span>
+            <span className="text-white font-bold">{activeCity.region}</span>
             <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-mono font-bold">
               LIVE
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">City of Kelowna & Hub</p>
+          <p className="text-[11px] text-slate-400 mt-1">{activeCity.hub}</p>
         </div>
       </nav>
 
