@@ -93,6 +93,13 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
     setTimeout(() => setPipelineToast(null), 4000);
   };
 
+  const isCalgaryPermit =
+    permit.city_region?.toLowerCase() === 'calgary' ||
+    permit.address.toLowerCase().includes('calgary') ||
+    permit.address.toLowerCase().includes(' ab');
+  const cityDisplay = permit.city_region || (isCalgaryPermit ? 'Calgary' : 'Kelowna');
+  const provDisplay = isCalgaryPermit ? 'AB' : 'BC';
+
   return (
     <aside
       aria-label="Permit Details"
@@ -106,9 +113,9 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
               {permit.permit_number}
             </span>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {permit.city_region || 'Kelowna'}, BC
+              {cityDisplay}, {provDisplay}
             </span>
-            {permit.tier === 1 ? (
+            {permit.tier === 1 && permit.verified_builder ? (
               <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
                 ✓ Verified Builder
               </span>
@@ -256,69 +263,35 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
 
       {/* Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
-        {/* Tier 1 / Tier 2 Contractor & Builder Verification Card */}
-        {permit.tier === 1 && permit.verified_builder ? (
-          <BuilderDossier
-            permit={{
-              permit_number: permit.permit_number,
-              address: permit.address,
-              sub_type: permit.permit_type,
-              value: permit.estimated_value
-            }}
-            builder={permit.verified_builder}
-          />
-        ) : (
-          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Building className="w-4 h-4 text-slate-500" />
-                <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                  Permit Contractor / Applicant
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-slate-500 bg-slate-200/80 dark:bg-slate-700 px-2 py-0.5 rounded-full">
-                Standard Permittee
-              </span>
-            </div>
+        {/* Tier 1 Verified Builder Dossier OR Tier 2 Honest Standard Permittee Dossier */}
+        <BuilderDossier
+          permit={permit}
+          builder={permit.tier === 1 ? permit.verified_builder : null}
+        />
 
-            <div>
-              <p className="text-xs font-bold text-slate-900 dark:text-white">
-                {permit.contractor_name || 'Owner / Builder'}
-              </p>
-              {permit.applicant_name && permit.applicant_name !== permit.contractor_name && (
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Applicant: {permit.applicant_name}
-                </p>
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px]">
-              <span className="inline-flex items-center gap-1 text-slate-400 font-medium">
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
-                Public Record — No Direct Phone Listed
-              </span>
-            </div>
-
-            <div className="pt-1 flex flex-wrap gap-2">
-              <Link
-                href={`/routes/builder?destination=${permit.id}`}
-                className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center"
-              >
-                <Compass className="w-3.5 h-3.5 text-blue-500" />
-                <span>Scout Jobsite</span>
-              </Link>
-              <a
-                href="https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Municipal Record</span>
-              </a>
-            </div>
-          </div>
-        )}
+        {/* Quick Scout / Municipal Record Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/routes/builder?destination=${permit.id}`}
+            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center border border-slate-200 dark:border-slate-700"
+          >
+            <Compass className="w-3.5 h-3.5 text-blue-500" />
+            <span>Scout Jobsite</span>
+          </Link>
+          <a
+            href={
+              isCalgaryPermit
+                ? 'https://data.calgary.ca/resource/c2es-76ed.json'
+                : 'https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits'
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>{isCalgaryPermit ? 'Calgary Open Data' : 'Kelowna Registry'}</span>
+          </a>
+        </div>
         {/* Valuation & Issue Date Metric Bar */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-700/80">

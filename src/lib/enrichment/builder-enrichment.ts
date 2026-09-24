@@ -225,7 +225,7 @@ export async function enrichBuilderProfile(
     }
   }
 
-  // Check fuzzy similarity against cached builders (minimum similarity 0.85 & city constraint)
+  // Check fuzzy similarity against cached builders (minimum similarity 0.90 & strict city constraint)
   for (const [key, cached] of RUNTIME_ENRICHMENT_CACHE.entries()) {
     const cachedCity = (cached.city || '').toLowerCase();
     const cachedProv = (cached.province || '').toUpperCase();
@@ -235,7 +235,7 @@ export async function enrichBuilderProfile(
 
     if (!cityMatches) continue;
 
-    if (calculateTrigramSimilarity(key, normalized) >= 0.85) {
+    if (calculateTrigramSimilarity(key, normalized) >= 0.90) {
       if (isCalgary && cached.primary_phone?.includes('(250)')) {
         return { ...cached, primary_phone: undefined, physical_address: undefined, source: 'cache' };
       }

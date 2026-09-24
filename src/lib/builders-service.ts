@@ -4,6 +4,30 @@ import { Permit, VerifiedBuilder } from '@/types';
 export const VERIFIED_BUILDERS: VerifiedBuilder[] = verifiedBuildersRaw as VerifiedBuilder[];
 
 /**
+ * Common corporate stopwords stripped before comparing contractor brands
+ */
+export const STOPWORDS = [
+  'ltd', 'limited', 'inc', 'incorporated', 'corp', 'corporation', 'llc', 'llp',
+  'contracting', 'construction', 'builders', 'builder', 'building',
+  'homes', 'home', 'developments', 'development', 'enterprises',
+  'projects', 'services', 'group', 'design', 'custom', 'holdings'
+];
+
+/**
+ * Extracts the core distinctive brand name by removing all generic corporate stopwords
+ */
+export function getCoreName(name?: string | null): string {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 0 && !STOPWORDS.includes(word))
+    .join(' ')
+    .trim();
+}
+
+/**
  * Normalizes contractor name string:
  * - Lowercase
  * - Removes non-alphanumeric characters
@@ -11,10 +35,7 @@ export const VERIFIED_BUILDERS: VerifiedBuilder[] = verifiedBuildersRaw as Verif
  * - Collapses whitespace
  */
 export function normalizeContractorName(raw?: string | null): string {
-  if (!raw) return '';
-  const cleaned = raw.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
-  const stripped = cleaned.replace(/\b(ltd|limited|inc|incorporated|corp|corporation|group|llp|holdings|enterprises)\b/g, '');
-  return stripped.trim().replace(/\s+/g, ' ');
+  return getCoreName(raw);
 }
 
 /**
@@ -63,13 +84,14 @@ export interface MatchBuilderOptions {
 
 /**
  * Fuzzy matches an incoming permit contractor string against curated verified builders.
- * Enforces strict city/province isolation and high threshold (>= 0.85).
+ * Enforces strict corporate stopword stripping, core name comparison, city/province isolation,
+ * and high similarity threshold (>= 0.90).
  */
 export function matchPermitBuilder(
   contractorRaw?: string | null,
   options?: MatchBuilderOptions
 ): MatchBuilderResult {
-  const minThreshold = options?.minSimilarity ?? 0.85;
+  const minThreshold = options?.minSimilarity ?? 0.90;
 
   if (!contractorRaw || typeof contractorRaw !== 'string') {
     return { builder: null, similarity: 0, isVerified: false };
@@ -85,26 +107,49 @@ export function matchPermitBuilder(
     lower === 'owner' ||
     lower === 'owner / builder' ||
     lower === 'applicant' ||
+    lower === 'applicant on file' ||
     lower === 'unknown'
   ) {
     return { builder: null, similarity: 0, isVerified: false };
   }
 
-  const normalizedInput = normalizeContractorName(trimmed);
-  const rawClean = lower.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  const permitCore = getCoreName(trimmed);
+  if (!permitCore || permitCore.length < 3) {
+    return { builder: null, similarity: 0, isVerified: false };
+  }
 
   const permitCity = options?.city?.toLowerCase()?.trim();
+  const permitProvince = options?.province?.toUpperCase()?.trim();
+
+  // Known national commercial GCs that legitimately operate across BC and Alberta
+  const NATIONAL_GCS = ['ledcor', 'graham', 'pcl', 'chandos', 'canam', 'ellisdon', 'bird'];
 
   let bestBuilder: VerifiedBuilder | null = null;
   let highestSimilarity = 0;
 
   for (const builder of VERIFIED_BUILDERS) {
-    // City & Province Isolation:
-    // If permit specifies Calgary (AB), NEVER match a Kelowna / BC builder
-    if (permitCity) {
-      const bCity = (builder.city || 'Kelowna').toLowerCase().trim();
-      const bProv = (builder.province || 'BC').toUpperCase().trim();
+    const builderCore = getCoreName(builder.company_name);
+    if (!builderCore || builderCore.length < 3) continue;
 
+    const bCity = (builder.city || 'Kelowna').toLowerCase().trim();
+    const bProv = (builder.province || 'BC').toUpperCase().trim();
+
+    const isNational = NATIONAL_GCS.some(
+      (gc) => builderCore.includes(gc) || permitCore.includes(gc)
+    );
+
+    // Rule 1: Geographical sanity check (unless verified national GC)
+    if (!isNational && permitCity) {
+      const sameCity = bCity === permitCity;
+      const sameProvince = permitProvince
+        ? bProv === permitProvince
+        : permitCity === 'calgary'
+        ? bProv === 'AB'
+        : bProv === 'BC';
+
+      if (!sameCity && !sameProvince) {
+        continue;
+      }
       if (permitCity === 'calgary' && bProv !== 'AB' && bCity !== 'calgary') {
         continue;
       }
@@ -113,8 +158,9 @@ export function matchPermitBuilder(
       }
     }
 
-    // 1. Direct normalized equality
-    if (builder.normalized_name === normalizedInput) {
+    // Rule 2: Core name comparison
+    // Exact match on core distinct brand name
+    if (permitCore === builderCore) {
       return {
         builder: { ...builder, similarity_score: 1.0 },
         similarity: 1.0,
@@ -122,20 +168,16 @@ export function matchPermitBuilder(
       };
     }
 
-    // 2. Trigram similarity against normalized name and company name
-    const simNorm = calculateTrigramSimilarity(builder.normalized_name, normalizedInput);
-    const simClean = calculateTrigramSimilarity(
-      builder.company_name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(),
-      rawClean
-    );
-    const score = Math.max(simNorm, simClean);
+    // Fuzzy score strictly on core brand name
+    const similarity = calculateTrigramSimilarity(permitCore, builderCore);
 
-    if (score > highestSimilarity) {
-      highestSimilarity = score;
+    if (similarity > highestSimilarity) {
+      highestSimilarity = similarity;
       bestBuilder = builder;
     }
   }
 
+  // Only match if fuzzy similarity strictly >= minThreshold (default 0.90)
   if (highestSimilarity >= minThreshold && bestBuilder) {
     return {
       builder: { ...bestBuilder, similarity_score: Math.round(highestSimilarity * 100) / 100 },
@@ -152,51 +194,55 @@ export function matchPermitBuilder(
  * Strictly isolates Calgary vs Kelowna data to avoid cross-city builder contamination.
  */
 export function enrichPermitWithBuilder(permit: Permit): Permit {
-  const city = permit.city_region || (permit.address?.toLowerCase().includes('calgary') ? 'Calgary' : 'Kelowna');
-  const province = city.toLowerCase() === 'calgary' ? 'AB' : 'BC';
+  const isCalgary =
+    permit.city_region?.toLowerCase() === 'calgary' ||
+    permit.address?.toLowerCase().includes('calgary') ||
+    permit.address?.toLowerCase().includes(' ab');
+
+  const city = isCalgary ? 'Calgary' : permit.city_region || 'Kelowna';
+  const province = isCalgary ? 'AB' : 'BC';
 
   const match = matchPermitBuilder(permit.contractor_name, {
     city,
     province,
-    minSimilarity: 0.85
+    minSimilarity: 0.90
   });
 
   if (match.isVerified && match.builder) {
-    // Ensure we NEVER attach a Kelowna phone (250) or Kelowna address to a Calgary permit
-    if (city.toLowerCase() === 'calgary' && match.builder.primary_phone?.includes('(250)')) {
+    const permitCore = getCoreName(permit.contractor_name || '');
+    const builderCore = getCoreName(match.builder.company_name || '');
+
+    // Final sanity check: core names must match or have >= 0.90 similarity
+    if (permitCore && builderCore && (permitCore === builderCore || match.similarity >= 0.90)) {
+      // Ensure we NEVER attach a Kelowna phone (250) or BC address to a Calgary permit
+      if (isCalgary && (match.builder.primary_phone?.includes('(250)') || match.builder.province === 'BC')) {
+        return {
+          ...permit,
+          tier: 2,
+          verified_builder: null,
+          contractor_phone: undefined,
+          contractor_email: undefined
+        };
+      }
+
       return {
         ...permit,
-        tier: 2,
-        verified_builder: null,
-        contractor_phone: undefined,
-        contractor_email: undefined
+        tier: 1,
+        verified_builder: match.builder,
+        contractor_phone: permit.contractor_phone || match.builder.primary_phone,
+        contractor_email: permit.contractor_email || match.builder.email
       };
     }
-
-    return {
-      ...permit,
-      tier: 1,
-      verified_builder: match.builder,
-      contractor_phone: permit.contractor_phone || match.builder.primary_phone,
-      contractor_email: permit.contractor_email || match.builder.email
-    };
   }
 
-  // Under 0.85 threshold or different city: keep original raw contractor and null out any contaminated contacts
-  const cleanPhone = city.toLowerCase() === 'calgary' && permit.contractor_phone?.includes('(250)') 
-    ? undefined 
-    : permit.contractor_phone;
-  const cleanEmail = city.toLowerCase() === 'calgary' && (permit.contractor_email?.includes('bc.ca') || permit.contractor_email?.includes('kelowna'))
-    ? undefined
-    : permit.contractor_email;
-
+  // If unverified, keep original raw contractor name and strip any cross-city contact leakage
   return {
     ...permit,
     tier: 2,
     verified_builder: null,
     contractor_name: permit.contractor_name,
-    contractor_phone: cleanPhone,
-    contractor_email: cleanEmail
+    contractor_phone: undefined,
+    contractor_email: undefined
   };
 }
 
