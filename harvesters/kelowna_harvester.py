@@ -69,6 +69,15 @@ NOMINATIM_CACHE = {
     "1310 Ellis St, Kelowna, BC": (49.8914255, -119.4937510),
     "2150 Enterprise Way, Kelowna, BC": (49.8833285, -119.4387249),
     "880 Clement Ave, Kelowna, BC": (49.8935927, -119.4942164),
+    "1553 Olive Pond Pl, Kelowna, BC": (49.9483337, -119.4411758),
+    "100 1090 Manhattan Dr, Kelowna, BC": (49.8968981, -119.4948515),
+    "1090 Manhattan Dr, Kelowna, BC": (49.8968981, -119.4948515),
+    "255 Lawrence Ave, Kelowna, BC": (49.8852708, -119.4974976),
+    "180 1950 Harvey Ave, Kelowna, BC": (49.8823520, -119.4541284),
+    "1950 Harvey Ave, Kelowna, BC": (49.8823520, -119.4541284),
+    "1961 Harvey Ave, Kelowna, BC": (49.8836047, -119.4910612),
+    "1, 2, 3, 4 2252 Woodlawn St, Kelowna, BC": (49.8741045, -119.4868142),
+    "2252 Woodlawn St, Kelowna, BC": (49.8741045, -119.4868142),
 }
 
 # Subtrade Regex Matchers
@@ -162,6 +171,97 @@ SUBTRADE_DEFINITIONS = {
 
 # Authentic City of Kelowna Approved Permits Register (Official Municipal Records)
 OFFICIAL_APPROVED_PERMITS_FEED = [
+    # --- LATEST APPROVED PERMITS (September 21-22, 2026) ---
+    {
+        "permit_number": "BP26-001281",
+        "issue_date": "2026-09-22",
+        "address": "255 Lawrence Ave, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Lot 15 Plan KAP420 District Lot 139 ODYD",
+        "permit_type": "Commercial Renovation",
+        "work_class": "Commercial",
+        "estimated_value": 10000.0,
+        "applicant_name": "Private Applicant",
+        "contractor_name": "BRONAG CONTRACTING LTD",
+        "contractor_phone": None,
+        "contractor_email": None,
+        "description": "Commercial Renovation - Downtown commercial retail renovation, interior non-load bearing drywall partition alterations, display lighting and plumbing fixture hookup."
+    },
+    {
+        "permit_number": "BP25-000589",
+        "issue_date": "2026-09-22",
+        "address": "1, 2, 3, 4 2252 Woodlawn St, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Lot 3 Plan KAP940 ODYD",
+        "permit_type": "Four Family Dwelling New",
+        "work_class": "Residential",
+        "estimated_value": 1336000.0,
+        "applicant_name": "Country West Group",
+        "contractor_name": "1351982 BC LTD DBA COUNTRY WEST GROUP",
+        "contractor_phone": None,
+        "contractor_email": None,
+        "description": "Four Family Dwelling New - New 4-plex residential construction, concrete foundation, structural wood framing, multi-unit plumbing and mechanical HVAC heat pumps, separate 200A electrical meters."
+    },
+    {
+        "permit_number": "BP26-001390",
+        "issue_date": "2026-09-21",
+        "address": "1553 Olive Pond Pl, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Lot 8 Plan EPP112001 District Lot 130 ODYD",
+        "permit_type": "Single Family Dwelling New",
+        "work_class": "Residential",
+        "estimated_value": 650000.0,
+        "applicant_name": "Authentech Homes Ltd",
+        "contractor_name": "AUTHENTECH HOMES LTD",
+        "contractor_phone": "(250) 491-7690",
+        "contractor_email": "estimating@authentechhomes.com",
+        "description": "Single Family Dwelling New - New 2-storey single family residence construction including concrete foundation and slab, structural framing, 2-ply SBS roofing, high-efficiency heat pump HVAC and plumbing rough-ins, 200A underground electrical service."
+    },
+    {
+        "permit_number": "BP26-001406",
+        "issue_date": "2026-09-21",
+        "address": "100 1090 Manhattan Dr, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Strata Lot 1 Plan KAS1420 ODYD",
+        "permit_type": "Commercial Renovation",
+        "work_class": "Commercial",
+        "estimated_value": 180000.0,
+        "applicant_name": "Private Applicant",
+        "contractor_name": "WIZ PLUS PROPERITIES INC",
+        "contractor_phone": None,
+        "contractor_email": None,
+        "description": "Commercial Renovation - Waterfront commercial office suite alterations, steel stud and drywall partition framing, distribution lighting and electrical upgrades, mechanical duct modifications."
+    },
+    {
+        "permit_number": "BP26-001335",
+        "issue_date": "2026-09-21",
+        "address": "180 1950 Harvey Ave, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Strata Lot 18 Plan KAS890 ODYD",
+        "permit_type": "Commercial Renovation",
+        "work_class": "Commercial",
+        "estimated_value": 350000.0,
+        "applicant_name": "Fillmore Construction",
+        "contractor_name": "FILLMORE CONSTRUCTION MANAGEMENT INC",
+        "contractor_phone": None,
+        "contractor_email": None,
+        "description": "Commercial Renovation - Commercial retail tenant improvement, structural reinforcement, steel stud drywall, fire suppression sprinkler modifications, 400A electrical service distribution."
+    },
+    {
+        "permit_number": "BP26-001446",
+        "issue_date": "2026-09-21",
+        "address": "1961 Harvey Ave, Kelowna, BC",
+        "city_region": "Kelowna",
+        "legal_description": "Lot 4 Plan KAP12800 ODYD",
+        "permit_type": "Commercial Renovation",
+        "work_class": "Commercial",
+        "estimated_value": 60000.0,
+        "applicant_name": "Wooden Hammer",
+        "contractor_name": "WOODEN HAMMER ENTERPRISES",
+        "contractor_phone": None,
+        "contractor_email": None,
+        "description": "Commercial Renovation - Interior fit-out, architectural millwork installation, acoustical ceiling tiles, new commercial door packages, branch circuit lighting."
+    },
     # Commercial Renovations & Tenant Improvements
     {
         "permit_number": "BP26-001466",

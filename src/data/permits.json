@@ -1,102 +1,148 @@
 [
   {
-    "id": "permit-2026-001",
+    "id": "permit-real-1",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001338",
-    "issue_date": "2026-09-14",
-    "application_date": "2026-09-14",
-    "address": "5043 Hill Spring Ct, Kelowna, BC",
+    "permit_number": "BP26-001281",
+    "issue_date": "2026-09-22",
+    "application_date": "2026-09-22",
+    "address": "255 Lawrence Ave, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New",
-    "work_class": "Residential",
-    "description": "Construct new 2-storey single family dwelling with attached double garage, 200A electrical service, ducted heat pump HVAC, wood frame timber trusses, and asphalt shingle roof.",
-    "ai_summary": "Residential approved permit for 5043 Hill Spring Ct, Kelowna, BC ($870,000), involving construct new 2-storey single family dwelling with attached double garage, 200a electrical service, ducted heat .... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Roofing with immediate estimation relevance.",
-    "estimated_value": 870000.0,
-    "contractor_name": "LAKEHOUSE CUSTOM HOMES LTD",
+    "legal_description": "Lot 15 Plan KAP420 District Lot 139 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Downtown commercial retail renovation, interior non-load bearing drywall partition alterations, display lighting and plumbing fixture hookup.",
+    "ai_summary": "Commercial approved permit for 255 Lawrence Ave, Kelowna, BC ($10,000), involving commercial renovation - downtown commercial retail renovation, interior non-load bearing drywall partition alter.... Key subtrade bidding opportunities identified in Drywall & Steel Stud, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 10000.0,
+    "contractor_name": "BRONAG CONTRACTING LTD",
     "contractor_phone": null,
     "contractor_email": null,
     "applicant_name": "Private Applicant",
     "status": "Issued",
-    "latitude": 49.8007,
-    "longitude": -119.4671,
+    "latitude": 49.8852708,
+    "longitude": -119.4974976,
     "trades": [
       {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 1.0,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "truss",
-          "wood frame",
-          "timber"
+          "drywall",
+          "partition"
         ]
       },
       {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.65,
+        "matched_terms": [
+          "lighting"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "plumb"
+        ]
       }
     ]
   },
   {
-    "id": "permit-2026-002",
+    "id": "permit-real-2",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001476",
-    "issue_date": "2026-09-17",
-    "application_date": "2026-09-17",
-    "address": "1484 Painted Rock Pl, Kelowna, BC",
+    "permit_number": "BP25-000589",
+    "issue_date": "2026-09-22",
+    "application_date": "2026-09-22",
+    "address": "1, 2, 3, 4 2252 Woodlawn St, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New",
+    "legal_description": "Lot 3 Plan KAP940 ODYD",
+    "permit_type": "Four Family Dwelling New",
     "work_class": "Residential",
-    "description": "Single Family Dwelling New - 2-storey single family dwelling with 200A service, wood frame construction, heat pump HVAC, and asphalt shingles.",
-    "ai_summary": "Residential approved permit for 1484 Painted Rock Pl, Kelowna, BC ($809,900), involving single family dwelling new - 2-storey single family dwelling with 200a service, wood frame construction, heat pu.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Electrical, Roofing with immediate estimation relevance.",
-    "estimated_value": 809900.0,
-    "contractor_name": "AUTHENTECH HOMES LTD",
+    "description": "Four Family Dwelling New - New 4-plex residential construction, concrete foundation, structural wood framing, multi-unit plumbing and mechanical HVAC heat pumps, separate 200A electrical meters.",
+    "ai_summary": "Residential approved permit for 1, 2, 3, 4 2252 Woodlawn St, Kelowna, BC ($1,336,000), involving four family dwelling new - new 4-plex residential construction, concrete foundation, structural wood framing, mu.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Electrical, Concrete & Foundations with immediate estimation relevance.",
+    "estimated_value": 1336000.0,
+    "contractor_name": "1351982 BC LTD DBA COUNTRY WEST GROUP",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Country West Group",
     "status": "Issued",
-    "latitude": 49.9472,
-    "longitude": -119.4355,
+    "latitude": 49.8741045,
+    "longitude": -119.4868142,
+    "trades": [
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "hvac",
+          "pumps",
+          "plumb"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr",
+          "200a"
+        ]
+      },
+      {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.7,
+        "matched_terms": [
+          "foundation",
+          "concrete"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-3",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001390",
+    "issue_date": "2026-09-21",
+    "application_date": "2026-09-21",
+    "address": "1553 Olive Pond Pl, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 8 Plan EPP112001 District Lot 130 ODYD",
+    "permit_type": "Single Family Dwelling New",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling New - New 2-storey single family residence construction including concrete foundation and slab, structural framing, 2-ply SBS roofing, high-efficiency heat pump HVAC and plumbing rough-ins, 200A underground electrical service.",
+    "ai_summary": "Residential approved permit for 1553 Olive Pond Pl, Kelowna, BC ($650,000), involving single family dwelling new - new 2-storey single family residence construction including concrete foundation and.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Electrical, Roofing & Sheet Metal with immediate estimation relevance.",
+    "estimated_value": 650000.0,
+    "contractor_name": "AUTHENTECH HOMES LTD",
+    "contractor_phone": "(250) 491-7690",
+    "contractor_email": "estimating@authentechhomes.com",
+    "applicant_name": "Authentech Homes Ltd",
+    "status": "Issued",
+    "latitude": 49.9483337,
+    "longitude": -119.4411758,
     "trades": [
       {
         "subtrade_key": "hvac_plumbing",
@@ -106,7 +152,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "heat pump",
-          "hvac"
+          "hvac",
+          "plumb"
         ]
       },
       {
@@ -114,111 +161,67 @@
         "name": "Electrical",
         "color": "#2563EB",
         "icon": "Zap",
-        "confidence": 0.75,
+        "confidence": 0.7,
         "matched_terms": [
+          "electr",
           "200a"
         ]
       },
       {
         "subtrade_key": "roofing",
-        "name": "Roofing",
+        "name": "Roofing & Sheet Metal",
         "color": "#16A34A",
         "icon": "Home",
-        "confidence": 0.75,
+        "confidence": 0.7,
         "matched_terms": [
-          "shingle"
+          "roof",
+          "sbs"
         ]
       },
       {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.75,
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.7,
         "matched_terms": [
-          "wood frame"
+          "foundation",
+          "concrete"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
         ]
       }
     ]
   },
   {
-    "id": "permit-2026-003",
+    "id": "permit-real-4",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001466",
-    "issue_date": "2026-09-18",
-    "application_date": "2026-09-18",
-    "address": "1610 Bertram St, Kelowna, BC",
+    "permit_number": "BP26-001406",
+    "issue_date": "2026-09-21",
+    "application_date": "2026-09-21",
+    "address": "100 1090 Manhattan Dr, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
+    "legal_description": "Strata Lot 1 Plan KAS1420 ODYD",
     "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Commercial Renovation - Interior fit-out, tenant improvement, steel stud drywall partitions, LED electrical retrofit and branch circuits, new plumbing fixtures and HVAC duct modifications.",
-    "ai_summary": "Commercial approved permit for 1610 Bertram St, Kelowna, BC ($50,000), involving commercial renovation - interior fit-out, tenant improvement, steel stud drywall partitions, led electrical retr.... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 50000.0,
-    "contractor_name": "E. HOUSTON CONTRACTING LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "E. Houston Contracting",
-    "status": "Issued",
-    "latitude": 49.885,
-    "longitude": -119.4901,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "plumb",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "steel stud",
-          "fit-out",
-          "tenant improvement"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-004",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001463",
-    "issue_date": "2026-09-15",
-    "application_date": "2026-09-15",
-    "address": "593 Bernard Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Downtown retail renovation, drywall repairs, lighting retrofit and electrical connections.",
-    "ai_summary": "Commercial approved permit for 593 Bernard Ave, Kelowna, BC ($10,000), involving commercial renovation - downtown retail renovation, drywall repairs, lighting retrofit and electrical connections. Key subtrade bidding opportunities in Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 10000.0,
-    "contractor_name": "Private Contractor",
+    "description": "Commercial Renovation - Waterfront commercial office suite alterations, steel stud and drywall partition framing, distribution lighting and electrical upgrades, mechanical duct modifications.",
+    "ai_summary": "Commercial approved permit for 100 1090 Manhattan Dr, Kelowna, BC ($180,000), involving commercial renovation - waterfront commercial office suite alterations, steel stud and drywall partition framing.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 180000.0,
+    "contractor_name": "WIZ PLUS PROPERITIES INC",
     "contractor_phone": null,
     "contractor_email": null,
     "applicant_name": "Private Applicant",
     "status": "Issued",
-    "latitude": 49.8861,
-    "longitude": -119.4912,
+    "latitude": 49.8968981,
+    "longitude": -119.4948515,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -233,47 +236,294 @@
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
-        "confidence": 0.65,
+        "confidence": 1.0,
         "matched_terms": [
-          "drywall"
+          "drywall",
+          "partition",
+          "steel stud"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "mechanical"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
         ]
       }
     ]
   },
   {
-    "id": "permit-2026-005",
+    "id": "permit-real-5",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001441",
-    "issue_date": "2026-09-14",
-    "application_date": "2026-09-14",
-    "address": "101 1960 Springfield Rd, Kelowna, BC",
+    "permit_number": "BP26-001335",
+    "issue_date": "2026-09-21",
+    "application_date": "2026-09-21",
+    "address": "180 1950 Harvey Ave, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
+    "legal_description": "Strata Lot 18 Plan KAS890 ODYD",
     "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Commercial Renovation - Drywall repair, acoustic ceiling grid replacement, T-bar ceiling and drywall mudding for commercial retail unit.",
-    "ai_summary": "Commercial approved permit for 101 1960 Springfield Rd, Kelowna, BC ($2,500), involving commercial renovation - drywall repair, acoustic ceiling grid replacement, t-bar ceiling and drywall mudding for.... Key subtrade bidding opportunities in Drywall & Framing, Electrical with immediate estimation relevance.",
-    "estimated_value": 2500.0,
-    "contractor_name": "Innovation Drywall Ltd.",
+    "description": "Commercial Renovation - Commercial retail tenant improvement, structural reinforcement, steel stud drywall, fire suppression sprinkler modifications, 400A electrical service distribution.",
+    "ai_summary": "Commercial approved permit for 180 1950 Harvey Ave, Kelowna, BC ($350,000), involving commercial renovation - commercial retail tenant improvement, structural reinforcement, steel stud drywall, fire.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 350000.0,
+    "contractor_name": "FILLMORE CONSTRUCTION MANAGEMENT INC",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Innovation Drywall",
+    "applicant_name": "Fillmore Construction",
     "status": "Issued",
-    "latitude": 49.8777,
-    "longitude": -119.4517,
+    "latitude": 49.882352,
+    "longitude": -119.4541284,
     "trades": [
       {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 1.0,
+        "matched_terms": [
+          "electr",
+          "400a"
+        ]
+      },
+      {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "drywall",
+          "tenant improvement",
+          "steel stud"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.7,
+        "matched_terms": [
+          "sprinkler"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-6",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001446",
+    "issue_date": "2026-09-21",
+    "application_date": "2026-09-21",
+    "address": "1961 Harvey Ave, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 4 Plan KAP12800 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Interior fit-out, architectural millwork installation, acoustical ceiling tiles, new commercial door packages, branch circuit lighting.",
+    "ai_summary": "Commercial approved permit for 1961 Harvey Ave, Kelowna, BC ($60,000), involving commercial renovation - interior fit-out, architectural millwork installation, acoustical ceiling tiles, new com.... Key subtrade bidding opportunities identified in Drywall & Steel Stud, Electrical, Commercial Overhead Doors & Dock with immediate estimation relevance.",
+    "estimated_value": 60000.0,
+    "contractor_name": "WOODEN HAMMER ENTERPRISES",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Wooden Hammer",
+    "status": "Issued",
+    "latitude": 49.8836047,
+    "longitude": -119.4910612,
+    "trades": [
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "fit-out",
+          "ceiling"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.65,
+        "matched_terms": [
+          "lighting"
+        ]
+      },
+      {
+        "subtrade_key": "commercial_doors",
+        "name": "Commercial Overhead Doors & Dock",
+        "color": "#EA580C",
+        "icon": "DoorOpen",
+        "confidence": 0.35,
+        "matched_terms": [
+          "commercial door"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-7",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001466",
+    "issue_date": "2026-09-18",
+    "application_date": "2026-09-18",
+    "address": "1610 Bertram St, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 14 Plan KAP1880 District Lot 139 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Interior fit-out, tenant improvement, steel stud drywall partitions, LED electrical retrofit and branch circuits, new plumbing fixtures and HVAC duct modifications.",
+    "ai_summary": "Commercial approved permit for 1610 Bertram St, Kelowna, BC ($50,000), involving commercial renovation - interior fit-out, tenant improvement, steel stud drywall partitions, led electrical retr.... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 50000.0,
+    "contractor_name": "E. HOUSTON CONTRACTING LTD",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "E. Houston Contracting",
+    "status": "Issued",
+    "latitude": 49.8849608,
+    "longitude": -119.4901216,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 1.0,
+        "matched_terms": [
+          "electr"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "hvac",
+          "plumb"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "drywall",
+          "fit-out",
+          "tenant improvement"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-8",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001374",
+    "issue_date": "2026-09-17",
+    "application_date": "2026-09-17",
+    "address": "168 Asher Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 2 Plan KAP4810 District Lot 125 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Unit alterations including structural framing reinforcement, drywall partition walls, new commercial doors, 200A electrical service disconnect and distribution.",
+    "ai_summary": "Commercial approved permit for 168 Asher Rd, Kelowna, BC ($47,500), involving commercial renovation - unit alterations including structural framing reinforcement, drywall partition walls, ne.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Framing & Structural Timber with immediate estimation relevance.",
+    "estimated_value": 47500.0,
+    "contractor_name": "OKAHILL BUILDING CONTRACTORS LTD",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Okahill Building",
+    "status": "Issued",
+    "latitude": 49.8898034,
+    "longitude": -119.391352,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 1.0,
+        "matched_terms": [
+          "electr",
+          "200a"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "drywall",
+          "partition"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-9",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001441",
+    "issue_date": "2026-09-17",
+    "application_date": "2026-09-17",
+    "address": "101 1960 Springfield Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Strata Lot 1 Plan KAS220 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Drywall repair, acoustic ceiling grid replacement, T-bar ceiling and drywall mudding for commercial retail unit.",
+    "ai_summary": "Commercial approved permit for 101 1960 Springfield Rd, Kelowna, BC ($25,000), involving commercial renovation - drywall repair, acoustic ceiling grid replacement, t-bar ceiling and drywall mudding for.... Key subtrade bidding opportunities identified in Drywall & Steel Stud, Electrical with immediate estimation relevance.",
+    "estimated_value": 25000.0,
+    "contractor_name": "Innovation Drywall Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Innovation Drywall",
+    "status": "Issued",
+    "latitude": 49.8777129,
+    "longitude": -119.451655,
+    "trades": [
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "drywall",
           "acoustic ceiling",
-          "ceiling",
           "t-bar"
         ]
       },
@@ -288,412 +538,26 @@
     ]
   },
   {
-    "id": "permit-2026-006",
+    "id": "permit-real-10",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001431",
-    "issue_date": "2026-09-17",
-    "application_date": "2026-09-17",
-    "address": "3716 Luxmoore Rd, Kelowna, BC",
+    "permit_number": "BP26-001348",
+    "issue_date": "2026-09-16",
+    "application_date": "2026-09-16",
+    "address": "101 1810 Gordon Dr, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Accessory Structure New",
-    "work_class": "Residential",
-    "description": "Accessory Structure New - Detached workshop garage with overhead doors, 100A electrical subpanel, and wood frame timber trusses.",
-    "ai_summary": "Residential approved permit for 3716 Luxmoore Rd, Kelowna, BC ($180,000), involving accessory structure new - detached workshop garage with overhead doors, 100a electrical subpanel, and wood frame.... Key subtrade bidding opportunities in Drywall & Framing, Commercial Overhead Doors, Electrical with immediate estimation relevance.",
-    "estimated_value": 180000.0,
-    "contractor_name": "ANOMAR CONSTRUCTION CORP.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.835,
-    "longitude": -119.46,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "truss",
-          "wood frame",
-          "timber"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "electr"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-007",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001430",
-    "issue_date": "2026-09-11",
-    "application_date": "2026-09-11",
-    "address": "125 609 Truswell Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Interior architectural millwork, wood framing, bathroom plumbing, and drywall finishing.",
-    "ai_summary": "Residential approved permit for 125 609 Truswell Rd, Kelowna, BC ($100,000), involving single family dwelling renovation - interior architectural millwork, wood framing, bathroom plumbing, and drywal.... Key subtrade bidding opportunities in Drywall & Framing, Plumbing & Mechanical / HVAC, Electrical with immediate estimation relevance.",
+    "legal_description": "Strata Lot 4 Plan KAS881 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Tenant improvement for medical clinic including plumbing rough-in, multi-zone HVAC heat pump distribution, 200A electrical panel upgrade, framing and drywall partitions.",
+    "ai_summary": "Commercial approved permit for 101 1810 Gordon Dr, Kelowna, BC ($100,000), involving commercial renovation - tenant improvement for medical clinic including plumbing rough-in, multi-zone hvac heat .... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
     "estimated_value": 100000.0,
-    "contractor_name": "TMCC WOOD & DESIGN INC",
+    "contractor_name": "DUO PROJECTS LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Duo Projects Ltd",
     "status": "Issued",
-    "latitude": 49.8434,
-    "longitude": -119.4871,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.3,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-008",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001421",
-    "issue_date": "2026-09-11",
-    "application_date": "2026-09-11",
-    "address": "1619 Pandosy St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Retail tenant space alterations, drywall partition walls, electrical branch circuits, and washroom plumbing fixtures.",
-    "ai_summary": "Commercial approved permit for 1619 Pandosy St, Kelowna, BC ($20,000), involving commercial renovation - retail tenant space alterations, drywall partition walls, electrical branch circuits, an.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 20000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.885,
-    "longitude": -119.492,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "drywall",
-          "partition"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-009",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001416",
-    "issue_date": "2026-09-14",
-    "application_date": "2026-09-14",
-    "address": "3120 Pooley Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Roof shingle replacement, electrical panel upgrade, exterior doors, and drywall finishing.",
-    "ai_summary": "Residential approved permit for 3120 Pooley Rd, Kelowna, BC ($50,000), involving single family dwelling renovation - roof shingle replacement, electrical panel upgrade, exterior doors, and dryw.... Key subtrade bidding opportunities in Electrical, Roofing, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 50000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8602,
-    "longitude": -119.4158,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "panel",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "shingle",
-          "roof"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-010",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001397",
-    "issue_date": "2026-09-03",
-    "application_date": "2026-09-03",
-    "address": "4 1960 Northern Flicker Ct, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling New - Custom single family home, engineered wood framing, ducted heat pump HVAC, 200A service, and asphalt shingle roof.",
-    "ai_summary": "Residential approved permit for 4 1960 Northern Flicker Ct, Kelowna, BC ($560,000), involving single family dwelling new - custom single family home, engineered wood framing, ducted heat pump hvac, 200a ser.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Roofing, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 560000.0,
-    "contractor_name": "Performance Dynamic Construction Inc",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.9838,
-    "longitude": -119.439,
-    "trades": [
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 1.0,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "engineered wood"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.75,
-        "matched_terms": [
-          "200a"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-011",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001374",
-    "issue_date": "2026-09-15",
-    "application_date": "2026-09-15",
-    "address": "168 Asher Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Unit alterations including structural framing reinforcement, drywall partition walls, new commercial doors, 200A electrical service disconnect and distribution.",
-    "ai_summary": "Commercial approved permit for 168 Asher Rd, Kelowna, BC ($47,500), involving commercial renovation - unit alterations including structural framing reinforcement, drywall partition walls, ne.... Key subtrade bidding opportunities in Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 47500.0,
-    "contractor_name": "OKAHILL BUILDING CONTRACTOS LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8898,
-    "longitude": -119.3914,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "drywall",
-          "partition"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-012",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001372",
-    "issue_date": "2026-09-17",
-    "application_date": "2026-09-17",
-    "address": "14 1955 Northern Flicker Ct, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Kitchen and bathroom plumbing, electrical subpanel rewiring, and drywall repair.",
-    "ai_summary": "Residential approved permit for 14 1955 Northern Flicker Ct, Kelowna, BC ($10,000), involving single family dwelling renovation - kitchen and bathroom plumbing, electrical subpanel rewiring, and drywall repair. Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 10000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.984,
-    "longitude": -119.4394,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-013",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001356",
-    "issue_date": "2026-09-08",
-    "application_date": "2026-09-08",
-    "address": "1772 Baron Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Retail tenant improvements, interior partition framing, drywall, electrical wiring, lighting fixtures, emergency lighting and exit signage.",
-    "ai_summary": "Commercial approved permit for 1772 Baron Rd, Kelowna, BC ($21,100), involving commercial renovation - retail tenant improvements, interior partition framing, drywall, electrical wiring, ligh.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 21100.0,
-    "contractor_name": "PLAN B CONTRACTORS INC.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8817,
-    "longitude": -119.4301,
+    "latitude": 49.8820138,
+    "longitude": -119.4772646,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -703,18 +567,86 @@
         "confidence": 1.0,
         "matched_terms": [
           "electr",
-          "lighting",
-          "wiring"
+          "200a",
+          "panel"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "heat pump",
+          "hvac",
+          "plumb"
         ]
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "framing",
+          "drywall",
+          "tenant improvement"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-11",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001356",
+    "issue_date": "2026-09-16",
+    "application_date": "2026-09-16",
+    "address": "1772 Baron Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 5 Plan KAP41290 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Retail tenant improvements, interior partition framing, drywall, electrical wiring, lighting fixtures, emergency lighting and exit signage.",
+    "ai_summary": "Commercial approved permit for 1772 Baron Rd, Kelowna, BC ($21,100), involving commercial renovation - retail tenant improvements, interior partition framing, drywall, electrical wiring, ligh.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 21100.0,
+    "contractor_name": "PLAN B CONTRACTORS INC",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Plan B Contractors",
+    "status": "Issued",
+    "latitude": 49.8816795,
+    "longitude": -119.4300663,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 1.0,
+        "matched_terms": [
+          "electr",
+          "wiring",
+          "lighting"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
           "drywall",
           "partition"
         ]
@@ -726,155 +658,95 @@
         "icon": "Flame",
         "confidence": 0.35,
         "matched_terms": []
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
+        ]
       }
     ]
   },
   {
-    "id": "permit-2026-014",
+    "id": "permit-real-12",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001349",
+    "permit_number": "BP26-001146",
     "issue_date": "2026-09-15",
     "application_date": "2026-09-15",
-    "address": "241 Clifton Rd N, Kelowna, BC",
+    "address": "489 Bernard Avenue, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Addition",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Addition - 2-storey addition with wood frame construction, standing seam metal roof, heat pump split system, new electrical subpanel and recessed lighting.",
-    "ai_summary": "Residential approved permit for 241 Clifton Rd N, Kelowna, BC ($100,000), involving single family dwelling addition - 2-storey addition with wood frame construction, standing seam metal roof, heat.... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Roofing with immediate estimation relevance.",
-    "estimated_value": 100000.0,
-    "contractor_name": "DUO PROJECTS LTD",
+    "legal_description": "Lot 3 Block 14 Plan KAP400 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Storefront renovation, commercial glass entrance doors, drywall repairs, lighting retrofit and electrical connections.",
+    "ai_summary": "Commercial approved permit for 489 Bernard Avenue, Kelowna, BC ($10,000), involving commercial renovation - storefront renovation, commercial glass entrance doors, drywall repairs, lighting retrof.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Glazing & Building Envelope with immediate estimation relevance.",
+    "estimated_value": 10000.0,
+    "contractor_name": "Kelbrook Construction Corp",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Kelbrook Construction",
     "status": "Issued",
-    "latitude": 49.936,
-    "longitude": -119.4624,
+    "latitude": 49.8861676,
+    "longitude": -119.4937437,
     "trades": [
       {
         "subtrade_key": "electrical",
         "name": "Electrical",
         "color": "#2563EB",
         "icon": "Zap",
-        "confidence": 0.7,
+        "confidence": 1.0,
         "matched_terms": [
           "electr",
           "lighting"
         ]
       },
       {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "heat pump"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.35,
-        "matched_terms": [
-          "metal roof"
-        ]
-      },
-      {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
-        "confidence": 0.35,
+        "confidence": 0.65,
         "matched_terms": [
-          "wood frame"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-015",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001348",
-    "issue_date": "2026-09-08",
-    "application_date": "2026-09-08",
-    "address": "101 1810 Gordon Dr, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Tenant improvement for medical clinic including plumbing rough-in, multi-zone HVAC heat pump distribution, 200A electrical panel upgrade, framing and drywall partitions.",
-    "ai_summary": "Commercial approved permit for 101 1810 Gordon Dr, Kelowna, BC ($100,000), involving commercial renovation - tenant improvement for medical clinic including plumbing rough-in, multi-zone hvac heat .... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 100000.0,
-    "contractor_name": "DUO PROJECTS LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.882,
-    "longitude": -119.4773,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "panel",
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "plumb",
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "tenant improvement",
           "drywall"
         ]
+      },
+      {
+        "subtrade_key": "glazing",
+        "name": "Glazing & Building Envelope",
+        "color": "#0891B2",
+        "icon": "Maximize",
+        "confidence": 0.35,
+        "matched_terms": [
+          "storefront"
+        ]
       }
     ]
   },
   {
-    "id": "permit-2026-016",
+    "id": "permit-real-13",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001337",
-    "issue_date": "2026-09-11",
-    "application_date": "2026-09-11",
-    "address": "110 1710 Richter St, Kelowna, BC",
+    "permit_number": "BP26-001142",
+    "issue_date": "2026-09-15",
+    "application_date": "2026-09-15",
+    "address": "237 2271 Harvey Ave, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
+    "legal_description": "Lot A Plan KAP28100 ODYD Orchard Park Mall",
+    "permit_type": "Commercial Tenant Fit-Out",
     "work_class": "Commercial",
-    "description": "Commercial Renovation - Professional office tenant fitout, glass entrance doors, extensive drywall partitions, 400A electrical service, and VRF heat pump HVAC.",
-    "ai_summary": "Commercial approved permit for 110 1710 Richter St, Kelowna, BC ($500,000), involving commercial renovation - professional office tenant fitout, glass entrance doors, extensive drywall partitions, 4.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 500000.0,
-    "contractor_name": "Private Contractor",
+    "description": "Commercial Tenant Fit-Out - Orchard Park Mall tenant improvement with complete mechanical HVAC rooftop units, 400A 3-phase electrical distribution, drywall partitions, acoustic ceilings, and fire sprinkler modifications.",
+    "ai_summary": "Commercial approved permit for 237 2271 Harvey Ave, Kelowna, BC ($514,897), involving commercial tenant fit-out - orchard park mall tenant improvement with complete mechanical hvac rooftop units, 40.... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 514897.0,
+    "contractor_name": "TKI CONSTRUCTION LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "TKI Construction Ltd",
     "status": "Issued",
-    "latitude": 49.882,
-    "longitude": -119.485,
+    "latitude": 49.8793625,
+    "longitude": -119.439476,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -884,18 +756,8 @@
         "confidence": 1.0,
         "matched_terms": [
           "electr",
-          "400a"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "fitout",
-          "drywall"
+          "400a",
+          "3-phase"
         ]
       },
       {
@@ -903,35 +765,58 @@
         "name": "Plumbing & Mechanical / HVAC",
         "color": "#DC2626",
         "icon": "Flame",
-        "confidence": 0.7,
+        "confidence": 1.0,
         "matched_terms": [
-          "heat pump",
-          "hvac"
+          "hvac",
+          "sprinkler",
+          "mechanical"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "drywall",
+          "fit-out",
+          "tenant improvement"
+        ]
+      },
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 0.35,
+        "matched_terms": [
+          "roof"
         ]
       }
     ]
   },
   {
-    "id": "permit-2026-017",
+    "id": "permit-real-14",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001336",
+    "permit_number": "BP26-001126",
     "issue_date": "2026-09-14",
     "application_date": "2026-09-14",
-    "address": "161 Celano Cr, Kelowna, BC",
+    "address": "301 1890 Cooper Road, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Basement suite development, fire-rated drywall ceiling, plumbing rough-in for second kitchen and bathroom, electrical circuits and electric baseboard heating.",
-    "ai_summary": "Residential approved permit for 161 Celano Cr, Kelowna, BC ($35,000), involving single family dwelling renovation - basement suite development, fire-rated drywall ceiling, plumbing rough-in fo.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 35000.0,
-    "contractor_name": "NOBLETERRA DEVELOPMENTS",
+    "legal_description": "Lot 1 Plan KAP33410 ODYD Orchard Park Office Tower",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Office renovation on 3rd floor. Includes drywall partition walls, T-bar ceiling, electrical wiring for workstations, HVAC zone dampers and diffusers.",
+    "ai_summary": "Commercial approved permit for 301 1890 Cooper Road, Kelowna, BC ($150,000), involving commercial renovation - office renovation on 3rd floor. includes drywall partition walls, t-bar ceiling, electri.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 150000.0,
+    "contractor_name": "MUNDI CONSTRUCTION LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Mundi Construction Ltd",
     "status": "Issued",
-    "latitude": 49.9243,
-    "longitude": -119.4365,
+    "latitude": 49.8796475,
+    "longitude": -119.4441215,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -940,18 +825,20 @@
         "icon": "Zap",
         "confidence": 1.0,
         "matched_terms": [
-          "electr"
+          "electr",
+          "wiring"
         ]
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
+          "drywall",
           "ceiling",
-          "drywall"
+          "t-bar"
         ]
       },
       {
@@ -961,42 +848,54 @@
         "icon": "Flame",
         "confidence": 0.35,
         "matched_terms": [
-          "plumb"
+          "hvac"
         ]
       }
     ]
   },
   {
-    "id": "permit-2026-018",
+    "id": "permit-real-15",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001323",
-    "issue_date": "2026-09-09",
-    "application_date": "2026-09-09",
-    "address": "2125 Burtch Rd, Kelowna, BC",
+    "permit_number": "BP26-000599",
+    "issue_date": "2026-09-12",
+    "application_date": "2026-09-12",
+    "address": "201 2343 Pandosy St, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Townhouse Renovation",
-    "work_class": "Residential",
-    "description": "Townhouse Renovation - Interior alterations, drywall partition repair, plumbing stack renewal, and electrical fixtures.",
-    "ai_summary": "Residential approved permit for 2125 Burtch Rd, Kelowna, BC ($45,000), involving townhouse renovation - interior alterations, drywall partition repair, plumbing stack renewal, and electrical fi.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 45000.0,
-    "contractor_name": "DTD Developments Ltd.",
+    "legal_description": "Strata Lot 12 Plan KAS1420 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Healthcare professional facility fit-out. Specialized plumbing lines, dedicated HVAC filtration, medical grade electrical panels, acoustic drywall and soundproofing.",
+    "ai_summary": "Commercial approved permit for 201 2343 Pandosy St, Kelowna, BC ($380,000), involving commercial renovation - healthcare professional facility fit-out. specialized plumbing lines, dedicated hvac fil.... Key subtrade bidding opportunities identified in Drywall & Steel Stud, Plumbing & Mechanical / HVAC, Electrical with immediate estimation relevance.",
+    "estimated_value": 380000.0,
+    "contractor_name": "TEAM CONSTRUCTION MANAGEMENT (1981) LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Team Construction Management",
     "status": "Issued",
-    "latitude": 49.875,
-    "longitude": -119.463,
+    "latitude": 49.8715855,
+    "longitude": -119.4909999,
     "trades": [
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
           "drywall",
-          "partition"
+          "soundproofing",
+          "fit-out"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.7,
+        "matched_terms": [
+          "hvac",
+          "plumb"
         ]
       },
       {
@@ -1008,253 +907,30 @@
         "matched_terms": [
           "electr"
         ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
       }
     ]
   },
   {
-    "id": "permit-2026-019",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001310",
-    "issue_date": "2026-09-09",
-    "application_date": "2026-09-09",
-    "address": "876 & 878 Cadder Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Two Family Dwelling New",
-    "work_class": "Residential",
-    "description": "Two Family Dwelling New - Semi-detached residential duplex, engineered timber framing, dual 200A services, heat pump HVAC, asphalt shingle roofing, and double garage doors.",
-    "ai_summary": "Residential approved permit for 876 & 878 Cadder Ave, Kelowna, BC ($900,000), involving two family dwelling new - semi-detached residential duplex, engineered timber framing, dual 200a services, heat .... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Roofing, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 900000.0,
-    "contractor_name": "OKANAGAN VALLEY CONSTRUCTION LTD.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.878,
-    "longitude": -119.488,
-    "trades": [
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.7,
-        "matched_terms": [
-          "framing",
-          "timber"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "200a"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-020",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001304",
-    "issue_date": "2026-09-08",
-    "application_date": "2026-09-08",
-    "address": "4201 & 2 4201 Russo St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New with Suite",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling New with Suite - Custom home with legal basement suite, wood frame trusses, 200A panel, radiant heat pump, and drywall.",
-    "ai_summary": "Residential approved permit for 4201 & 2 4201 Russo St, Kelowna, BC ($750,000), involving single family dwelling new with suite - custom home with legal basement suite, wood frame trusses, 200a panel, r.... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 750000.0,
-    "contractor_name": "TIMBER RIDGE HOMES LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.852,
-    "longitude": -119.475,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "panel",
-          "200a"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "heat pump",
-          "radiant"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "truss",
-          "wood frame",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.4,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-021",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001278",
-    "issue_date": "2026-09-02",
-    "application_date": "2026-09-02",
-    "address": "582 Benmore Pl, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling New - 2-storey hillside home, wood frame construction, asphalt shingle roof, 200A electrical service, and overhead garage doors.",
-    "ai_summary": "Residential approved permit for 582 Benmore Pl, Kelowna, BC ($830,000), involving single family dwelling new - 2-storey hillside home, wood frame construction, asphalt shingle roof, 200a electri.... Key subtrade bidding opportunities in Electrical, Roofing, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 830000.0,
-    "contractor_name": "OMKARA HOMES INC",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.895,
-    "longitude": -119.385,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 1.0,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.75,
-        "matched_terms": [
-          "wood frame"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.4,
-        "matched_terms": []
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-022",
+    "id": "permit-real-16",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
     "permit_number": "BP26-001203",
-    "issue_date": "2026-08-26",
-    "application_date": "2026-08-26",
+    "issue_date": "2026-09-11",
+    "application_date": "2026-09-11",
     "address": "100 2045 Enterprise Way, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
+    "legal_description": "Lot 2 Plan KAP65410 ODYD",
     "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Commercial Renovation - Industrial warehouse office tenant improvement, commercial bay doors, loading dock leveler repairs, 600V power drops, and high-bay LED lighting.",
-    "ai_summary": "Commercial approved permit for 100 2045 Enterprise Way, Kelowna, BC ($25,000), involving commercial renovation - industrial warehouse office tenant improvement, commercial bay doors, loading dock level.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 25000.0,
-    "contractor_name": "REOTECH CONSTRUCTION LTD.",
+    "description": "Commercial Renovation - Industrial warehouse and office tenant improvement with overhead roll-up bay doors, loading dock leveler repairs, 600V 3-phase power drops, and high-bay LED lighting.",
+    "ai_summary": "Commercial approved permit for 100 2045 Enterprise Way, Kelowna, BC ($275,000), involving commercial renovation - industrial warehouse and office tenant improvement with overhead roll-up bay doors, load.... Key subtrade bidding opportunities identified in Electrical, Commercial Overhead Doors & Dock, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 275000.0,
+    "contractor_name": "REOTECH CONSTRUCTION LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Reotech Construction Ltd",
     "status": "Issued",
-    "latitude": 49.8831,
-    "longitude": -119.4474,
+    "latitude": 49.8831447,
+    "longitude": -119.4473573,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -1264,12 +940,24 @@
         "confidence": 1.0,
         "matched_terms": [
           "lighting",
-          "600v"
+          "600v",
+          "3-phase"
+        ]
+      },
+      {
+        "subtrade_key": "commercial_doors",
+        "name": "Commercial Overhead Doors & Dock",
+        "color": "#EA580C",
+        "icon": "DoorOpen",
+        "confidence": 1.0,
+        "matched_terms": [
+          "dock leveler",
+          "loading dock"
         ]
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
@@ -1278,60 +966,68 @@
         ]
       },
       {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.4,
+        "matched_terms": []
+      },
+      {
         "subtrade_key": "hvac_plumbing",
         "name": "Plumbing & Mechanical / HVAC",
         "color": "#DC2626",
         "icon": "Flame",
         "confidence": 0.35,
         "matched_terms": []
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.35,
-        "matched_terms": [
-          "loading dock"
-        ]
       }
     ]
   },
   {
-    "id": "permit-2026-023",
+    "id": "permit-real-17",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
     "permit_number": "BP26-001185",
-    "issue_date": "2026-08-18",
-    "application_date": "2026-08-18",
-    "address": "1872 1880 Spall Rd, Kelowna, BC",
+    "issue_date": "2026-09-10",
+    "application_date": "2026-09-10",
+    "address": "1880 Spall Rd, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
+    "legal_description": "Lot B Plan KAP48900 ODYD",
     "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
     "description": "Commercial Renovation - Commercial plaza facade upgrade, architectural sheet metal roofing flashings, parapet waterproofing membrane, and commercial storefront aluminum doors.",
-    "ai_summary": "Commercial approved permit for 1872 1880 Spall Rd, Kelowna, BC ($36,125), involving commercial renovation - commercial plaza facade upgrade, architectural sheet metal roofing flashings, parapet wa.... Key subtrade bidding opportunities in Roofing, Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 36125.0,
-    "contractor_name": "Callahan Property Group Ltd.",
+    "ai_summary": "Commercial approved permit for 1880 Spall Rd, Kelowna, BC ($85,000), involving commercial renovation - commercial plaza facade upgrade, architectural sheet metal roofing flashings, parapet wa.... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Glazing & Building Envelope, Electrical with immediate estimation relevance.",
+    "estimated_value": 85000.0,
+    "contractor_name": "CALLAHAN PROPERTY GROUP LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "Callahan Property Group",
     "status": "Issued",
-    "latitude": 49.8798,
-    "longitude": -119.4548,
+    "latitude": 49.879763,
+    "longitude": -119.45478,
     "trades": [
       {
         "subtrade_key": "roofing",
-        "name": "Roofing",
+        "name": "Roofing & Sheet Metal",
         "color": "#16A34A",
         "icon": "Home",
         "confidence": 1.0,
         "matched_terms": [
-          "membrane",
+          "parapet",
           "waterproofing",
           "roof"
         ]
       },
       {
+        "subtrade_key": "glazing",
+        "name": "Glazing & Building Envelope",
+        "color": "#0891B2",
+        "icon": "Maximize",
+        "confidence": 0.35,
+        "matched_terms": [
+          "storefront"
+        ]
+      },
+      {
         "subtrade_key": "electrical",
         "name": "Electrical",
         "color": "#2563EB",
@@ -1341,7 +1037,7 @@
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 0.3,
@@ -1350,671 +1046,37 @@
     ]
   },
   {
-    "id": "permit-2026-024",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001154",
-    "issue_date": "2026-09-09",
-    "application_date": "2026-09-09",
-    "address": "1117 Crawford Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Accessory Structure New",
-    "work_class": "Residential",
-    "description": "Accessory Structure New - Detached garage and carriage workshop, wood frame timber trusses, 100A subpanel, overhead garage bay doors, and asphalt shingle roof.",
-    "ai_summary": "Residential approved permit for 1117 Crawford Rd, Kelowna, BC ($95,000), involving accessory structure new - detached garage and carriage workshop, wood frame timber trusses, 100a subpanel, overh.... Key subtrade bidding opportunities in Drywall & Framing, Roofing, Commercial Overhead Doors with immediate estimation relevance.",
-    "estimated_value": 95000.0,
-    "contractor_name": "PURE BUILD CONSTRUCTION LTD.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.83,
-    "longitude": -119.44,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "truss",
-          "wood frame",
-          "timber"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-025",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001146",
-    "issue_date": "2026-09-16",
-    "application_date": "2026-09-16",
-    "address": "489 Bernard Avenue, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Storefront renovation, commercial glass entrance doors, drywall repairs, lighting retrofit and electrical connections.",
-    "ai_summary": "Commercial approved permit for 489 Bernard Avenue, Kelowna, BC ($10,000), involving commercial renovation - storefront renovation, commercial glass entrance doors, drywall repairs, lighting retrof.... Key subtrade bidding opportunities in Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 10000.0,
-    "contractor_name": "Kelbrook Construction Corp",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8862,
-    "longitude": -119.4937,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "electr",
-          "lighting"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-026",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001142",
-    "issue_date": "2026-08-19",
-    "application_date": "2026-08-19",
-    "address": "237 2271 Harvey Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Orchard Park Mall tenant improvement with complete mechanical HVAC rooftop units, 400A 3-phase electrical distribution, drywall partitions, acoustic ceilings, and fire sprinkler modifications.",
-    "ai_summary": "Commercial approved permit for 237 2271 Harvey Ave, Kelowna, BC ($514,897), involving commercial renovation - orchard park mall tenant improvement with complete mechanical hvac rooftop units, 400a 3.... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 514897.0,
-    "contractor_name": "TKI CONSTRUCTION LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8794,
-    "longitude": -119.4395,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "electr",
-          "3-phase",
-          "400a"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "sprinkler",
-          "mechanical",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "tenant improvement",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.35,
-        "matched_terms": [
-          "roof"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-027",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001126",
-    "issue_date": "2026-08-11",
-    "application_date": "2026-08-11",
-    "address": "301 1890 Cooper Road, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Office renovation on 3rd floor. Includes drywall partition walls, T-bar ceiling, electrical wiring for workstations, HVAC zone dampers and diffusers.",
-    "ai_summary": "Commercial approved permit for 301 1890 Cooper Road, Kelowna, BC ($150,000), involving commercial renovation - office renovation on 3rd floor. includes drywall partition walls, t-bar ceiling, electri.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 150000.0,
-    "contractor_name": "MUNDI CONSTRUCTION LTD.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8796,
-    "longitude": -119.4441,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "electr",
-          "wiring"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "t-bar",
-          "ceiling",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "hvac"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-028",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001112",
-    "issue_date": "2026-09-11",
-    "application_date": "2026-09-11",
-    "address": "2931 Belgo Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Addition",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Addition - Detached garage and secondary carriage house, wood frame timber trusses, 100A subpanel, overhead garage bay doors, asphalt shingle roofing, and drywall.",
-    "ai_summary": "Residential approved permit for 2931 Belgo Rd, Kelowna, BC ($120,000), involving single family dwelling addition - detached garage and secondary carriage house, wood frame timber trusses, 100a .... Key subtrade bidding opportunities in Drywall & Framing, Roofing, Commercial Overhead Doors with immediate estimation relevance.",
-    "estimated_value": 120000.0,
-    "contractor_name": "OB BUILDS INC.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8501,
-    "longitude": -119.3794,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "truss",
-          "wood frame",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-029",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001098",
-    "issue_date": "2026-07-14",
-    "application_date": "2026-07-14",
-    "address": "440 Roepel Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Interior finishing, drywall repairs, and electrical fixtures.",
-    "ai_summary": "Residential approved permit for 440 Roepel Rd, Kelowna, BC ($8,000), involving single family dwelling renovation - interior finishing, drywall repairs, and electrical fixtures. Key subtrade bidding opportunities in Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 8000.0,
-    "contractor_name": "Bercum Builders Inc.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.845,
-    "longitude": -119.365,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-030",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001086",
-    "issue_date": "2026-09-01",
-    "application_date": "2026-09-01",
-    "address": "1114 Stockley St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling New",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling New - Black Mountain custom residence, engineered floor joists, 200A service, heat pump HVAC, and asphalt shingles.",
-    "ai_summary": "Residential approved permit for 1114 Stockley St, Kelowna, BC ($650,000), involving single family dwelling new - black mountain custom residence, engineered floor joists, 200a service, heat pump h.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Electrical, Roofing with immediate estimation relevance.",
-    "estimated_value": 650000.0,
-    "contractor_name": "Tova Construction",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.892,
-    "longitude": -119.35,
-    "trades": [
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.75,
-        "matched_terms": [
-          "200a"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.75,
-        "matched_terms": [
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.4,
-        "matched_terms": []
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-031",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-001045",
-    "issue_date": "2026-08-05",
-    "application_date": "2026-08-05",
-    "address": "2 1490 Feedham Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation with Suite",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation with Suite - Suite renovation, plumbing fixtures, electrical baseboard heaters, and drywall partitions.",
-    "ai_summary": "Residential approved permit for 2 1490 Feedham Ave, Kelowna, BC ($20,000), involving single family dwelling renovation with suite - suite renovation, plumbing fixtures, electrical baseboard heaters.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 20000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.887,
-    "longitude": -119.355,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-032",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000980",
-    "issue_date": "2026-06-19",
-    "application_date": "2026-06-19",
-    "address": "39 555 Glenmeadows Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Restoration",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Restoration - Water damage remediation, gypsum drywall replacement, insulation, and electrical circuit check.",
-    "ai_summary": "Residential approved permit for 39 555 Glenmeadows Rd, Kelowna, BC ($19,812), involving single family dwelling restoration - water damage remediation, gypsum drywall replacement, insulation, and elect.... Key subtrade bidding opportunities in Drywall & Framing, Electrical with immediate estimation relevance.",
-    "estimated_value": 19812.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.915,
-    "longitude": -119.465,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.7,
-        "matched_terms": [
-          "gypsum",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "electr"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-033",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000912",
-    "issue_date": "2026-06-18",
-    "application_date": "2026-06-18",
-    "address": "732 Turner Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Accessory Structure New",
-    "work_class": "Residential",
-    "description": "Accessory Structure New - Garden storage structure with wood framing and asphalt roofing shingles.",
-    "ai_summary": "Residential approved permit for 732 Turner Rd, Kelowna, BC ($10,000), involving accessory structure new - garden storage structure with wood framing and asphalt roofing shingles. Key subtrade bidding opportunities in Roofing, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 10000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8298335,
-    "longitude": -119.481685,
-    "trades": [
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "shingle",
-          "roof"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.35,
-        "matched_terms": [
-          "framing"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-034",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000885",
-    "issue_date": "2026-06-22",
-    "application_date": "2026-06-22",
-    "address": "519 Valley Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Agri - Accessory Structure New",
-    "work_class": "Commercial",
-    "description": "Agri - Accessory Structure New - Agricultural storage facility, pre-engineered steel framing, overhead commercial bay doors, and 200A 3-phase electrical panel.",
-    "ai_summary": "Commercial approved permit for 519 Valley Rd, Kelowna, BC ($267,750), involving agri - accessory structure new - agricultural storage facility, pre-engineered steel framing, overhead commercia.... Key subtrade bidding opportunities in Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 267750.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.925,
-    "longitude": -119.425,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "panel",
-          "200a",
-          "3-phase"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.35,
-        "matched_terms": [
-          "framing"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-035",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000838",
-    "issue_date": "2026-09-16",
-    "application_date": "2026-09-16",
-    "address": "710 Evans Ct, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Addition",
-    "work_class": "Commercial",
-    "description": "Commercial Addition - 2-storey commercial office and warehouse addition, commercial bay doors, 400A service, rooftop HVAC units, and TPO membrane roof.",
-    "ai_summary": "Commercial approved permit for 710 Evans Ct, Kelowna, BC ($1,170,000), involving commercial addition - 2-storey commercial office and warehouse addition, commercial bay doors, 400a service, roo.... Key subtrade bidding opportunities in Roofing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 1170000.0,
-    "contractor_name": "Private Contractor",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.89,
-    "longitude": -119.42,
-    "trades": [
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 1.0,
-        "matched_terms": [
-          "tpo",
-          "membrane",
-          "roof"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "400a"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "hvac"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-036",
+    "id": "permit-real-18",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
     "permit_number": "BP26-000626",
-    "issue_date": "2026-06-01",
-    "application_date": "2026-06-01",
+    "issue_date": "2026-09-09",
+    "application_date": "2026-09-09",
     "address": "1111 Rutland Rd N, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Institutional Addition",
+    "legal_description": "Lot 1 Plan KAP22190 ODYD",
+    "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Institutional Addition - Community facility addition, wood frame construction, gypsum drywall, electrical branch circuits, and plumbing washroom rough-in.",
-    "ai_summary": "Commercial approved permit for 1111 Rutland Rd N, Kelowna, BC ($60,000), involving institutional addition - community facility addition, wood frame construction, gypsum drywall, electrical branch.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 60000.0,
+    "description": "Commercial Renovation - Commercial retail unit renovation, wood frame and steel stud partitions, gypsum drywall finishing, rough-in plumbing for washrooms, electrical service update.",
+    "ai_summary": "Commercial approved permit for 1111 Rutland Rd N, Kelowna, BC ($62,000), involving commercial renovation - commercial retail unit renovation, wood frame and steel stud partitions, gypsum drywall .... Key subtrade bidding opportunities identified in Drywall & Steel Stud, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 62000.0,
     "contractor_name": "I J SAMRA CONSTRUCTION LTD",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "I J Samra Construction",
     "status": "Issued",
-    "latitude": 49.9026,
-    "longitude": -119.3866,
+    "latitude": 49.902629,
+    "longitude": -119.3866156,
     "trades": [
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
-          "wood frame",
-          "gypsum",
-          "drywall"
+          "drywall",
+          "steel stud",
+          "gypsum"
         ]
       },
       {
@@ -2022,7 +1084,7 @@
         "name": "Electrical",
         "color": "#2563EB",
         "icon": "Zap",
-        "confidence": 0.35,
+        "confidence": 0.65,
         "matched_terms": [
           "electr"
         ]
@@ -2036,152 +1098,51 @@
         "matched_terms": [
           "plumb"
         ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-037",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000599",
-    "issue_date": "2026-09-02",
-    "application_date": "2026-09-02",
-    "address": "201 2343 Pandosy St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Healthcare professional facility fit-out. Specialized plumbing lines, dedicated HVAC filtration, medical grade electrical panels, acoustic drywall and soundproofing.",
-    "ai_summary": "Commercial approved permit for 201 2343 Pandosy St, Kelowna, BC ($850,000), involving commercial renovation - healthcare professional facility fit-out. specialized plumbing lines, dedicated hvac fil.... Key subtrade bidding opportunities in Drywall & Framing, Plumbing & Mechanical / HVAC, Electrical with immediate estimation relevance.",
-    "estimated_value": 850000.0,
-    "contractor_name": "Team Construction Management (1981) Ltd.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Private Applicant",
-    "status": "Issued",
-    "latitude": 49.8716,
-    "longitude": -119.491,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "fit-out",
-          "drywall",
-          "soundproofing"
-        ]
       },
       {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
         "matched_terms": [
-          "plumb",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "electr"
+          "wood frame"
         ]
       }
     ]
   },
   {
-    "id": "permit-2026-038",
+    "id": "permit-real-19",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
     "permit_number": "BP26-000082",
-    "issue_date": "2026-03-06",
-    "application_date": "2026-03-06",
+    "issue_date": "2026-09-08",
+    "application_date": "2026-09-08",
     "address": "647 Cook Rd, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Apartment Building New",
+    "legal_description": "Lot 7 Plan KAP14210 ODYD",
+    "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Apartment Building New - 6-storey mixed-use multi-family residential building over concrete parkade, high-voltage 600V distribution, commercial curtain wall glazing, central VRF heat pump HVAC, and 2-ply SBS roofing.",
-    "ai_summary": "Commercial approved permit for 647 Cook Rd, Kelowna, BC ($35,506,142), involving apartment building new - 6-storey mixed-use multi-family residential building over concrete parkade, high-voltag.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Roofing, Electrical with immediate estimation relevance.",
-    "estimated_value": 35506142.0,
+    "description": "Commercial Renovation - Multi-family mixed use podium renovation, structural framing modifications, 2-ply SBS roofing membrane replacement, commercial glazing and plumbing stack renewals.",
+    "ai_summary": "Commercial approved permit for 647 Cook Rd, Kelowna, BC ($1,250,000), involving commercial renovation - multi-family mixed use podium renovation, structural framing modifications, 2-ply sbs ro.... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Plumbing & Mechanical / HVAC, Framing & Structural Timber with immediate estimation relevance.",
+    "estimated_value": 1250000.0,
     "contractor_name": "ITC BC BUILDERS INC",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Private Applicant",
+    "applicant_name": "ITC BC Builders Inc",
     "status": "Issued",
-    "latitude": 49.8456,
-    "longitude": -119.4839,
+    "latitude": 49.8456376,
+    "longitude": -119.4838612,
     "trades": [
       {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
         "subtrade_key": "roofing",
-        "name": "Roofing",
+        "name": "Roofing & Sheet Metal",
         "color": "#16A34A",
         "icon": "Home",
-        "confidence": 0.7,
+        "confidence": 1.0,
         "matched_terms": [
           "roof",
-          "sbs"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "600v"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-039",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000840",
-    "issue_date": "2026-05-27",
-    "application_date": "2026-05-27",
-    "address": "1708 Dolphin Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Tenant Improvement - Medical laboratory renovation, specialized plumbing and acid waste piping, HEPA filtered HVAC ducting, acoustic drywall, and 200A subpanel.",
-    "ai_summary": "Commercial approved permit for 1708 Dolphin Ave, Kelowna, BC ($520,000), involving commercial tenant improvement - medical laboratory renovation, specialized plumbing and acid waste piping, hepa .... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 520000.0,
-    "contractor_name": "Troika Management Corp",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Troika Management",
-    "status": "Issued",
-    "latitude": 49.8792345,
-    "longitude": -119.4596354,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "200a"
+          "sbs",
+          "membrane"
         ]
       },
       {
@@ -2189,169 +1150,29 @@
         "name": "Plumbing & Mechanical / HVAC",
         "color": "#DC2626",
         "icon": "Flame",
-        "confidence": 1.0,
-        "matched_terms": [
-          "plumb",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "tenant improvement",
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-040",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000815",
-    "issue_date": "2026-05-20",
-    "application_date": "2026-05-20",
-    "address": "1890 McKinley Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling",
-    "work_class": "Residential",
-    "description": "Custom Single Family Dwelling - McKinley Beach custom hillside home, mass timber post and beam framing, standing seam metal roof, central hydronic heating, and 200A service.",
-    "ai_summary": "Residential approved permit for 1890 McKinley Rd, Kelowna, BC ($1,750,000), involving custom single family dwelling - mckinley beach custom hillside home, mass timber post and beam framing, standing.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Roofing with immediate estimation relevance.",
-    "estimated_value": 1750000.0,
-    "contractor_name": "Edgecombe Builders Group",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Edgecombe Builders",
-    "status": "Issued",
-    "latitude": 49.965,
-    "longitude": -119.445,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "post and beam",
-          "mass timber"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
         "confidence": 0.35,
         "matched_terms": [
-          "200a"
+          "plumb"
         ]
       },
       {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
         "confidence": 0.35,
         "matched_terms": [
-          "metal roof"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-041",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000780",
-    "issue_date": "2026-05-14",
-    "application_date": "2026-05-14",
-    "address": "155 Hollywood Rd S, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Plaza Renovation - Rutland shopping plaza improvements, new commercial glass storefront doors, T-bar drywall ceilings, electrical lighting upgrade, and roof flashing repairs.",
-    "ai_summary": "Commercial approved permit for 155 Hollywood Rd S, Kelowna, BC ($360,000), involving commercial plaza renovation - rutland shopping plaza improvements, new commercial glass storefront doors, t-bar .... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Roofing with immediate estimation relevance.",
-    "estimated_value": 360000.0,
-    "contractor_name": "MUNDI CONSTRUCTION LTD.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Mundi Construction",
-    "status": "Issued",
-    "latitude": 49.8702425,
-    "longitude": -119.390135,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "electr",
-          "lighting"
+          "framing"
         ]
       },
       {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
+        "subtrade_key": "glazing",
+        "name": "Glazing & Building Envelope",
+        "color": "#0891B2",
+        "icon": "Maximize",
+        "confidence": 0.35,
         "matched_terms": [
-          "t-bar",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "flashing",
-          "roof"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-042",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000740",
-    "issue_date": "2026-05-06",
-    "application_date": "2026-05-06",
-    "address": "4105 Lakeshore Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling Renovation",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling Renovation - Luxury home modernization, full kitchen and bath plumbing re-pipe, 200A service upgrade, drywall mudding and finishing, and heat pump install.",
-    "ai_summary": "Residential approved permit for 4105 Lakeshore Rd, Kelowna, BC ($290,000), involving single family dwelling renovation - luxury home modernization, full kitchen and bath plumbing re-pipe, 200a serv.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 290000.0,
-    "contractor_name": "All-Elements Construction",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "All-Elements Construction",
-    "status": "Issued",
-    "latitude": 49.842,
-    "longitude": -119.484,
-    "trades": [
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "plumb",
-          "heat pump"
+          "glaz"
         ]
       },
       {
@@ -2359,164 +1180,40 @@
         "name": "Electrical",
         "color": "#2563EB",
         "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "200a"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-043",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000690",
-    "issue_date": "2026-04-26",
-    "application_date": "2026-04-26",
-    "address": "1605 Gordon Dr, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Office Building - Tenant improvements, interior drywall partitions, steel stud framing, commercial door packages, and rooftop HVAC duct modification.",
-    "ai_summary": "Commercial approved permit for 1605 Gordon Dr, Kelowna, BC ($410,000), involving commercial office building - tenant improvements, interior drywall partitions, steel stud framing, commercial do.... Key subtrade bidding opportunities in Drywall & Framing, Plumbing & Mechanical / HVAC, Electrical with immediate estimation relevance.",
-    "estimated_value": 410000.0,
-    "contractor_name": "NORSON CONSTRUCTION LLP",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Norson Construction",
-    "status": "Issued",
-    "latitude": 49.8791413,
-    "longitude": -119.4771445,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "steel stud",
-          "framing",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
+        "confidence": 0.3,
         "matched_terms": []
       },
       {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.35,
-        "matched_terms": [
-          "roof"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.35,
-        "matched_terms": [
-          "commercial door"
-        ]
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.3,
+        "matched_terms": []
       }
     ]
   },
   {
-    "id": "permit-2026-044",
+    "id": "permit-real-20",
     "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000650",
-    "issue_date": "2026-04-18",
-    "application_date": "2026-04-18",
-    "address": "5300 Chute Lake Rd, Kelowna, BC",
+    "permit_number": "BP25-001155",
+    "issue_date": "2026-09-05",
+    "application_date": "2026-09-05",
+    "address": "2425 Gordon Dr, Kelowna, BC",
     "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling - Upper Mission custom residence, engineered floor joists, 200A service with electric vehicle charger rough-in, asphalt roofing shingles, and overhead doors.",
-    "ai_summary": "Residential approved permit for 5300 Chute Lake Rd, Kelowna, BC ($1,180,000), involving single family dwelling - upper mission custom residence, engineered floor joists, 200a service with electric veh.... Key subtrade bidding opportunities in Electrical, Roofing with immediate estimation relevance.",
-    "estimated_value": 1180000.0,
-    "contractor_name": "San Marc Homes Inc",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "San Marc Homes",
-    "status": "Issued",
-    "latitude": 49.795,
-    "longitude": -119.49,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.7,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "shingle",
-          "roof"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-045",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000615",
-    "issue_date": "2026-04-11",
-    "application_date": "2026-04-11",
-    "address": "550 Cawston Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
+    "legal_description": "Lot 10 Plan KAP38210 ODYD Capital News Centre",
     "permit_type": "Commercial Renovation",
     "work_class": "Commercial",
-    "description": "Commercial Mixed Use - Downtown commercial studio fitout, exposed structural framing, architectural lighting, branch electrical circuits, and commercial ventilation.",
-    "ai_summary": "Commercial approved permit for 550 Cawston Ave, Kelowna, BC ($320,000), involving commercial mixed use - downtown commercial studio fitout, exposed structural framing, architectural lighting, br.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 320000.0,
-    "contractor_name": "Worman Commercial",
+    "description": "Commercial Renovation - Community sports facility upgrade, HVAC rooftop unit replacement, mechanical ducting, 400A electrical service disconnect, and acoustic ceiling tiles.",
+    "ai_summary": "Commercial approved permit for 2425 Gordon Dr, Kelowna, BC ($420,000), involving commercial renovation - community sports facility upgrade, hvac rooftop unit replacement, mechanical ducting, 40.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 420000.0,
+    "contractor_name": "NORSON CONSTRUCTION LLP",
     "contractor_phone": null,
     "contractor_email": null,
-    "applicant_name": "Worman Commercial",
+    "applicant_name": "Norson Construction LLP",
     "status": "Issued",
-    "latitude": 49.8916111,
-    "longitude": -119.4813086,
+    "latitude": 49.8784674,
+    "longitude": -119.4771699,
     "trades": [
       {
         "subtrade_key": "electrical",
@@ -2526,565 +1223,75 @@
         "confidence": 1.0,
         "matched_terms": [
           "electr",
-          "lighting"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "framing",
-          "fitout"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "ventilat"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-046",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000540",
-    "issue_date": "2026-03-26",
-    "application_date": "2026-03-26",
-    "address": "125 Highway 33 E, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial New Construction",
-    "work_class": "Commercial",
-    "description": "Commercial Retail Building - Structural steel framing, commercial overhead bay door, TPO roof membrane, 400A 3-phase service, and gas line heating.",
-    "ai_summary": "Commercial approved permit for 125 Highway 33 E, Kelowna, BC ($1,250,000), involving commercial retail building - structural steel framing, commercial overhead bay door, tpo roof membrane, 400a 3-p.... Key subtrade bidding opportunities in Roofing, Electrical, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 1250000.0,
-    "contractor_name": "OKAHILL BUILDING CONTRACTORS LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Okahill Building",
-    "status": "Issued",
-    "latitude": 49.8890645,
-    "longitude": -119.3828876,
-    "trades": [
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 1.0,
-        "matched_terms": [
-          "tpo",
-          "membrane",
-          "roof"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.7,
-        "matched_terms": [
-          "3-phase",
           "400a"
         ]
       },
       {
         "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.7,
-        "matched_terms": [
-          "structural steel",
-          "framing"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "gas line"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.35,
-        "matched_terms": [
-          "bay door"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-047",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000510",
-    "issue_date": "2026-03-19",
-    "application_date": "2026-03-19",
-    "address": "4400 Steele Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling - Custom hillside home, wood frame construction, heat pump HVAC, asphalt shingle roofing, and double garage overhead doors.",
-    "ai_summary": "Residential approved permit for 4400 Steele Rd, Kelowna, BC ($990,000), involving single family dwelling - custom hillside home, wood frame construction, heat pump hvac, asphalt shingle roofing,.... Key subtrade bidding opportunities in Plumbing & Mechanical / HVAC, Roofing, Commercial Overhead Doors with immediate estimation relevance.",
-    "estimated_value": 990000.0,
-    "contractor_name": "AuthenTech Homes Ltd.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "AuthenTech Homes",
-    "status": "Issued",
-    "latitude": 49.825,
-    "longitude": -119.48,
-    "trades": [
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "heat pump",
-          "hvac"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.35,
-        "matched_terms": [
-          "wood frame"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-048",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000475",
-    "issue_date": "2026-03-12",
-    "application_date": "2026-03-12",
-    "address": "2949 Pandosy St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - South Pandosy boutique retail renovation, drywall partitions, track lighting, commercial glass entrance door, and plumbing rough-in.",
-    "ai_summary": "Commercial approved permit for 2949 Pandosy St, Kelowna, BC ($180,000), involving commercial renovation - south pandosy boutique retail renovation, drywall partitions, track lighting, commercial.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 180000.0,
-    "contractor_name": "Shoreline Construction Management",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Shoreline Construction",
-    "status": "Issued",
-    "latitude": 49.8833703,
-    "longitude": -119.4959869,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.65,
-        "matched_terms": [
-          "lighting"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.65,
-        "matched_terms": [
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-049",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000380",
-    "issue_date": "2026-02-24",
-    "application_date": "2026-02-24",
-    "address": "1444 St Paul St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial High-Rise",
-    "work_class": "Commercial",
-    "description": "Commercial High-Rise - Commercial ground level retail and lobby improvements, high-voltage 600V distribution, commercial fire sprinkler system, and drywall partitions.",
-    "ai_summary": "Commercial approved permit for 1444 St Paul St, Kelowna, BC ($6,800,000), involving commercial high-rise - commercial ground level retail and lobby improvements, high-voltage 600v distribution, co.... Key subtrade bidding opportunities in Electrical, Plumbing & Mechanical / HVAC, Drywall & Framing with immediate estimation relevance.",
-    "estimated_value": 6800000.0,
-    "contractor_name": "Bird Construction",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Bird Construction",
-    "status": "Issued",
-    "latitude": 49.8899531,
-    "longitude": -119.491883,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "600v"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "sprinkler"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.35,
-        "matched_terms": [
-          "drywall"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-050",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000340",
-    "issue_date": "2026-02-15",
-    "application_date": "2026-02-15",
-    "address": "1245 Mine Hill Dr, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling - Black Mountain home, wood frame construction, 200A electrical service, ducted heat pump, and asphalt shingle roof.",
-    "ai_summary": "Residential approved permit for 1245 Mine Hill Dr, Kelowna, BC ($875,000), involving single family dwelling - black mountain home, wood frame construction, 200a electrical service, ducted heat pump.... Key subtrade bidding opportunities in Electrical, Roofing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 875000.0,
-    "contractor_name": "Rykon Construction Management",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Rykon Homes",
-    "status": "Issued",
-    "latitude": 49.892,
-    "longitude": -119.34,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.7,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.7,
-        "matched_terms": [
-          "roof",
-          "shingle"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "heat pump"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.35,
-        "matched_terms": [
-          "wood frame"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-051",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000290",
-    "issue_date": "2026-02-08",
-    "application_date": "2026-02-08",
-    "address": "3030 Pandosy St, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Financial institution tenant improvement, security drywall partitions, commercial entrance doors, 200A branch wiring, and dedicated HVAC cooling.",
-    "ai_summary": "Commercial approved permit for 3030 Pandosy St, Kelowna, BC ($340,000), involving commercial renovation - financial institution tenant improvement, security drywall partitions, commercial entran.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 340000.0,
-    "contractor_name": "TKI CONSTRUCTION LTD",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "TKI Construction",
-    "status": "Issued",
-    "latitude": 49.8833703,
-    "longitude": -119.4959869,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 1.0,
-        "matched_terms": [
-          "200a",
-          "wiring"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 1.0,
-        "matched_terms": [
-          "tenant improvement",
-          "drywall"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.7,
-        "matched_terms": [
-          "hvac"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-052",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000195",
-    "issue_date": "2026-01-26",
-    "application_date": "2026-01-26",
-    "address": "525 Doyle Ave, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial New Construction",
-    "work_class": "Commercial",
-    "description": "Commercial Office Tower - Civic campus office construction, structural steel framing, commercial glass curtain wall, 600A electrical feed, and multi-zone rooftop heat pumps.",
-    "ai_summary": "Commercial approved permit for 525 Doyle Ave, Kelowna, BC ($14,200,000), involving commercial office tower - civic campus office construction, structural steel framing, commercial glass curtain w.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 14200000.0,
-    "contractor_name": "Ledcor Construction Ltd.",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Ledcor Construction",
-    "status": "Issued",
-    "latitude": 49.8889976,
-    "longitude": -119.4909994,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.7,
-        "matched_terms": [
-          "structural steel",
-          "framing"
-        ]
-      },
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.35,
-        "matched_terms": [
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "pumps"
-        ]
-      },
-      {
-        "subtrade_key": "roofing",
-        "name": "Roofing",
-        "color": "#16A34A",
-        "icon": "Home",
-        "confidence": 0.35,
-        "matched_terms": [
-          "roof"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-053",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000140",
-    "issue_date": "2026-01-18",
-    "application_date": "2026-01-18",
-    "address": "1350 Begley Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Single Family Dwelling",
-    "work_class": "Residential",
-    "description": "Single Family Dwelling - Custom residential build, timber trusses, PEX plumbing, 200A electrical service, and double bay garage overhead doors.",
-    "ai_summary": "Residential approved permit for 1350 Begley Rd, Kelowna, BC ($860,000), involving single family dwelling - custom residential build, timber trusses, pex plumbing, 200a electrical service, and do.... Key subtrade bidding opportunities in Electrical, Drywall & Framing, Commercial Overhead Doors with immediate estimation relevance.",
-    "estimated_value": 860000.0,
-    "contractor_name": "Dilworth Homes",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Dilworth Homes",
-    "status": "Issued",
-    "latitude": 49.894,
-    "longitude": -119.335,
-    "trades": [
-      {
-        "subtrade_key": "electrical",
-        "name": "Electrical",
-        "color": "#2563EB",
-        "icon": "Zap",
-        "confidence": 0.7,
-        "matched_terms": [
-          "200a",
-          "electr"
-        ]
-      },
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
-        "color": "#D97706",
-        "icon": "Layers",
-        "confidence": 0.7,
-        "matched_terms": [
-          "truss",
-          "timber"
-        ]
-      },
-      {
-        "subtrade_key": "commercial_doors",
-        "name": "Commercial Overhead Doors",
-        "color": "#EA580C",
-        "icon": "DoorOpen",
-        "confidence": 0.4,
-        "matched_terms": []
-      },
-      {
-        "subtrade_key": "hvac_plumbing",
-        "name": "Plumbing & Mechanical / HVAC",
-        "color": "#DC2626",
-        "icon": "Flame",
-        "confidence": 0.35,
-        "matched_terms": [
-          "plumb"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "permit-2026-054",
-    "municipality_id": "22222222-2222-2222-2222-222222222222",
-    "permit_number": "BP26-000085",
-    "issue_date": "2026-01-10",
-    "application_date": "2026-01-10",
-    "address": "3155 Lakeshore Rd, Kelowna, BC",
-    "city_region": "Kelowna",
-    "legal_description": "Kelowna Land Title Office",
-    "permit_type": "Commercial Renovation",
-    "work_class": "Commercial",
-    "description": "Commercial Renovation - Commercial plaza retail store, interior steel stud partition walls, acoustic ceiling grid, lighting fixtures, and plumbing rough-in.",
-    "ai_summary": "Commercial approved permit for 3155 Lakeshore Rd, Kelowna, BC ($145,000), involving commercial renovation - commercial plaza retail store, interior steel stud partition walls, acoustic ceiling gri.... Key subtrade bidding opportunities in Drywall & Framing, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
-    "estimated_value": 145000.0,
-    "contractor_name": "Kelbrook Construction Corp",
-    "contractor_phone": null,
-    "contractor_email": null,
-    "applicant_name": "Kelbrook Construction",
-    "status": "Issued",
-    "latitude": 49.859,
-    "longitude": -119.489,
-    "trades": [
-      {
-        "subtrade_key": "drywall_framing",
-        "name": "Drywall & Framing",
+        "name": "Drywall & Steel Stud",
         "color": "#D97706",
         "icon": "Layers",
         "confidence": 1.0,
         "matched_terms": [
           "acoustic ceiling",
-          "steel stud",
-          "partition"
+          "ceiling"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.7,
+        "matched_terms": [
+          "hvac",
+          "mechanical"
+        ]
+      },
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 0.35,
+        "matched_terms": [
+          "roof"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-21",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP25-001041",
+    "issue_date": "2026-09-04",
+    "application_date": "2026-09-04",
+    "address": "2028 Begbie Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 3 Plan KAP29100 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Commercial aquatic recreation facility mechanical upgrade, high-efficiency boiler installation, circulation pumps, gas line connection, and 100A subpanel.",
+    "ai_summary": "Commercial approved permit for 2028 Begbie Rd, Kelowna, BC ($95,000), involving commercial renovation - commercial aquatic recreation facility mechanical upgrade, high-efficiency boiler instal.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Electrical, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 95000.0,
+    "contractor_name": "INTERIOR POOL & SPA",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Interior Pool & Spa",
+    "status": "Issued",
+    "latitude": 49.9417704,
+    "longitude": -119.4341905,
+    "trades": [
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "boiler",
+          "pumps",
+          "gas line"
         ]
       },
       {
@@ -3092,9 +1299,192 @@
         "name": "Electrical",
         "color": "#2563EB",
         "icon": "Zap",
+        "confidence": 0.3,
+        "matched_terms": []
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.3,
+        "matched_terms": []
+      }
+    ]
+  },
+  {
+    "id": "permit-real-22",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001098",
+    "issue_date": "2026-09-11",
+    "application_date": "2026-09-11",
+    "address": "3591 Lakeshore Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 12 Plan KAP32100 ODYD",
+    "permit_type": "Commercial Retail Building",
+    "work_class": "Commercial",
+    "description": "Commercial Retail Building - Construction of multi-tenant retail building, structural steel framing, commercial glass storefront entrances, 600A electrical service, TPO flat roof membrane, and rooftop HVAC units.",
+    "ai_summary": "Commercial approved permit for 3591 Lakeshore Rd, Kelowna, BC ($2,800,000), involving commercial retail building - construction of multi-tenant retail building, structural steel framing, commercial .... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Framing & Structural Timber, Electrical with immediate estimation relevance.",
+    "estimated_value": 2800000.0,
+    "contractor_name": "Mission Group Commercial",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Mission Group",
+    "status": "Issued",
+    "latitude": 49.85199,
+    "longitude": -119.4869669,
+    "trades": [
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 1.0,
+        "matched_terms": [
+          "tpo",
+          "roof",
+          "membrane"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.7,
+        "matched_terms": [
+          "framing",
+          "structural steel"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.35,
+        "matched_terms": [
+          "electr"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "hvac"
+        ]
+      },
+      {
+        "subtrade_key": "glazing",
+        "name": "Glazing & Building Envelope",
+        "color": "#0891B2",
+        "icon": "Maximize",
+        "confidence": 0.35,
+        "matched_terms": [
+          "storefront"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-23",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001045",
+    "issue_date": "2026-09-10",
+    "application_date": "2026-09-10",
+    "address": "1380 Bertram St, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 8 Plan KAP12900 ODYD",
+    "permit_type": "Multi-Family Residential",
+    "work_class": "Commercial",
+    "description": "Multi-Family Residential - 6-storey residential wood-frame building over concrete parkade, 3-phase power distribution, central heat pumps, sprinkler plumbing system, and fire-rated drywall.",
+    "ai_summary": "Commercial approved permit for 1380 Bertram St, Kelowna, BC ($8,500,000), involving multi-family residential - 6-storey residential wood-frame building over concrete parkade, 3-phase power distrib.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Electrical, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 8500000.0,
+    "contractor_name": "Centurion Construction Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Centurion Construction",
+    "status": "Issued",
+    "latitude": 49.8891107,
+    "longitude": -119.4902933,
+    "trades": [
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "pumps",
+          "plumb",
+          "sprinkler"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.35,
+        "matched_terms": [
+          "3-phase"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.35,
+        "matched_terms": [
+          "drywall"
+        ]
+      },
+      {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.35,
+        "matched_terms": [
+          "concrete"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-24",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-000980",
+    "issue_date": "2026-09-09",
+    "application_date": "2026-09-09",
+    "address": "2728 Pandosy St, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 4 Plan KAP15400 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - South Pandosy retail revitalization, facade upgrade, new commercial overhead folding doors, electrical branch circuits, plumbing fixtures, and acoustic ceilings.",
+    "ai_summary": "Commercial approved permit for 2728 Pandosy St, Kelowna, BC ($450,000), involving commercial renovation - south pandosy retail revitalization, facade upgrade, new commercial overhead folding doo.... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 450000.0,
+    "contractor_name": "Shoreline Construction Management",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Shoreline Construction",
+    "status": "Issued",
+    "latitude": 49.8655545,
+    "longitude": -119.4915392,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
         "confidence": 0.65,
         "matched_terms": [
-          "lighting"
+          "electr"
         ]
       },
       {
@@ -3105,6 +1495,725 @@
         "confidence": 0.35,
         "matched_terms": [
           "plumb"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.3,
+        "matched_terms": []
+      }
+    ]
+  },
+  {
+    "id": "permit-real-25",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-000912",
+    "issue_date": "2026-09-08",
+    "application_date": "2026-09-08",
+    "address": "1090 Clement Ave, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 1 Plan KAP55200 ODYD",
+    "permit_type": "Industrial Commercial Warehouse",
+    "work_class": "Commercial",
+    "description": "Industrial Commercial Warehouse - Pre-engineered steel building, heavy commercial overhead doors, 3 loading docks with levelers, 400A 600V electrical service, and gas unit heaters.",
+    "ai_summary": "Commercial approved permit for 1090 Clement Ave, Kelowna, BC ($1,800,000), involving industrial commercial warehouse - pre-engineered steel building, heavy commercial overhead doors, 3 loading dock.... Key subtrade bidding opportunities identified in Electrical, Commercial Overhead Doors & Dock, Concrete & Foundations with immediate estimation relevance.",
+    "estimated_value": 1800000.0,
+    "contractor_name": "Emil Anderson Construction",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Emil Anderson",
+    "status": "Issued",
+    "latitude": 49.8935927,
+    "longitude": -119.4942164,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 1.0,
+        "matched_terms": [
+          "electr",
+          "400a",
+          "600v"
+        ]
+      },
+      {
+        "subtrade_key": "commercial_doors",
+        "name": "Commercial Overhead Doors & Dock",
+        "color": "#EA580C",
+        "icon": "DoorOpen",
+        "confidence": 0.4,
+        "matched_terms": []
+      },
+      {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.4,
+        "matched_terms": []
+      }
+    ]
+  },
+  {
+    "id": "permit-real-26",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-000885",
+    "issue_date": "2026-09-05",
+    "application_date": "2026-09-05",
+    "address": "1310 Ellis St, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 18 Plan KAP12800 ODYD",
+    "permit_type": "Commercial Mixed Use",
+    "work_class": "Commercial",
+    "description": "Commercial Mixed Use - Brewery and taproom buildout, high-capacity commercial plumbing and grease traps, 400A electrical service, commercial ventilation exhaust hood, and concrete slab cutting.",
+    "ai_summary": "Commercial approved permit for 1310 Ellis St, Kelowna, BC ($3,400,000), involving commercial mixed use - brewery and taproom buildout, high-capacity commercial plumbing and grease traps, 400a el.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Electrical, Concrete & Foundations with immediate estimation relevance.",
+    "estimated_value": 3400000.0,
+    "contractor_name": "Marwest Construction Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Marwest Construction",
+    "status": "Issued",
+    "latitude": 49.8914255,
+    "longitude": -119.493751,
+    "trades": [
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "ventilat",
+          "exhaust hood",
+          "plumb"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr",
+          "400a"
+        ]
+      },
+      {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.35,
+        "matched_terms": [
+          "concrete"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-27",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-000850",
+    "issue_date": "2026-09-03",
+    "application_date": "2026-09-03",
+    "address": "2150 Enterprise Way, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 5 Plan KAP68200 ODYD",
+    "permit_type": "Commercial Renovation",
+    "work_class": "Commercial",
+    "description": "Commercial Renovation - Auto dealership service bay addition, 4 commercial overhead bay doors, heavy concrete slab-on-grade, in-floor hydronic heating, and compressed air lines.",
+    "ai_summary": "Commercial approved permit for 2150 Enterprise Way, Kelowna, BC ($650,000), involving commercial renovation - auto dealership service bay addition, 4 commercial overhead bay doors, heavy concrete sl.... Key subtrade bidding opportunities identified in Concrete & Foundations, Roofing & Sheet Metal, Framing & Structural Timber with immediate estimation relevance.",
+    "estimated_value": 650000.0,
+    "contractor_name": "Scott Construction Management",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Scott Construction",
+    "status": "Issued",
+    "latitude": 49.8833285,
+    "longitude": -119.4387249,
+    "trades": [
+      {
+        "subtrade_key": "concrete",
+        "name": "Concrete & Foundations",
+        "color": "#4B5563",
+        "icon": "Hammer",
+        "confidence": 0.7,
+        "matched_terms": [
+          "slab-on-grade",
+          "concrete"
+        ]
+      },
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 0.35,
+        "matched_terms": []
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": []
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.3,
+        "matched_terms": []
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.3,
+        "matched_terms": []
+      }
+    ]
+  },
+  {
+    "id": "permit-real-28",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-000810",
+    "issue_date": "2026-09-02",
+    "application_date": "2026-09-02",
+    "address": "880 Clement Ave, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 9 Plan KAP39100 ODYD",
+    "permit_type": "Commercial Office Building",
+    "work_class": "Commercial",
+    "description": "Commercial Office Building - Tenant improvements on 2nd and 3rd floors, interior steel stud framing, gypsum drywall, glass office partitions, energy efficient LED lighting, and VRF HVAC heat pumps.",
+    "ai_summary": "Commercial approved permit for 880 Clement Ave, Kelowna, BC ($1,100,000), involving commercial office building - tenant improvements on 2nd and 3rd floors, interior steel stud framing, gypsum dryw.... Key subtrade bidding opportunities identified in Plumbing & Mechanical / HVAC, Drywall & Steel Stud, Electrical with immediate estimation relevance.",
+    "estimated_value": 1100000.0,
+    "contractor_name": "Worman Commercial",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Worman Commercial",
+    "status": "Issued",
+    "latitude": 49.8935927,
+    "longitude": -119.4942164,
+    "trades": [
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 1.0,
+        "matched_terms": [
+          "hvac",
+          "pumps"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 1.0,
+        "matched_terms": [
+          "drywall",
+          "steel stud",
+          "gypsum"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "lighting"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.35,
+        "matched_terms": [
+          "framing"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-29",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001476",
+    "issue_date": "2026-09-18",
+    "application_date": "2026-09-18",
+    "address": "1484 Painted Rock Pl, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 22 Plan EPP10100 ODYD",
+    "permit_type": "Single Family Dwelling",
+    "work_class": "Residential",
+    "description": "New Single Family Dwelling - Construct 2-storey luxury single family residence with engineered wood framing, 200A electrical service, ducted heat pump HVAC, asphalt shingle roofing, and overhead garage doors.",
+    "ai_summary": "Residential approved permit for 1484 Painted Rock Pl, Kelowna, BC ($1,450,000), involving new single family dwelling - construct 2-storey luxury single family residence with engineered wood framing, 200.... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Roofing & Sheet Metal with immediate estimation relevance.",
+    "estimated_value": 1450000.0,
+    "contractor_name": "Edgecombe Builders Group",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Edgecombe Builders",
+    "status": "Issued",
+    "latitude": 49.94717,
+    "longitude": -119.4354538,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr",
+          "200a"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.7,
+        "matched_terms": [
+          "heat pump",
+          "hvac"
+        ]
+      },
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 0.7,
+        "matched_terms": [
+          "shingle",
+          "roof"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.7,
+        "matched_terms": [
+          "framing",
+          "engineered wood"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-30",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001372",
+    "issue_date": "2026-09-17",
+    "application_date": "2026-09-17",
+    "address": "1955 Northern Flicker Ct, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 4 Plan EPP84120 ODYD",
+    "permit_type": "Single Family Dwelling Renovation",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Renovation - Interior renovation, kitchen and master bathroom plumbing overhaul, electrical rewiring with subpanel, drywall installation and mudding.",
+    "ai_summary": "Residential approved permit for 1955 Northern Flicker Ct, Kelowna, BC ($120,000), involving single family dwelling renovation - interior renovation, kitchen and master bathroom plumbing overhaul, electric.... Key subtrade bidding opportunities identified in Electrical, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 120000.0,
+    "contractor_name": "Kodiak Projects Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Kodiak Projects",
+    "status": "Issued",
+    "latitude": 49.9839549,
+    "longitude": -119.4394147,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.35,
+        "matched_terms": [
+          "electr"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "plumb"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.35,
+        "matched_terms": [
+          "drywall"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-31",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001349",
+    "issue_date": "2026-09-16",
+    "application_date": "2026-09-16",
+    "address": "241 Clifton Rd N, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 11 Plan KAP22300 ODYD",
+    "permit_type": "Single Family Dwelling Addition",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Addition - 2-storey addition with wood frame construction, standing seam metal roof, heat pump split system, new electrical subpanel and recessed lighting.",
+    "ai_summary": "Residential approved permit for 241 Clifton Rd N, Kelowna, BC ($280,000), involving single family dwelling addition - 2-storey addition with wood frame construction, standing seam metal roof, heat.... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Electrical, Framing & Structural Timber with immediate estimation relevance.",
+    "estimated_value": 280000.0,
+    "contractor_name": "Gibson Contracting Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Gibson Contracting",
+    "status": "Issued",
+    "latitude": 49.936043,
+    "longitude": -119.4624358,
+    "trades": [
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 1.0,
+        "matched_terms": [
+          "roof",
+          "metal roof"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr",
+          "lighting"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.7,
+        "matched_terms": [
+          "wood frame"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "heat pump"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-32",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001416",
+    "issue_date": "2026-09-16",
+    "application_date": "2026-09-16",
+    "address": "3120 Pooley Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 6 Plan KAP18900 ODYD",
+    "permit_type": "Single Family Dwelling Renovation",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Renovation - Full home renovation, replacement of roof shingles, new exterior sliding doors and windows, electrical service upgrade to 200A, and drywall finishing.",
+    "ai_summary": "Residential approved permit for 3120 Pooley Rd, Kelowna, BC ($175,000), involving single family dwelling renovation - full home renovation, replacement of roof shingles, new exterior sliding doo.... Key subtrade bidding opportunities identified in Electrical, Roofing & Sheet Metal, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 175000.0,
+    "contractor_name": "Sun-West Construction",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Sun-West Construction",
+    "status": "Issued",
+    "latitude": 49.8601648,
+    "longitude": -119.4158033,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr",
+          "200a"
+        ]
+      },
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 0.7,
+        "matched_terms": [
+          "shingle",
+          "roof"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.35,
+        "matched_terms": [
+          "drywall"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-33",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001338",
+    "issue_date": "2026-09-15",
+    "application_date": "2026-09-15",
+    "address": "5043 Hill Spring Ct, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 15 Plan EPP71200 ODYD",
+    "permit_type": "Single Family Dwelling",
+    "work_class": "Residential",
+    "description": "New Single Family Dwelling - Construct custom 2-storey residential home with walkout basement, post and beam framing, 200A service with EV rough-in, radiant hydronic floor heating and central AC.",
+    "ai_summary": "Residential approved permit for 5043 Hill Spring Ct, Kelowna, BC ($1,280,000), involving new single family dwelling - construct custom 2-storey residential home with walkout basement, post and beam fra.... Key subtrade bidding opportunities identified in Framing & Structural Timber, Electrical, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 1280000.0,
+    "contractor_name": "San Marc Homes Inc",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "San Marc Homes",
+    "status": "Issued",
+    "latitude": 49.8006508,
+    "longitude": -119.4670834,
+    "trades": [
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 0.7,
+        "matched_terms": [
+          "post and beam",
+          "framing"
+        ]
+      },
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.35,
+        "matched_terms": [
+          "200a"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "radiant"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-34",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001336",
+    "issue_date": "2026-09-15",
+    "application_date": "2026-09-15",
+    "address": "161 Celano Cr, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 3 Plan KAP27800 ODYD",
+    "permit_type": "Single Family Dwelling Renovation",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Renovation - Basement suite development, fire-rated drywall ceiling, plumbing rough-in for second kitchen and bathroom, electrical circuits and electric baseboard heating.",
+    "ai_summary": "Residential approved permit for 161 Celano Cr, Kelowna, BC ($85,000), involving single family dwelling renovation - basement suite development, fire-rated drywall ceiling, plumbing rough-in fo.... Key subtrade bidding opportunities identified in Electrical, Drywall & Steel Stud, Plumbing & Mechanical / HVAC with immediate estimation relevance.",
+    "estimated_value": 85000.0,
+    "contractor_name": "Okanagan Valley Homes",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Okanagan Valley Homes",
+    "status": "Issued",
+    "latitude": 49.9242523,
+    "longitude": -119.4364809,
+    "trades": [
+      {
+        "subtrade_key": "electrical",
+        "name": "Electrical",
+        "color": "#2563EB",
+        "icon": "Zap",
+        "confidence": 0.7,
+        "matched_terms": [
+          "electr"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.7,
+        "matched_terms": [
+          "drywall",
+          "ceiling"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.35,
+        "matched_terms": [
+          "plumb"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-35",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001430",
+    "issue_date": "2026-09-14",
+    "application_date": "2026-09-14",
+    "address": "609 Truswell Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 2 Plan KAP19200 ODYD",
+    "permit_type": "Single Family Dwelling Renovation",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Renovation - Waterfront home envelope renovation, replacement of flat roof SBS membrane, commercial grade sliding patio doors, new HVAC heat pump, and interior drywall.",
+    "ai_summary": "Residential approved permit for 609 Truswell Rd, Kelowna, BC ($310,000), involving single family dwelling renovation - waterfront home envelope renovation, replacement of flat roof sbs membrane, .... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Plumbing & Mechanical / HVAC, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 310000.0,
+    "contractor_name": "Hovbrender Construction",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Hovbrender Construction",
+    "status": "Issued",
+    "latitude": 49.8434215,
+    "longitude": -119.4870579,
+    "trades": [
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 1.0,
+        "matched_terms": [
+          "roof",
+          "sbs",
+          "membrane"
+        ]
+      },
+      {
+        "subtrade_key": "hvac_plumbing",
+        "name": "Plumbing & Mechanical / HVAC",
+        "color": "#DC2626",
+        "icon": "Flame",
+        "confidence": 0.7,
+        "matched_terms": [
+          "heat pump",
+          "hvac"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.35,
+        "matched_terms": [
+          "drywall"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "permit-real-36",
+    "municipality_id": "22222222-2222-2222-2222-222222222222",
+    "permit_number": "BP26-001112",
+    "issue_date": "2026-09-12",
+    "application_date": "2026-09-12",
+    "address": "2931 Belgo Rd, Kelowna, BC",
+    "city_region": "Kelowna",
+    "legal_description": "Lot 8 Plan KAP21100 ODYD",
+    "permit_type": "Single Family Dwelling Addition",
+    "work_class": "Residential",
+    "description": "Single Family Dwelling Addition - Detached garage and secondary carriage house, wood frame timber trusses, 100A subpanel, overhead garage bay doors, asphalt shingle roofing, and drywall.",
+    "ai_summary": "Residential approved permit for 2931 Belgo Rd, Kelowna, BC ($350,000), involving single family dwelling addition - detached garage and secondary carriage house, wood frame timber trusses, 100a .... Key subtrade bidding opportunities identified in Roofing & Sheet Metal, Framing & Structural Timber, Drywall & Steel Stud with immediate estimation relevance.",
+    "estimated_value": 350000.0,
+    "contractor_name": "Fawdry Homes Ltd",
+    "contractor_phone": null,
+    "contractor_email": null,
+    "applicant_name": "Fawdry Homes",
+    "status": "Issued",
+    "latitude": 49.8501309,
+    "longitude": -119.379447,
+    "trades": [
+      {
+        "subtrade_key": "roofing",
+        "name": "Roofing & Sheet Metal",
+        "color": "#16A34A",
+        "icon": "Home",
+        "confidence": 1.0,
+        "matched_terms": [
+          "shingle",
+          "roof"
+        ]
+      },
+      {
+        "subtrade_key": "framing",
+        "name": "Framing & Structural Timber",
+        "color": "#9333EA",
+        "icon": "Box",
+        "confidence": 1.0,
+        "matched_terms": [
+          "wood frame",
+          "truss",
+          "timber"
+        ]
+      },
+      {
+        "subtrade_key": "drywall_framing",
+        "name": "Drywall & Steel Stud",
+        "color": "#D97706",
+        "icon": "Layers",
+        "confidence": 0.35,
+        "matched_terms": [
+          "drywall"
         ]
       }
     ]
