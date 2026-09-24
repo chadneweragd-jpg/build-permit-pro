@@ -18,6 +18,7 @@ import {
   Sparkles,
   Menu
 } from 'lucide-react';
+import { CitySelector } from './CitySelector';
 
 interface HeaderProps {
   onSearchSubmit?: (query: string) => void;
@@ -130,6 +131,9 @@ export const Header: React.FC<HeaderProps> = ({ onSearchSubmit, onOpenMobileMenu
           className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all truncate"
         />
       </form>
+
+      {/* City / Metro Region Selector */}
+      <CitySelector />
 
       {/* Action Buttons: Ask Scout, + New Item, Dark/Light Mode, User Menu */}
       <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">

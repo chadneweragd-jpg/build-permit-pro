@@ -10,6 +10,7 @@ import { FilterBar } from '@/components/Search/FilterBar';
 import { PermitCard } from '@/components/Search/PermitCard';
 import { PermitDetailsSheet } from '@/components/Search/PermitDetailsSheet';
 import { ArrowUpDown, Search as SearchIcon, CheckCircle2 } from 'lucide-react';
+import { getSelectedCityId, getActiveCityConfig } from '@/lib/cities';
 
 // Dynamically import MapContainer with ssr: false as required
 const MapContainer = dynamic(
@@ -29,7 +30,40 @@ function SearchExplorerContent() {
   const searchParams = useSearchParams();
   const permitIdParam = searchParams.get('permitId');
 
-  const allPermits = useMemo(() => PermitsRepository.getAllPermits(), []);
+  const [activeCityId, setActiveCityId] = useState<string>('kelowna');
+  const [permitsList, setPermitsList] = useState<Permit[]>(PermitsRepository.getAllPermits());
+
+  useEffect(() => {
+    setActiveCityId(getSelectedCityId());
+
+    const handleCityChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ cityId: string }>;
+      if (customEvent.detail?.cityId) {
+        setActiveCityId(customEvent.detail.cityId);
+      }
+    };
+
+    window.addEventListener('bpp:city-change', handleCityChange);
+    return () => window.removeEventListener('bpp:city-change', handleCityChange);
+  }, []);
+
+  // Fetch live Calgary Socrata permits if Calgary is active
+  useEffect(() => {
+    if (activeCityId === 'calgary') {
+      fetch('/api/ingest/calgary?limit=150')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.permits && data.permits.length > 0) {
+            PermitsRepository.appendPermits(data.permits);
+            setPermitsList(PermitsRepository.getAllPermits());
+          }
+        })
+        .catch(() => {});
+    }
+  }, [activeCityId]);
+
+  const cityConfig = getActiveCityConfig(activeCityId);
+  const allPermits = permitsList;
 
   // Filter States
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
@@ -129,6 +163,10 @@ function SearchExplorerContent() {
 
     if (selectedLocation !== 'All Locations') {
       list = list.filter((p) => (p.city_region || 'Kelowna').toLowerCase() === selectedLocation.toLowerCase());
+    } else if (activeCityId === 'calgary') {
+      list = list.filter((p) => (p.city_region || '').toLowerCase() === 'calgary' || p.address.toLowerCase().includes('calgary'));
+    } else {
+      list = list.filter((p) => (p.city_region || '').toLowerCase() !== 'calgary' && !p.address.toLowerCase().includes('calgary'));
     }
 
     if (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types') {
@@ -190,7 +228,7 @@ function SearchExplorerContent() {
       }
       return new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime();
     });
-  }, [allPermits, searchQuery, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
+  }, [allPermits, activeCityId, searchQuery, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
   const activeFilterCount =
     (selectedLocation !== 'All Locations' ? 1 : 0) +
@@ -246,7 +284,7 @@ function SearchExplorerContent() {
                 {filteredPermits.length} Permits
               </span>
               <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full">
-                Okanagan Hub
+                {cityConfig.label}
               </span>
               {searchQuery.trim() && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60 px-2 py-0.5 rounded-full">
@@ -320,8 +358,8 @@ function SearchExplorerContent() {
             permits={filteredPermits}
             selectedPermit={selectedPermit}
             onSelectPermit={(p) => setSelectedPermit(p)}
-            center={[-119.4960, 49.8880]}
-            zoom={12}
+            center={cityConfig.center}
+            zoom={cityConfig.zoom}
           />
         </div>
 

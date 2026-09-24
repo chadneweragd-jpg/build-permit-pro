@@ -222,12 +222,30 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     }
   }, [selectedPermit, mapLoaded]);
 
+  // Smoothly pan/fly to center when center coordinates change (e.g. switching between Kelowna and Calgary)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !center) return;
+    map.flyTo({
+      center,
+      zoom: zoom || 12,
+      duration: 1200
+    });
+  }, [center?.[0], center?.[1], zoom, mapLoaded]);
+
   // Render Blue Route Line over Raster Basemap
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !routeGeometry) return;
+    if (!map || !mapLoaded) return;
     renderRouteLine(map, routeGeometry);
   }, [routeGeometry, mapLoaded]);
+
+  // Render Buffer Polygon GeoJSON over Raster Basemap
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    renderBufferPolygon(map, bufferPolygonGeoJSON);
+  }, [bufferPolygonGeoJSON, mapLoaded]);
 
   const handleZoomIn = () => mapRef.current?.zoomIn();
   const handleZoomOut = () => mapRef.current?.zoomOut();
@@ -335,38 +353,67 @@ export default MapContainer;
 /**
  * Draws solid vibrant blue route line ON TOP of raster basemap and auto-fits the camera bounds
  */
+/**
+ * Draws solid vibrant blue route line ON TOP of raster basemap and auto-fits the camera bounds
+ * Source: 'scout-route' | Layer: 'scout-route-line' (#2563eb, width 5)
+ */
 export function renderRouteLine(map: maplibregl.Map, routeGeoJSON: any) {
-  if (!map || !routeGeoJSON) return;
+  if (!map) return;
+
+  const emptyData = { type: 'FeatureCollection', features: [] };
+  const data = routeGeoJSON || emptyData;
 
   const applyLayer = () => {
     // If source already exists, update its data
-    if (map.getSource('bpp-route-source')) {
-      (map.getSource('bpp-route-source') as maplibregl.GeoJSONSource).setData(routeGeoJSON);
+    if (map.getSource('scout-route')) {
+      (map.getSource('scout-route') as maplibregl.GeoJSONSource).setData(data);
     } else {
-      // Add source
-      map.addSource('bpp-route-source', {
+      map.addSource('scout-route', {
         type: 'geojson',
-        data: routeGeoJSON
+        data
       });
 
-      // Add line layer ON TOP of the raster tiles
+      // Subtle glow underlay
       map.addLayer({
-        id: 'bpp-route-layer',
+        id: 'scout-route-glow',
         type: 'line',
-        source: 'bpp-route-source',
+        source: 'scout-route',
         layout: {
           'line-join': 'round',
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#2563EB', // Solid vibrant blue
-          'line-width': 6,
+          'line-color': '#1d4ed8',
+          'line-width': 8,
+          'line-opacity': 0.45
+        }
+      });
+
+      // Main Blue Route Line
+      map.addLayer({
+        id: 'scout-route-line',
+        type: 'line',
+        source: 'scout-route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#2563eb', // Vibrant Blue Corridor
+          'line-width': 5,
           'line-opacity': 0.95
         }
       });
     }
 
-    // Automatically zoom/pan map so the entire route from start to finish is in view
+    // Also update legacy source if any components query it
+    if (map.getSource('bpp-route-source')) {
+      (map.getSource('bpp-route-source') as maplibregl.GeoJSONSource).setData(data);
+    }
+
+    if (!routeGeoJSON) return;
+
+    // Automatically zoom/pan map so the entire route is in view
     try {
       const coords = routeGeoJSON.geometry?.coordinates || routeGeoJSON.coordinates;
       if (coords && coords.length > 0) {
@@ -385,5 +432,55 @@ export function renderRouteLine(map: maplibregl.Map, routeGeoJSON: any) {
     applyLayer();
   } else {
     map.once('styledata', applyLayer);
+  }
+}
+
+/**
+ * Renders the corridor buffer polygon (2km, 3km, 5km, 10km) on the map
+ */
+export function renderBufferPolygon(map: maplibregl.Map, bufferGeoJSON: any) {
+  if (!map) return;
+
+  const emptyData = { type: 'FeatureCollection', features: [] };
+  const data = bufferGeoJSON || emptyData;
+
+  const applyBuffer = () => {
+    if (map.getSource('scout-buffer-source')) {
+      (map.getSource('scout-buffer-source') as maplibregl.GeoJSONSource).setData(data);
+    } else {
+      map.addSource('scout-buffer-source', {
+        type: 'geojson',
+        data
+      });
+
+      // Corridor Buffer Fill
+      map.addLayer({
+        id: 'scout-buffer-fill',
+        type: 'fill',
+        source: 'scout-buffer-source',
+        paint: {
+          'fill-color': '#0284c7',
+          'fill-opacity': 0.14
+        }
+      });
+
+      // Corridor Buffer Dashed Boundary Line
+      map.addLayer({
+        id: 'scout-buffer-line',
+        type: 'line',
+        source: 'scout-buffer-source',
+        paint: {
+          'line-color': '#0284c7',
+          'line-width': 2,
+          'line-dasharray': [3, 2]
+        }
+      });
+    }
+  };
+
+  if (map.isStyleLoaded()) {
+    applyBuffer();
+  } else {
+    map.once('styledata', applyBuffer);
   }
 }

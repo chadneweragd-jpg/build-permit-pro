@@ -204,6 +204,35 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <span>+ Pipeline</span>
           </button>
         </div>
+
+        {/* In-Cab Turn-by-Turn Deep Links */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+          <span className="text-slate-400 font-bold flex items-center gap-1">
+            <span>🛻 In-Cab:</span>
+          </span>
+          <div className="flex items-center gap-1.5">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(permit.address)}&travelmode=driving`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all shadow-xs"
+              title="Launch Google Maps in truck"
+            >
+              <span>Google Maps</span>
+              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+            </a>
+            <a
+              href={`https://waze.com/ul?ll=${permit.latitude},${permit.longitude}&navigate=yes`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-bold flex items-center gap-1 border border-sky-300 dark:border-sky-800 transition-all shadow-xs"
+              title="Launch Waze in truck"
+            >
+              <span>Waze</span>
+              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+            </a>
+          </div>
+        </div>
       </div>
 
       {addedToast && (

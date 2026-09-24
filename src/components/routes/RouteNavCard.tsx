@@ -652,14 +652,36 @@ export function RouteNavCard({
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onDeleteStop(stop.id)}
-                      className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors shrink-0 ml-2"
-                      title="Remove stop"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center space-x-1 shrink-0 ml-2">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}&travelmode=driving`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                        title="Open stop in Google Maps"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                      </a>
+                      {stop.latitude && stop.longitude && (
+                        <a
+                          href={`https://waze.com/ul?ll=${stop.latitude},${stop.longitude}&navigate=yes`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 hover:bg-sky-100 transition-colors"
+                          title="Open stop in Waze"
+                        >
+                          Waze
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onDeleteStop(stop.id)}
+                        className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
+                        title="Remove stop"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

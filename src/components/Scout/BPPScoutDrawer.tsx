@@ -301,23 +301,25 @@ export const BPPScoutDrawer: React.FC<BPPScoutDrawerProps> = ({
                 {/* Deep Links: Native Navigation in Truck */}
                 <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400 font-medium">In-Truck Navigation:</span>
-                  <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-                    <a
-                      href={navUrls.appleMaps}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-bold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center space-x-1 border border-slate-200"
-                    >
-                      <span>Apple Maps</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
+                  <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
                     <a
                       href={navUrls.googleMaps}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[11px] font-bold px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white flex items-center space-x-1"
+                      className="text-[10px] font-bold px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white flex items-center space-x-1 shadow-xs"
+                      title="Launch Google Maps"
                     >
                       <span>Google Maps</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    <a
+                      href={navUrls.waze}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold px-2 py-1 rounded bg-sky-500 hover:bg-sky-600 text-white flex items-center space-x-1 shadow-xs"
+                      title="Launch Waze"
+                    >
+                      <span>Waze</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>

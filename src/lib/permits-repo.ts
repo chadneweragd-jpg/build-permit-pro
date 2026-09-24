@@ -3,15 +3,17 @@ import { CRMStatus, Permit, SavedSearch, SubscriptionTier, SubtradeKey, UserPerm
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { isValidPhoneNumber, isValidEmail } from '@/lib/contact-utils';
 import { enrichPermitWithBuilder } from '@/lib/builders-service';
+import { getFallbackCalgaryPermits } from '@/lib/ingestion/calgary';
 
 const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
 const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
 const CURRENT_TIER_KEY = 'bpp_current_tier_v1';
 
 export class PermitsRepository {
-  private static cachedPermits: Permit[] = (rawPermits as unknown as Permit[]).map((p) =>
-    enrichPermitWithBuilder(p)
-  );
+  private static cachedPermits: Permit[] = [
+    ...(rawPermits as unknown as Permit[]).map((p) => enrichPermitWithBuilder(p)),
+    ...getFallbackCalgaryPermits()
+  ];
 
   /**
    * Asynchronously fetches all permits from live Supabase if available
@@ -109,6 +111,36 @@ export class PermitsRepository {
    */
   public static getAllPermits(): Permit[] {
     return this.cachedPermits;
+  }
+
+  /**
+   * Retrieves permits filtered by active city ('kelowna', 'calgary', or undefined)
+   */
+  public static getPermitsByCity(cityId?: string): Permit[] {
+    if (!cityId || cityId === 'all') {
+      return this.cachedPermits;
+    }
+    const target = cityId.toLowerCase();
+    if (target === 'calgary') {
+      return this.cachedPermits.filter(
+        (p) => (p.city_region || '').toLowerCase() === 'calgary' || p.address.toLowerCase().includes('calgary')
+      );
+    }
+    if (target === 'kelowna') {
+      return this.cachedPermits.filter(
+        (p) => (p.city_region || '').toLowerCase() !== 'calgary' && !p.address.toLowerCase().includes('calgary')
+      );
+    }
+    return this.cachedPermits;
+  }
+
+  /**
+   * Appends or updates permits in the cache (e.g. freshly ingested Calgary Socrata permits)
+   */
+  public static appendPermits(newPermits: Permit[]): void {
+    const existingIds = new Set(this.cachedPermits.map((p) => p.id));
+    const toAdd = newPermits.filter((p) => !existingIds.has(p.id));
+    this.cachedPermits = [...this.cachedPermits, ...toAdd];
   }
 
   /**
