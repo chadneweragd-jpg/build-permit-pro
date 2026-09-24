@@ -114,9 +114,22 @@ function detectTrades(description: string, workClass: WorkClass): MatchedTrade[]
  * Transforms raw Calgary Socrata open data record into BPP Permit schema
  */
 export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | null {
+  // Filter for approved, issued permits only (exclude 'Refused', 'Hold', etc.)
+  if (
+    record.statuscurrent &&
+    record.statuscurrent !== 'Issued Permit' &&
+    record.statuscurrent !== 'Issued'
+  ) {
+    return null;
+  }
+
   const rawCost = Number(record.estprojectcost) || 0;
-  // Filter out $0 valuation permits as instructed
-  if (rawCost <= 0) return null;
+  // Strict filter: real construction value > $25,000 as instructed
+  if (rawCost <= 25000) return null;
+
+  // Strict filter: contractor name must be present and not empty
+  if (!record.contractorname || !record.contractorname.trim()) return null;
+  const contractor = record.contractorname.trim();
 
   const lat = Number(record.latitude) || (record.point?.coordinates ? record.point.coordinates[1] : 0);
   const lng = Number(record.longitude) || (record.point?.coordinates ? record.point.coordinates[0] : 0);
@@ -128,7 +141,6 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
 
   const permitNum = record.permitnum || `BP-CGY-${Date.now()}`;
   const address = record.originaladdress ? `${record.originaladdress}, Calgary, AB` : 'Calgary, AB';
-  const contractor = (record.contractorname || record.applicantname || 'Owner / Builder').trim();
   const applicant = (record.applicantname || record.contractorname || 'Applicant on File').trim();
   
   const rawDate = record.issueddate || record.applieddate || new Date().toISOString();
@@ -143,8 +155,27 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
 
   const trades = detectTrades(desc, workClass);
 
-  // Check contractor against verified directory
-  const matchResult = matchPermitBuilder(contractor);
+  // Check contractor against verified directory with strict Calgary / AB constraint & 0.85 threshold
+  const matchResult = matchPermitBuilder(contractor, {
+    city: 'Calgary',
+    province: 'AB',
+    minSimilarity: 0.85
+  });
+
+  const isVerified = matchResult.isVerified && !!matchResult.builder;
+  const verifiedBuilder = isVerified ? matchResult.builder : null;
+  const isAlbertaBuilder = verifiedBuilder?.province === 'AB' || verifiedBuilder?.city?.toLowerCase() === 'calgary';
+
+  const cleanPhone = (isVerified && isAlbertaBuilder && !verifiedBuilder?.primary_phone?.includes('(250)'))
+    ? verifiedBuilder?.primary_phone
+    : undefined;
+
+  const cleanEmail = (isVerified && isAlbertaBuilder && !verifiedBuilder?.email?.includes('bc.ca'))
+    ? verifiedBuilder?.email
+    : undefined;
+
+  const finalVerifiedBuilder = (isVerified && isAlbertaBuilder && cleanPhone !== undefined) ? verifiedBuilder : null;
+  const finalTier: 1 | 2 = finalVerifiedBuilder ? 1 : 2;
 
   return {
     id: `cgy-${permitNum}`,
@@ -160,25 +191,30 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
     ai_summary: aiSummary,
     estimated_value: rawCost,
     contractor_name: contractor,
-    contractor_phone: matchResult.builder?.primary_phone,
-    contractor_email: matchResult.builder?.email,
+    contractor_phone: cleanPhone,
+    contractor_email: cleanEmail,
     applicant_name: applicant,
-    status: record.statuscurrent || 'Issued',
+    status: record.statuscurrent || 'Issued Permit',
     latitude,
     longitude,
     trades,
-    verified_builder: matchResult.builder,
-    tier: matchResult.isVerified ? 1 : 2
+    verified_builder: finalVerifiedBuilder,
+    tier: finalTier
   };
 }
 
 /**
- * Fetches Calgary building permits from Socrata API, filters > $0, and maps to BPP Permit models
+ * Fetches Calgary building permits from Socrata API, strictly filtering for approved, issued permits
+ * with real construction value > $25,000 and non-null contractor, ordered by issueddate DESC.
  */
-export async function fetchCalgaryPermits(limit: number = 250): Promise<Permit[]> {
+export async function fetchCalgaryPermits(limit: number = 100): Promise<Permit[]> {
   try {
-    const url = `${CALGARY_SOCRATA_ENDPOINT}?$limit=${limit}&$order=issueddate%20DESC&$where=estprojectcost%20%3E%200`;
-    const res = await fetch(url, {
+    const url = new URL(CALGARY_SOCRATA_ENDPOINT);
+    url.searchParams.set('$limit', String(limit));
+    url.searchParams.set('$order', 'issueddate DESC');
+    url.searchParams.set('$where', "statuscurrent='Issued Permit' AND estprojectcost>25000 AND contractorname IS NOT NULL");
+
+    const res = await fetch(url.toString(), {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'BuildPermitPro/1.0 (Calgary Socrata Pipeline)'
@@ -214,7 +250,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
   const sampleRecords: CalgarySocrataRecord[] = [
     {
       permitnum: 'BP2026-03502',
-      statuscurrent: 'Issued',
+      statuscurrent: 'Issued Permit',
       issueddate: '2026-03-07T00:00:00.000',
       permittype: 'Commercial / Multi Family Project',
       permitclassgroup: 'Apartment',
@@ -230,7 +266,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
     },
     {
       permitnum: 'BP2026-03488',
-      statuscurrent: 'Issued',
+      statuscurrent: 'Issued Permit',
       issueddate: '2026-03-06T00:00:00.000',
       permittype: 'Commercial New Construction',
       permitclassgroup: 'Commercial',
@@ -246,7 +282,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
     },
     {
       permitnum: 'BP2026-03420',
-      statuscurrent: 'Issued',
+      statuscurrent: 'Issued Permit',
       issueddate: '2026-03-05T00:00:00.000',
       permittype: 'Industrial Building Project',
       permitclassgroup: 'Industrial',
@@ -262,7 +298,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
     },
     {
       permitnum: 'BP2026-03395',
-      statuscurrent: 'Issued',
+      statuscurrent: 'Issued Permit',
       issueddate: '2026-03-04T00:00:00.000',
       permittype: 'Commercial Multi-Family',
       permitclassgroup: 'Apartment',
@@ -278,7 +314,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
     },
     {
       permitnum: 'BP2026-03310',
-      statuscurrent: 'Issued',
+      statuscurrent: 'Issued Permit',
       issueddate: '2026-03-02T00:00:00.000',
       permittype: 'Tenant Improvement Project',
       permitclassgroup: 'Commercial',

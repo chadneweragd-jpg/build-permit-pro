@@ -55,11 +55,22 @@ export interface MatchBuilderResult {
   isVerified: boolean;
 }
 
+export interface MatchBuilderOptions {
+  city?: string;
+  province?: string;
+  minSimilarity?: number;
+}
+
 /**
  * Fuzzy matches an incoming permit contractor string against curated verified builders.
- * Minimum similarity threshold: 0.38
+ * Enforces strict city/province isolation and high threshold (>= 0.85).
  */
-export function matchPermitBuilder(contractorRaw?: string | null): MatchBuilderResult {
+export function matchPermitBuilder(
+  contractorRaw?: string | null,
+  options?: MatchBuilderOptions
+): MatchBuilderResult {
+  const minThreshold = options?.minSimilarity ?? 0.85;
+
   if (!contractorRaw || typeof contractorRaw !== 'string') {
     return { builder: null, similarity: 0, isVerified: false };
   }
@@ -82,10 +93,26 @@ export function matchPermitBuilder(contractorRaw?: string | null): MatchBuilderR
   const normalizedInput = normalizeContractorName(trimmed);
   const rawClean = lower.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
 
+  const permitCity = options?.city?.toLowerCase()?.trim();
+
   let bestBuilder: VerifiedBuilder | null = null;
   let highestSimilarity = 0;
 
   for (const builder of VERIFIED_BUILDERS) {
+    // City & Province Isolation:
+    // If permit specifies Calgary (AB), NEVER match a Kelowna / BC builder
+    if (permitCity) {
+      const bCity = (builder.city || 'Kelowna').toLowerCase().trim();
+      const bProv = (builder.province || 'BC').toUpperCase().trim();
+
+      if (permitCity === 'calgary' && bProv !== 'AB' && bCity !== 'calgary') {
+        continue;
+      }
+      if (permitCity !== 'calgary' && (bCity === 'calgary' || bProv === 'AB')) {
+        continue;
+      }
+    }
+
     // 1. Direct normalized equality
     if (builder.normalized_name === normalizedInput) {
       return {
@@ -109,7 +136,7 @@ export function matchPermitBuilder(contractorRaw?: string | null): MatchBuilderR
     }
   }
 
-  if (highestSimilarity >= 0.38 && bestBuilder) {
+  if (highestSimilarity >= minThreshold && bestBuilder) {
     return {
       builder: { ...bestBuilder, similarity_score: Math.round(highestSimilarity * 100) / 100 },
       similarity: highestSimilarity,
@@ -122,25 +149,54 @@ export function matchPermitBuilder(contractorRaw?: string | null): MatchBuilderR
 
 /**
  * Enriches a Permit record with Tier 1 (Verified Builder) or Tier 2 (Standard Permittee) details.
+ * Strictly isolates Calgary vs Kelowna data to avoid cross-city builder contamination.
  */
 export function enrichPermitWithBuilder(permit: Permit): Permit {
-  const match = matchPermitBuilder(permit.contractor_name);
+  const city = permit.city_region || (permit.address?.toLowerCase().includes('calgary') ? 'Calgary' : 'Kelowna');
+  const province = city.toLowerCase() === 'calgary' ? 'AB' : 'BC';
+
+  const match = matchPermitBuilder(permit.contractor_name, {
+    city,
+    province,
+    minSimilarity: 0.85
+  });
 
   if (match.isVerified && match.builder) {
+    // Ensure we NEVER attach a Kelowna phone (250) or Kelowna address to a Calgary permit
+    if (city.toLowerCase() === 'calgary' && match.builder.primary_phone?.includes('(250)')) {
+      return {
+        ...permit,
+        tier: 2,
+        verified_builder: null,
+        contractor_phone: undefined,
+        contractor_email: undefined
+      };
+    }
+
     return {
       ...permit,
       tier: 1,
       verified_builder: match.builder,
-      // Provide verified contact details if permit has none
       contractor_phone: permit.contractor_phone || match.builder.primary_phone,
       contractor_email: permit.contractor_email || match.builder.email
     };
   }
 
+  // Under 0.85 threshold or different city: keep original raw contractor and null out any contaminated contacts
+  const cleanPhone = city.toLowerCase() === 'calgary' && permit.contractor_phone?.includes('(250)') 
+    ? undefined 
+    : permit.contractor_phone;
+  const cleanEmail = city.toLowerCase() === 'calgary' && (permit.contractor_email?.includes('bc.ca') || permit.contractor_email?.includes('kelowna'))
+    ? undefined
+    : permit.contractor_email;
+
   return {
     ...permit,
     tier: 2,
-    verified_builder: null
+    verified_builder: null,
+    contractor_name: permit.contractor_name,
+    contractor_phone: cleanPhone,
+    contractor_email: cleanEmail
   };
 }
 

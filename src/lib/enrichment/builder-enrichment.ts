@@ -206,15 +206,39 @@ export async function enrichBuilderProfile(
 
   const normalized = normalizeContractorName(companyName);
 
+  const isCalgary = city.toLowerCase() === 'calgary';
+
   // 1. MASTER CACHE CHECK (In-Memory)
   if (RUNTIME_ENRICHMENT_CACHE.has(normalized)) {
     const cached = RUNTIME_ENRICHMENT_CACHE.get(normalized)!;
-    return cached;
+    const cachedCity = (cached.city || '').toLowerCase();
+    const cachedProv = (cached.province || '').toUpperCase();
+    const cityMatches = isCalgary
+      ? (cachedProv === 'AB' || cachedCity === 'calgary')
+      : (cachedProv === 'BC' || (cachedCity !== 'calgary' && cachedProv !== 'AB'));
+
+    if (cityMatches) {
+      if (isCalgary && cached.primary_phone?.includes('(250)')) {
+        return { ...cached, primary_phone: undefined, physical_address: undefined };
+      }
+      return cached;
+    }
   }
 
-  // Check fuzzy similarity against cached builders
+  // Check fuzzy similarity against cached builders (minimum similarity 0.85 & city constraint)
   for (const [key, cached] of RUNTIME_ENRICHMENT_CACHE.entries()) {
-    if (calculateTrigramSimilarity(key, normalized) >= 0.75) {
+    const cachedCity = (cached.city || '').toLowerCase();
+    const cachedProv = (cached.province || '').toUpperCase();
+    const cityMatches = isCalgary
+      ? (cachedProv === 'AB' || cachedCity === 'calgary')
+      : (cachedProv === 'BC' || (cachedCity !== 'calgary' && cachedProv !== 'AB'));
+
+    if (!cityMatches) continue;
+
+    if (calculateTrigramSimilarity(key, normalized) >= 0.85) {
+      if (isCalgary && cached.primary_phone?.includes('(250)')) {
+        return { ...cached, primary_phone: undefined, physical_address: undefined, source: 'cache' };
+      }
       return { ...cached, source: 'cache' };
     }
   }
@@ -222,29 +246,41 @@ export async function enrichBuilderProfile(
   // 2. CHECK SUPABASE builders_directory OR contractors TABLE
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('builders_directory')
         .select('*')
-        .or(`normalized_name.eq.${normalized},company_name.ilike.%${companyName.trim()}%`)
-        .limit(1)
-        .maybeSingle();
+        .or(`normalized_name.eq.${normalized},company_name.ilike.%${companyName.trim()}%`);
+
+      if (isCalgary) {
+        query = query.or('province.eq.AB,city.ilike.%calgary%');
+      }
+
+      const { data, error } = await query.limit(1).maybeSingle();
 
       if (!error && data) {
-        const profile: EnrichedBuilderProfile = {
-          company_name: data.company_name,
-          normalized_name: data.normalized_name || normalized,
-          primary_phone: data.primary_phone,
-          email: data.email,
-          website: data.website,
-          physical_address: data.physical_address,
-          key_principal: data.key_principal,
-          city: data.city || city,
-          province: data.province || (city.toLowerCase() === 'calgary' ? 'AB' : 'BC'),
-          source: 'database',
-          enriched_at: data.updated_at || new Date().toISOString()
-        };
-        RUNTIME_ENRICHMENT_CACHE.set(normalized, profile);
-        return profile;
+        const dProv = (data.province || '').toUpperCase();
+        const dCity = (data.city || '').toLowerCase();
+        const matchesCity = isCalgary
+          ? (dProv === 'AB' || dCity === 'calgary')
+          : (dProv === 'BC' || (dCity !== 'calgary' && dProv !== 'AB'));
+
+        if (matchesCity) {
+          const profile: EnrichedBuilderProfile = {
+            company_name: data.company_name,
+            normalized_name: data.normalized_name || normalized,
+            primary_phone: isCalgary && data.primary_phone?.includes('(250)') ? undefined : data.primary_phone,
+            email: data.email,
+            website: data.website,
+            physical_address: data.physical_address,
+            key_principal: data.key_principal,
+            city: data.city || city,
+            province: data.province || (isCalgary ? 'AB' : 'BC'),
+            source: 'database',
+            enriched_at: data.updated_at || new Date().toISOString()
+          };
+          RUNTIME_ENRICHMENT_CACHE.set(normalized, profile);
+          return profile;
+        }
       }
     } catch (err) {
       console.warn('Supabase builder cache check error:', err);
@@ -253,6 +289,11 @@ export async function enrichBuilderProfile(
 
   // 3. STEP A: GOOGLE PLACES API RESOLUTION
   const placesData = await queryGooglePlaces(companyName, city);
+
+  // Strip contaminated (250) phone numbers if searching in Calgary
+  if (isCalgary && (placesData.phone?.includes('(250)') || placesData.phone?.startsWith('250'))) {
+    placesData.phone = undefined;
+  }
 
   // 4. STEP B: LIGHTWEIGHT DOMAIN EMAIL SCRAPER
   let scrapedEmail: string | undefined;
