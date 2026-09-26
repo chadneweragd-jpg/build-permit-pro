@@ -42,7 +42,8 @@ export class PermitsRepository {
         `);
 
       if (citySlug && citySlug !== 'all') {
-        query = query.eq('city_slug', citySlug.toLowerCase().trim());
+        const target = citySlug.toLowerCase().trim();
+        query = query.ilike('city_region', `%${target}%`);
       }
 
       if (dateRange && dateRange !== 'all') {
