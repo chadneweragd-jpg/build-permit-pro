@@ -82,16 +82,25 @@ export class PermitsRepository {
           matched_terms: []
         }));
 
+        const cRegion = row.city_region || existingFallback?.city_region || 'Kelowna';
+        const derivedSlug = (row.city_slug || existingFallback?.city_slug || cRegion.toLowerCase().replace(/\s+/g, '-')).toLowerCase().trim();
+        const provMap: Record<string, string> = {
+          vancouver: 'BC', surrey: 'BC', burnaby: 'BC', richmond: 'BC', coquitlam: 'BC', kelowna: 'BC',
+          calgary: 'AB', edmonton: 'AB',
+          toronto: 'ON', mississauga: 'ON', brampton: 'ON', markham: 'ON', vaughan: 'ON', hamilton: 'ON', ottawa: 'ON', 'kitchener-waterloo': 'ON',
+          winnipeg: 'MB'
+        };
+
         return {
           id: row.id,
           municipality_id: row.municipality_id || existingFallback?.municipality_id || '22222222-2222-2222-2222-222222222222',
           permit_number: row.permit_number,
-          city_slug: row.city_slug || existingFallback?.city_slug,
+          city_slug: derivedSlug,
           issue_date: row.issue_date || row.approval_date,
           application_date: row.application_date || row.issue_date,
           address: row.address,
-          city_region: row.city_region || existingFallback?.city_region || 'Kelowna',
-          province: row.province || existingFallback?.province || 'BC',
+          city_region: cRegion,
+          province: row.province || existingFallback?.province || provMap[derivedSlug] || 'BC',
           legal_description: row.legal_description || '',
           permit_type: row.permit_type || row.sub_type,
           work_class: row.work_class,
@@ -137,12 +146,11 @@ export class PermitsRepository {
     return this.cachedPermits.filter((p) => {
       const slug = (p.city_slug || '').toLowerCase().trim();
       const region = (p.city_region || '').toLowerCase().trim();
-      const addr = (p.address || '').toLowerCase();
 
       if (slug === target) return true;
       if (region === target) return true;
-      if (target === 'calgary' && (region === 'calgary' || addr.includes('calgary'))) return true;
-      if (target === 'kelowna' && (region === 'kelowna' || (!slug && !addr.includes('calgary')))) return true;
+      if (region.replace(/\s+/g, '-') === target) return true;
+      if (target === 'kelowna' && (region === 'kelowna' || !slug)) return true;
       return false;
     });
   }

@@ -181,6 +181,7 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
     id: `cgy-${permitNum}`,
     municipality_id: 'calgary',
     permit_number: permitNum,
+    city_slug: 'calgary',
     issue_date: issueDate,
     application_date: record.applieddate ? record.applieddate.split('T')[0] : undefined,
     address,

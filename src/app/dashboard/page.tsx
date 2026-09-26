@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { PermitsRepository } from '@/lib/permits-repo';
 import { RoutesRepository } from '@/lib/routes-repo';
@@ -21,20 +21,51 @@ import {
   MapPin,
   ShieldCheck,
   Globe2,
-  Layers
+  Layers,
+  RefreshCw
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [dataVersion, setDataVersion] = useState<number>(0);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   
-  const globalMetrics = useMemo(() => PermitsRepository.getGlobalDashboardMetrics(), []);
-  const activeCities = useMemo(() => PermitsRepository.getActiveCities(), []);
-  const savedRoutes = useMemo(() => RoutesRepository.getSavedRoutes(), []);
+  // Hydrate permits from live Supabase on mount
+  useEffect(() => {
+    let active = true;
+    PermitsRepository.fetchPermitsFromSupabase().then(() => {
+      if (active) {
+        setDataVersion((v) => v + 1);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleSyncFeeds = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      // Trigger daily cron ingestion to fetch live records from active municipal portals
+      await fetch('/api/cron/daily-ingest', { method: 'POST' }).catch(() => null);
+      // Fetch latest unified records from Supabase
+      await PermitsRepository.fetchPermitsFromSupabase();
+      setDataVersion((v) => v + 1);
+    } catch (err) {
+      console.warn('Dashboard sync notification:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  const globalMetrics = useMemo(() => PermitsRepository.getGlobalDashboardMetrics(), [dataVersion]);
+  const activeCities = useMemo(() => PermitsRepository.getActiveCities(), [dataVersion]);
+  const savedRoutes = useMemo(() => RoutesRepository.getSavedRoutes(), [dataVersion]);
 
   // Filter permits if a specific city is selected
   const displayPermits = useMemo(() => {
     return PermitsRepository.getPermitsByCity(selectedCity);
-  }, [selectedCity]);
+  }, [selectedCity, dataVersion]);
 
   const currentPipelineValue = useMemo(() => {
     return displayPermits.reduce((acc, p) => acc + (p.estimated_value || p.value || 0), 0);
@@ -90,6 +121,17 @@ export default function DashboardPage() {
 
         {/* City Filter & Explorer Triggers */}
         <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+          {/* Live Sync Trigger */}
+          <button
+            onClick={handleSyncFeeds}
+            disabled={isSyncing}
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all shadow-sm disabled:opacity-50"
+            title="Fetch real-time permits from municipal portals & refresh dashboard"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Syncing Feeds...' : 'Sync Live Feeds'}</span>
+          </button>
+
           {/* Market Selector */}
           <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 shadow-sm">
             <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
