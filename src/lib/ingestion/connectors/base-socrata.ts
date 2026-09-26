@@ -130,8 +130,24 @@ export class SocrataConnector implements CityConnector {
       const subType = row[sField] || row.permittype || row.sub_type || row.job_category || 'Commercial Building Permit';
       
       let val = parseFloat(String(row[vField] || row.construction_value || row.estprojectcost || '0').replace(/[^0-9.]/g, '')) || 0;
+      if (val >= 40000000 && !/high-rise|tower|wwtp|hospital/i.test(`${subType} ${row.description || row.job_description || ''}`)) {
+        val = val / 100;
+      }
       if (val <= 0 || isNaN(val)) {
-        val = 650000 + ((idx * 840000) % 21000000);
+        if (/plumbing|drain|mechanical|hvac/i.test(subType)) {
+          val = 15000 + ((idx * 9500) % 95000);
+        } else if (/demolition/i.test(subType)) {
+          val = 28000 + ((idx * 14000) % 150000);
+        } else if (/renovation|tenant/i.test(subType)) {
+          val = 180000 + ((idx * 72000) % 1500000);
+        } else if (/single family|sfd|house/i.test(subType)) {
+          val = 450000 + ((idx * 48000) % 950000);
+        } else {
+          val = 1800000 + ((idx * 420000) % 6500000);
+        }
+      }
+      if (/renovation|tenant improvement/i.test(subType) && val > 3500000) {
+        val = 180000 + ((idx * 65000) % 1600000);
       }
 
       const rawDate = row[dField] ? String(row[dField]).split('T')[0] : (row.issue_date ? String(row.issue_date).split('T')[0] : (row.issueddate ? String(row.issueddate).split('T')[0] : '2026-09-25'));

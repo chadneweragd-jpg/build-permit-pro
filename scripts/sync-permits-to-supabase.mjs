@@ -44,8 +44,8 @@ async function syncAllPermitsToSupabase() {
       contractor_email: p.contractor_email || null,
       applicant_name: p.applicant_name || p.applicant || null,
       status: p.status || 'Issued',
-      latitude: p.latitude || 49.888,
-      longitude: p.longitude || -119.496
+      latitude: (typeof p.latitude === 'number' && !isNaN(p.latitude)) ? p.latitude : 49.888,
+      longitude: (typeof p.longitude === 'number' && !isNaN(p.longitude)) ? p.longitude : -119.496
     }));
 
     const { data, error } = await supabase

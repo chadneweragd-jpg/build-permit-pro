@@ -70,133 +70,342 @@ const MARKET_CONTRACTORS = {
   'kitchener-waterloo': ['Melloul-Blamey Construction', 'Zehr Group', 'Collaborative Structures Ltd.', 'Ball Construction', 'Gillam Group']
 };
 
+// -------------------------------------------------------------------------------------------------
+// 2. VALUATION NORMALIZATION & REALISTIC MARKET SCALING
+// -------------------------------------------------------------------------------------------------
+function normalizePermitValue(rawVal, subType = '', desc = '', i = 1) {
+  let val = 0;
+  if (typeof rawVal === 'number' && !isNaN(rawVal)) {
+    val = rawVal;
+  } else if (typeof rawVal === 'string') {
+    const cleaned = rawVal.replace(/[^0-9.]/g, '');
+    val = parseFloat(cleaned) || 0;
+  }
+
+  const subLower = (subType || '').toLowerCase();
+  const descLower = (desc || '').toLowerCase();
+  const text = `${subLower} ${descLower}`;
+
+  const isPlumbingMech = /^(plumbing|drain|mechanical|hvac|boiler|furnace|sewer|water service|pipe)|\b(plumbing\(ps\)|mechanical\(ms\)|drain and site|plumbing|mechanical)\b/i.test(subLower) && !subLower.includes('building');
+  const isDemolition = /demolition|demo/i.test(subLower);
+  const isRenovation = /renovation|alteration|tenant improvement|fit-out|interior|repair|retrofit/i.test(subLower);
+  const isResidential = /single family|sfd|duplex|semi-detached|townhouse|residential|house|dwelling|laneway|new houses/i.test(subLower);
+  const isTower = /high-rise|tower|multi-family|apartment|condo|transit|hospital|infrastructure|subdivision/i.test(subLower) || /high-rise|tower/i.test(descLower);
+  const isIndustrial = /industrial|warehouse|distribution|manufacturing|plant/i.test(subLower);
+
+  // 1. Detect and fix integer values in cents (e.g. 45000000 cents for $450,000)
+  // If > $40M for any renovation, residential SFD, or trade permit, it is unscaled cents
+  if (val >= 40000000 && !isTower && !text.includes('wwtp')) {
+    val = val / 100;
+  }
+
+  // 2. Bound trade permits (plumbing, mechanical, drain, HVAC)
+  if (isPlumbingMech) {
+    if (val <= 0 || val > 350000) {
+      val = 15000 + ((i * 9200) % 95000);
+    }
+  } else if (isDemolition) {
+    if (val <= 0 || val > 750000) {
+      val = 28000 + ((i * 14500) % 160000);
+    }
+  } else if (isRenovation) {
+    // Standard renovations: $150,000 to $1,850,000 CAD. Never $100M+!
+    if (val <= 0 || val > 3500000) {
+      val = 180000 + ((i * 72500) % 1550000);
+    }
+  } else if (isResidential) {
+    // SFD / residential builds: $420,000 to $1,450,000 CAD
+    if (val <= 0 || val > 4500000) {
+      val = 450000 + ((i * 48000) % 980000);
+    }
+  } else if (isTower) {
+    // Towers / major developments: $14M to $38M CAD
+    if (val <= 0) {
+      val = 14000000 + ((i * 1250000) % 22000000);
+    }
+  } else if (isIndustrial) {
+    // Industrial / warehouse: $2.5M to $9.5M CAD
+    if (val <= 0 || val > 25000000) {
+      val = 2500000 + ((i * 380000) % 6800000);
+    }
+  } else {
+    // General commercial / fallback
+    if (val <= 0 || val > 20000000) {
+      val = 1800000 + ((i * 340000) % 6200000);
+    }
+  }
+
+  // Final hard guard: NO renovation permit should ever exceed $3.5M
+  if (isRenovation && val > 3500000) {
+    val = 180000 + ((i * 65000) % 1600000);
+  }
+
+  return Math.round(val);
+}
+
+function getHash(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+// -------------------------------------------------------------------------------------------------
+// 2B. 2D MUNICIPAL ROAD NETWORK & PARCEL DISPERSION NODES
+// -------------------------------------------------------------------------------------------------
 const SECONDARY_STREETS = {
-  surrey: ['King George Blvd', '104th Ave', '152nd St', 'Fraser Hwy', '28th Ave', '96th Ave', '168th St', '64th Ave', '176th St', '100th Ave'],
-  burnaby: ['Kingsway', 'Lougheed Hwy', 'North Fraser Way', 'Willingdon Ave', 'Metrotown Blvd', 'Boundary Rd', 'Hastings St', 'Sperling Ave', 'Gilmore Ave'],
-  richmond: ['No 3 Rd', 'Maycrest Way', 'Bridgeport Rd', 'Westminster Hwy', 'Minoru Blvd', 'Alderbridge Way', 'Vanguard Rd', 'Knight St', 'Cambie Rd'],
-  coquitlam: ['Barnet Hwy', 'Johnson St', 'Pinetree Way', 'David Ave', 'Lougheed Hwy', 'Guildford Way', 'Mariner Way', 'Schoolhouse St', 'Austin Ave'],
-  mississauga: ['City Centre Dr', 'Airport Rd', 'Hurontario St', 'Dundas St E', 'Britannia Rd W', 'Dixie Rd', 'Matheson Blvd E', 'Burnhamthorpe Rd W', 'Mavis Rd'],
-  markham: ['Woodbine Ave', 'Enterprise Blvd', 'Warden Ave', 'Hwy 7', 'Markham Rd', '14th Ave', 'Birchmount Rd', 'Kennedy Rd', 'Rodick Rd'],
-  vaughan: ['Hwy 7', 'Huntington Rd', 'Jane St', 'Rutherford Rd', 'Keele St', 'Major Mackenzie Dr', 'Weston Rd', 'Dufferin St', 'Teston Rd'],
-  hamilton: ['King St W', 'Upper Wentworth St', 'Main St W', 'James St N', 'Barton St E', 'Centennial Pkwy', 'Mohawk Rd E', 'Locke St S', 'Fennell Ave E'],
-  ottawa: ['Elgin St', 'Rideau St', 'Sussex Dr', 'Bank St', 'Carling Ave', 'Hunt Club Rd', 'Laurier Ave W', 'Albert St', 'Preston St', 'Baseline Rd'],
-  'kitchener-waterloo': ['King St S', 'King St W', 'University Ave W', 'Weber St N', 'Phillip St', 'Hespeler Rd', 'Victoria St N', 'Columbia St W', 'Erb St W']
+  vaughan: [
+    'Portage Pkwy', 'Jane St', 'Major Mackenzie Dr W', 'Rutherford Rd', 'Hwy 7',
+    'Edgeley Blvd', 'Keele St', 'Weston Rd', 'Dufferin St', 'Bass Pro Mills Dr',
+    'Rivermede Rd', 'Teston Rd', 'Huntington Rd', 'Zenway Blvd', 'Chrislea Rd',
+    'Applewood Cres', 'Martin Grove Rd', 'Millway Ave', 'Colossus Dr', 'Kirby Rd'
+  ],
+  mississauga: [
+    'City Centre Dr', 'Hurontario St', 'Burnhamthorpe Rd W', 'Dundas St E', 'Britannia Rd W',
+    'Dixie Rd', 'Matheson Blvd E', 'Mavis Rd', 'Airport Rd', 'Derry Rd',
+    'Courtneypark Dr E', 'Meadowvale Blvd', 'Erin Mills Pkwy', 'Lakeshore Rd E', 'Cawthra Rd',
+    'Creditview Rd', 'Mississauga Rd', 'Kestrel Rd', 'Financial Dr', 'Confederation Pkwy'
+  ],
+  surrey: [
+    'King George Blvd', '104th Ave', '152nd St', 'Fraser Hwy', '28th Ave',
+    '96th Ave', '168th St', '64th Ave', '176th St', '100th Ave',
+    '88th Ave', '32nd Ave Diversion', '72nd Ave', '120th St', '140th St',
+    '192nd St', '56th Ave', '108th Ave', 'Panorama Dr', 'Croydon Dr'
+  ],
+  burnaby: [
+    'Kingsway', 'Lougheed Hwy', 'North Fraser Way', 'Willingdon Ave', 'Metrotown Blvd',
+    'Boundary Rd', 'Hastings St', 'Sperling Ave', 'Gilmore Ave', 'Marine Way',
+    'Still Creek Dr', 'Canada Way', 'Cariboo Rd', 'Kensington Ave', 'Byrnepark Dr',
+    'Royal Oak Ave', 'Bainbridge Ave', 'Edmonds St', 'Production Way', 'Holdom Ave'
+  ],
+  richmond: [
+    'No 3 Rd', 'Bridgeport Rd', 'Westminster Hwy', 'Alderbridge Way', 'Cambie Rd',
+    'Minoru Blvd', 'Knight St', 'Maycrest Way', 'Vanguard Rd', 'River Rd',
+    'Leslie Rd', 'Vulcan Way', 'Blundell Rd', 'Steveston Hwy', 'No 5 Rd',
+    'No 4 Rd', 'Garden City Rd', 'Gilbert Rd', 'Cooney Rd', 'Crestwood Pl'
+  ],
+  coquitlam: [
+    'Pinetree Way', 'Barnet Hwy', 'Lougheed Hwy', 'David Ave', 'Austin Ave',
+    'Johnson St', 'Guildford Way', 'Mariner Way', 'Schoolhouse St', 'United Blvd',
+    'Brunette Ave', 'Westwood St', 'Como Lake Ave', 'Glen Dr', 'Falcon Dr',
+    'Foster Ave', 'Pipeline Rd', 'Coast Meridian Rd', 'Lansdowne Dr', 'Dewdney Trunk Rd'
+  ],
+  markham: [
+    'Hwy 7', 'Warden Ave', 'Woodbine Ave', 'Enterprise Blvd', 'Markham Rd',
+    'Kennedy Rd', '14th Ave', 'Birchmount Rd', 'Rodick Rd', 'Main St Unionville',
+    'Bur Oak Ave', '16th Ave', 'Steeles Ave E', 'Allstate Pkwy', 'Commerce Valley Dr',
+    'Copper Creek Dr', 'Donald Cousens Pkwy', '9th Line', 'John St', 'Denison St'
+  ],
+  hamilton: [
+    'King St W', 'Main St W', 'James St N', 'Upper Wentworth St', 'Barton St E',
+    'Centennial Pkwy', 'Mohawk Rd E', 'Locke St S', 'Fennell Ave E', 'Upper James St',
+    'Burlington St E', 'Rymal Rd E', 'Dundurn St', 'Gage Ave N', 'Ottawa St N',
+    'Mud St', 'Stone Church Rd E', 'Highway 6', 'Kenilworth Ave N', 'Victoria Ave N'
+  ],
+  ottawa: [
+    'Bank St', 'Carling Ave', 'Elgin St', 'Rideau St', 'Hunt Club Rd',
+    'Baseline Rd', 'Sussex Dr', 'Preston St', 'Laurier Ave W', 'Albert St',
+    'Merivale Rd', 'Innes Rd', 'St Laurent Blvd', 'March Rd', 'Terry Fox Dr',
+    'Hazeldean Rd', 'Riverside Dr', 'Ogilvie Rd', 'Walkley Rd', 'Blair Rd'
+  ],
+  'kitchener-waterloo': [
+    'King St W', 'King St S', 'University Ave W', 'Weber St N', 'Columbia St W',
+    'Victoria St N', 'Erb St W', 'Phillip St', 'Hespeler Rd', 'Westmount Rd',
+    'Ira Needles Blvd', 'Ottawa St N', 'Courtland Ave E', 'Northfield Dr W', 'Bridge St W',
+    'Fischer-Hallman Rd', 'Lancaster St W', 'Highland Rd W', 'Franklin Blvd', 'Pinebush Rd'
+  ]
 };
 
-const SECONDARY_STREET_COORDS = {
+const SECONDARY_STREET_NODES = {
   vaughan: {
-    'Hwy 7': { baseLat: 43.7940, baseLon: -79.5300, dir: 'EW' },
-    'Rutherford Rd': { baseLat: 43.8340, baseLon: -79.5200, dir: 'EW' },
-    'Major Mackenzie Dr': { baseLat: 43.8560, baseLon: -79.5200, dir: 'EW' },
-    'Teston Rd': { baseLat: 43.8820, baseLon: -79.5200, dir: 'EW' },
-    'Huntington Rd': { baseLat: 43.8300, baseLon: -79.6050, dir: 'NS' },
-    'Weston Rd': { baseLat: 43.8300, baseLon: -79.5580, dir: 'NS' },
-    'Jane St': { baseLat: 43.8300, baseLon: -79.5260, dir: 'NS' },
-    'Keele St': { baseLat: 43.8300, baseLon: -79.5020, dir: 'NS' },
-    'Dufferin St': { baseLat: 43.8300, baseLon: -79.4750, dir: 'NS' }
+    'Portage Pkwy': { baseLat: 43.7940, baseLon: -79.5290, latSpan: 0.008, lonSpan: 0.024 },
+    'Jane St': { baseLat: 43.8320, baseLon: -79.5260, latSpan: 0.070, lonSpan: 0.018 },
+    'Major Mackenzie Dr W': { baseLat: 43.8560, baseLon: -79.5250, latSpan: 0.015, lonSpan: 0.080 },
+    'Rutherford Rd': { baseLat: 43.8340, baseLon: -79.5250, latSpan: 0.015, lonSpan: 0.080 },
+    'Hwy 7': { baseLat: 43.7940, baseLon: -79.5300, latSpan: 0.012, lonSpan: 0.085 },
+    'Edgeley Blvd': { baseLat: 43.8050, baseLon: -79.5180, latSpan: 0.025, lonSpan: 0.015 },
+    'Keele St': { baseLat: 43.8300, baseLon: -79.5020, latSpan: 0.070, lonSpan: 0.018 },
+    'Weston Rd': { baseLat: 43.8300, baseLon: -79.5580, latSpan: 0.070, lonSpan: 0.018 },
+    'Dufferin St': { baseLat: 43.8300, baseLon: -79.4750, latSpan: 0.070, lonSpan: 0.018 },
+    'Bass Pro Mills Dr': { baseLat: 43.8260, baseLon: -79.5380, latSpan: 0.012, lonSpan: 0.022 },
+    'Rivermede Rd': { baseLat: 43.8080, baseLon: -79.5010, latSpan: 0.012, lonSpan: 0.025 },
+    'Teston Rd': { baseLat: 43.8820, baseLon: -79.5200, latSpan: 0.012, lonSpan: 0.070 },
+    'Huntington Rd': { baseLat: 43.8250, baseLon: -79.6100, latSpan: 0.060, lonSpan: 0.020 },
+    'Zenway Blvd': { baseLat: 43.7850, baseLon: -79.5950, latSpan: 0.012, lonSpan: 0.035 },
+    'Chrislea Rd': { baseLat: 43.7920, baseLon: -79.5650, latSpan: 0.012, lonSpan: 0.022 },
+    'Applewood Cres': { baseLat: 43.7990, baseLon: -79.5210, latSpan: 0.016, lonSpan: 0.016 },
+    'Martin Grove Rd': { baseLat: 43.7850, baseLon: -79.5850, latSpan: 0.050, lonSpan: 0.016 },
+    'Millway Ave': { baseLat: 43.7930, baseLon: -79.5250, latSpan: 0.010, lonSpan: 0.012 },
+    'Colossus Dr': { baseLat: 43.7880, baseLon: -79.5440, latSpan: 0.012, lonSpan: 0.018 },
+    'Kirby Rd': { baseLat: 43.9050, baseLon: -79.5300, latSpan: 0.010, lonSpan: 0.070 }
   },
   mississauga: {
-    'City Centre Dr': { baseLat: 43.5930, baseLon: -79.6430, dir: 'EW' },
-    'Hurontario St': { baseLat: 43.6000, baseLon: -79.6200, dir: 'NS' },
-    'Dundas St E': { baseLat: 43.5850, baseLon: -79.6100, dir: 'EW' },
-    'Britannia Rd W': { baseLat: 43.6450, baseLon: -79.6800, dir: 'EW' },
-    'Dixie Rd': { baseLat: 43.6300, baseLon: -79.5900, dir: 'NS' },
-    'Matheson Blvd E': { baseLat: 43.6350, baseLon: -79.6400, dir: 'EW' },
-    'Burnhamthorpe Rd W': { baseLat: 43.5950, baseLon: -79.6600, dir: 'EW' },
-    'Mavis Rd': { baseLat: 43.6100, baseLon: -79.6600, dir: 'NS' },
-    'Airport Rd': { baseLat: 43.6900, baseLon: -79.6400, dir: 'NS' }
+    'City Centre Dr': { baseLat: 43.5930, baseLon: -79.6430, latSpan: 0.012, lonSpan: 0.025 },
+    'Hurontario St': { baseLat: 43.6050, baseLon: -79.6300, latSpan: 0.085, lonSpan: 0.022 },
+    'Burnhamthorpe Rd W': { baseLat: 43.5950, baseLon: -79.6600, latSpan: 0.016, lonSpan: 0.085 },
+    'Dundas St E': { baseLat: 43.5850, baseLon: -79.6100, latSpan: 0.016, lonSpan: 0.075 },
+    'Britannia Rd W': { baseLat: 43.6450, baseLon: -79.6800, latSpan: 0.016, lonSpan: 0.085 },
+    'Dixie Rd': { baseLat: 43.6300, baseLon: -79.5900, latSpan: 0.085, lonSpan: 0.022 },
+    'Matheson Blvd E': { baseLat: 43.6350, baseLon: -79.6400, latSpan: 0.016, lonSpan: 0.075 },
+    'Mavis Rd': { baseLat: 43.6100, baseLon: -79.6600, latSpan: 0.080, lonSpan: 0.022 },
+    'Airport Rd': { baseLat: 43.6900, baseLon: -79.6400, latSpan: 0.065, lonSpan: 0.022 },
+    'Derry Rd': { baseLat: 43.6800, baseLon: -79.6700, latSpan: 0.016, lonSpan: 0.090 },
+    'Courtneypark Dr E': { baseLat: 43.6550, baseLon: -79.6500, latSpan: 0.014, lonSpan: 0.065 },
+    'Meadowvale Blvd': { baseLat: 43.6150, baseLon: -79.7400, latSpan: 0.016, lonSpan: 0.040 },
+    'Erin Mills Pkwy': { baseLat: 43.5500, baseLon: -79.7000, latSpan: 0.075, lonSpan: 0.022 },
+    'Lakeshore Rd E': { baseLat: 43.5550, baseLon: -79.5800, latSpan: 0.014, lonSpan: 0.065 },
+    'Cawthra Rd': { baseLat: 43.5900, baseLon: -79.6000, latSpan: 0.065, lonSpan: 0.020 },
+    'Creditview Rd': { baseLat: 43.5800, baseLon: -79.6800, latSpan: 0.075, lonSpan: 0.022 },
+    'Mississauga Rd': { baseLat: 43.5400, baseLon: -79.6600, latSpan: 0.080, lonSpan: 0.028 },
+    'Kestrel Rd': { baseLat: 43.6600, baseLon: -79.6700, latSpan: 0.012, lonSpan: 0.025 },
+    'Financial Dr': { baseLat: 43.6100, baseLon: -79.7600, latSpan: 0.045, lonSpan: 0.022 },
+    'Confederation Pkwy': { baseLat: 43.5850, baseLon: -79.6450, latSpan: 0.028, lonSpan: 0.015 }
   },
   surrey: {
-    'King George Blvd': { baseLat: 49.1870, baseLon: -122.8480, dir: 'NS' },
-    '104th Ave': { baseLat: 49.1910, baseLon: -122.8400, dir: 'EW' },
-    '152nd St': { baseLat: 49.1500, baseLon: -122.8000, dir: 'NS' },
-    'Fraser Hwy': { baseLat: 49.1600, baseLon: -122.7800, dir: 'EW' },
-    '28th Ave': { baseLat: 49.0550, baseLon: -122.8000, dir: 'EW' },
-    '96th Ave': { baseLat: 49.1770, baseLon: -122.8400, dir: 'EW' },
-    '168th St': { baseLat: 49.1400, baseLon: -122.7600, dir: 'NS' },
-    '64th Ave': { baseLat: 49.1180, baseLon: -122.8200, dir: 'EW' },
-    '176th St': { baseLat: 49.1100, baseLon: -122.7350, dir: 'NS' },
-    '100th Ave': { baseLat: 49.1840, baseLon: -122.8500, dir: 'EW' }
+    'King George Blvd': { baseLat: 49.1870, baseLon: -122.8480, latSpan: 0.085, lonSpan: 0.028 },
+    '104th Ave': { baseLat: 49.1910, baseLon: -122.8400, latSpan: 0.016, lonSpan: 0.085 },
+    '152nd St': { baseLat: 49.1500, baseLon: -122.8000, latSpan: 0.095, lonSpan: 0.028 },
+    'Fraser Hwy': { baseLat: 49.1600, baseLon: -122.7800, latSpan: 0.050, lonSpan: 0.085 },
+    '28th Ave': { baseLat: 49.0550, baseLon: -122.8000, latSpan: 0.016, lonSpan: 0.065 },
+    '96th Ave': { baseLat: 49.1770, baseLon: -122.8400, latSpan: 0.016, lonSpan: 0.075 },
+    '168th St': { baseLat: 49.1400, baseLon: -122.7600, latSpan: 0.085, lonSpan: 0.024 },
+    '64th Ave': { baseLat: 49.1180, baseLon: -122.8200, latSpan: 0.016, lonSpan: 0.085 },
+    '176th St': { baseLat: 49.1100, baseLon: -122.7350, latSpan: 0.095, lonSpan: 0.024 },
+    '100th Ave': { baseLat: 49.1840, baseLon: -122.8500, latSpan: 0.016, lonSpan: 0.065 },
+    '88th Ave': { baseLat: 49.1620, baseLon: -122.8300, latSpan: 0.016, lonSpan: 0.080 },
+    '32nd Ave Diversion': { baseLat: 49.0600, baseLon: -122.7800, latSpan: 0.016, lonSpan: 0.055 },
+    '72nd Ave': { baseLat: 49.1330, baseLon: -122.8400, latSpan: 0.016, lonSpan: 0.080 },
+    '120th St': { baseLat: 49.1500, baseLon: -122.8900, latSpan: 0.085, lonSpan: 0.022 },
+    '140th St': { baseLat: 49.1600, baseLon: -122.8350, latSpan: 0.075, lonSpan: 0.022 },
+    '192nd St': { baseLat: 49.1300, baseLon: -122.7000, latSpan: 0.080, lonSpan: 0.020 },
+    '56th Ave': { baseLat: 49.1050, baseLon: -122.8000, latSpan: 0.015, lonSpan: 0.080 },
+    '108th Ave': { baseLat: 49.2000, baseLon: -122.8300, latSpan: 0.015, lonSpan: 0.065 },
+    'Panorama Dr': { baseLat: 49.1100, baseLon: -122.8500, latSpan: 0.030, lonSpan: 0.020 },
+    'Croydon Dr': { baseLat: 49.0600, baseLon: -122.7950, latSpan: 0.025, lonSpan: 0.015 }
   },
   burnaby: {
-    'Kingsway': { baseLat: 49.2250, baseLon: -122.9800, dir: 'EW' },
-    'Lougheed Hwy': { baseLat: 49.2650, baseLon: -122.9600, dir: 'EW' },
-    'Willingdon Ave': { baseLat: 49.2450, baseLon: -123.0040, dir: 'NS' },
-    'Boundary Rd': { baseLat: 49.2500, baseLon: -123.0230, dir: 'NS' },
-    'Hastings St': { baseLat: 49.2810, baseLon: -122.9700, dir: 'EW' },
-    'Sperling Ave': { baseLat: 49.2600, baseLon: -122.9600, dir: 'NS' },
-    'North Fraser Way': { baseLat: 49.2000, baseLon: -122.9800, dir: 'EW' },
-    'Metrotown Blvd': { baseLat: 49.2280, baseLon: -122.9980, dir: 'EW' },
-    'Gilmore Ave': { baseLat: 49.2650, baseLon: -123.0140, dir: 'NS' }
+    'Kingsway': { baseLat: 49.2250, baseLon: -122.9800, latSpan: 0.028, lonSpan: 0.065 },
+    'Lougheed Hwy': { baseLat: 49.2650, baseLon: -122.9600, latSpan: 0.022, lonSpan: 0.075 },
+    'Willingdon Ave': { baseLat: 49.2450, baseLon: -123.0040, latSpan: 0.065, lonSpan: 0.020 },
+    'Boundary Rd': { baseLat: 49.2500, baseLon: -123.0230, latSpan: 0.070, lonSpan: 0.018 },
+    'Hastings St': { baseLat: 49.2810, baseLon: -122.9700, latSpan: 0.014, lonSpan: 0.065 },
+    'Sperling Ave': { baseLat: 49.2600, baseLon: -122.9600, latSpan: 0.055, lonSpan: 0.018 },
+    'North Fraser Way': { baseLat: 49.2000, baseLon: -122.9800, latSpan: 0.014, lonSpan: 0.050 },
+    'Metrotown Blvd': { baseLat: 49.2280, baseLon: -122.9980, latSpan: 0.012, lonSpan: 0.028 },
+    'Gilmore Ave': { baseLat: 49.2650, baseLon: -123.0140, latSpan: 0.050, lonSpan: 0.016 },
+    'Marine Way': { baseLat: 49.2050, baseLon: -122.9900, latSpan: 0.016, lonSpan: 0.070 },
+    'Still Creek Dr': { baseLat: 49.2550, baseLon: -123.0050, latSpan: 0.012, lonSpan: 0.038 },
+    'Canada Way': { baseLat: 49.2400, baseLon: -122.9650, latSpan: 0.035, lonSpan: 0.055 },
+    'Cariboo Rd': { baseLat: 49.2450, baseLon: -122.9150, latSpan: 0.040, lonSpan: 0.018 },
+    'Kensington Ave': { baseLat: 49.2600, baseLon: -122.9750, latSpan: 0.045, lonSpan: 0.016 }
   },
   richmond: {
-    'No 3 Rd': { baseLat: 49.1750, baseLon: -123.1360, dir: 'NS' },
-    'Bridgeport Rd': { baseLat: 49.1930, baseLon: -123.1250, dir: 'EW' },
-    'Westminster Hwy': { baseLat: 49.1700, baseLon: -123.1300, dir: 'EW' },
-    'Alderbridge Way': { baseLat: 49.1760, baseLon: -123.1250, dir: 'EW' },
-    'Cambie Rd': { baseLat: 49.1850, baseLon: -123.1200, dir: 'EW' },
-    'Minoru Blvd': { baseLat: 49.1680, baseLon: -123.1420, dir: 'NS' },
-    'Knight St': { baseLat: 49.1880, baseLon: -123.0850, dir: 'NS' },
-    'Maycrest Way': { baseLat: 49.1850, baseLon: -123.0800, dir: 'EW' },
-    'Vanguard Rd': { baseLat: 49.1900, baseLon: -123.1000, dir: 'NS' }
+    'No 3 Rd': { baseLat: 49.1750, baseLon: -123.1360, latSpan: 0.060, lonSpan: 0.018 },
+    'Bridgeport Rd': { baseLat: 49.1930, baseLon: -123.1250, latSpan: 0.014, lonSpan: 0.065 },
+    'Westminster Hwy': { baseLat: 49.1700, baseLon: -123.1300, latSpan: 0.016, lonSpan: 0.080 },
+    'Alderbridge Way': { baseLat: 49.1760, baseLon: -123.1250, latSpan: 0.014, lonSpan: 0.050 },
+    'Cambie Rd': { baseLat: 49.1850, baseLon: -123.1200, latSpan: 0.014, lonSpan: 0.070 },
+    'Minoru Blvd': { baseLat: 49.1680, baseLon: -123.1420, latSpan: 0.040, lonSpan: 0.016 },
+    'Knight St': { baseLat: 49.1880, baseLon: -123.0850, latSpan: 0.050, lonSpan: 0.018 },
+    'Maycrest Way': { baseLat: 49.1850, baseLon: -123.0800, latSpan: 0.014, lonSpan: 0.028 },
+    'Vanguard Rd': { baseLat: 49.1900, baseLon: -123.1000, latSpan: 0.035, lonSpan: 0.016 },
+    'River Rd': { baseLat: 49.1950, baseLon: -123.1200, latSpan: 0.016, lonSpan: 0.075 },
+    'Leslie Rd': { baseLat: 49.1800, baseLon: -123.1300, latSpan: 0.012, lonSpan: 0.028 },
+    'Vulcan Way': { baseLat: 49.1950, baseLon: -123.0750, latSpan: 0.012, lonSpan: 0.035 },
+    'Steveston Hwy': { baseLat: 49.1350, baseLon: -123.1300, latSpan: 0.014, lonSpan: 0.080 }
   },
   coquitlam: {
-    'Pinetree Way': { baseLat: 49.2850, baseLon: -122.7930, dir: 'NS' },
-    'Barnet Hwy': { baseLat: 49.2800, baseLon: -122.8200, dir: 'EW' },
-    'Lougheed Hwy': { baseLat: 49.2400, baseLon: -122.8200, dir: 'EW' },
-    'David Ave': { baseLat: 49.3000, baseLon: -122.7800, dir: 'EW' },
-    'Austin Ave': { baseLat: 49.2450, baseLon: -122.8400, dir: 'EW' },
-    'Johnson St': { baseLat: 49.2850, baseLon: -122.8100, dir: 'NS' },
-    'Guildford Way': { baseLat: 49.2830, baseLon: -122.8150, dir: 'EW' },
-    'Mariner Way': { baseLat: 49.2600, baseLon: -122.8300, dir: 'NS' },
-    'Schoolhouse St': { baseLat: 49.2380, baseLon: -122.8550, dir: 'NS' }
+    'Pinetree Way': { baseLat: 49.2850, baseLon: -122.7930, latSpan: 0.050, lonSpan: 0.018 },
+    'Barnet Hwy': { baseLat: 49.2800, baseLon: -122.8200, latSpan: 0.016, lonSpan: 0.060 },
+    'Lougheed Hwy': { baseLat: 49.2400, baseLon: -122.8200, latSpan: 0.020, lonSpan: 0.070 },
+    'David Ave': { baseLat: 49.3000, baseLon: -122.7800, latSpan: 0.016, lonSpan: 0.065 },
+    'Austin Ave': { baseLat: 49.2450, baseLon: -122.8400, latSpan: 0.016, lonSpan: 0.065 },
+    'Johnson St': { baseLat: 49.2850, baseLon: -122.8100, latSpan: 0.045, lonSpan: 0.016 },
+    'Guildford Way': { baseLat: 49.2830, baseLon: -122.8150, latSpan: 0.014, lonSpan: 0.050 },
+    'Mariner Way': { baseLat: 49.2600, baseLon: -122.8300, latSpan: 0.050, lonSpan: 0.018 },
+    'Schoolhouse St': { baseLat: 49.2380, baseLon: -122.8550, latSpan: 0.040, lonSpan: 0.016 },
+    'United Blvd': { baseLat: 49.2300, baseLon: -122.8350, latSpan: 0.014, lonSpan: 0.060 },
+    'Brunette Ave': { baseLat: 49.2350, baseLon: -122.8700, latSpan: 0.035, lonSpan: 0.022 },
+    'Westwood St': { baseLat: 49.2680, baseLon: -122.7900, latSpan: 0.045, lonSpan: 0.016 }
   },
   markham: {
-    'Hwy 7': { baseLat: 43.8550, baseLon: -79.3100, dir: 'EW' },
-    'Warden Ave': { baseLat: 43.8550, baseLon: -79.3320, dir: 'NS' },
-    'Woodbine Ave': { baseLat: 43.8550, baseLon: -79.3600, dir: 'NS' },
-    'Enterprise Blvd': { baseLat: 43.8520, baseLon: -79.3250, dir: 'EW' },
-    'Markham Rd': { baseLat: 43.8750, baseLon: -79.2600, dir: 'NS' },
-    'Kennedy Rd': { baseLat: 43.8600, baseLon: -79.3050, dir: 'NS' },
-    '14th Ave': { baseLat: 43.8400, baseLon: -79.3100, dir: 'EW' },
-    'Birchmount Rd': { baseLat: 43.8450, baseLon: -79.3200, dir: 'NS' },
-    'Rodick Rd': { baseLat: 43.8550, baseLon: -79.3450, dir: 'NS' }
+    'Hwy 7': { baseLat: 43.8550, baseLon: -79.3100, latSpan: 0.014, lonSpan: 0.085 },
+    'Warden Ave': { baseLat: 43.8550, baseLon: -79.3320, latSpan: 0.070, lonSpan: 0.018 },
+    'Woodbine Ave': { baseLat: 43.8550, baseLon: -79.3600, latSpan: 0.070, lonSpan: 0.018 },
+    'Enterprise Blvd': { baseLat: 43.8520, baseLon: -79.3250, latSpan: 0.012, lonSpan: 0.035 },
+    'Markham Rd': { baseLat: 43.8750, baseLon: -79.2600, latSpan: 0.075, lonSpan: 0.020 },
+    'Kennedy Rd': { baseLat: 43.8600, baseLon: -79.3050, latSpan: 0.070, lonSpan: 0.018 },
+    '14th Ave': { baseLat: 43.8400, baseLon: -79.3100, latSpan: 0.014, lonSpan: 0.070 },
+    'Birchmount Rd': { baseLat: 43.8450, baseLon: -79.3200, latSpan: 0.060, lonSpan: 0.016 },
+    'Rodick Rd': { baseLat: 43.8550, baseLon: -79.3450, latSpan: 0.050, lonSpan: 0.016 },
+    '16th Ave': { baseLat: 43.8800, baseLon: -79.3100, latSpan: 0.014, lonSpan: 0.080 },
+    'Allstate Pkwy': { baseLat: 43.8450, baseLon: -79.3650, latSpan: 0.020, lonSpan: 0.016 },
+    'Main St Unionville': { baseLat: 43.8680, baseLon: -79.3110, latSpan: 0.030, lonSpan: 0.014 }
   },
   hamilton: {
-    'King St W': { baseLat: 43.2580, baseLon: -79.8750, dir: 'EW' },
-    'Main St W': { baseLat: 43.2550, baseLon: -79.8700, dir: 'EW' },
-    'James St N': { baseLat: 43.2620, baseLon: -79.8700, dir: 'NS' },
-    'Upper Wentworth St': { baseLat: 43.2250, baseLon: -79.8600, dir: 'NS' },
-    'Barton St E': { baseLat: 43.2620, baseLon: -79.8300, dir: 'EW' },
-    'Centennial Pkwy': { baseLat: 43.2300, baseLon: -79.7650, dir: 'NS' },
-    'Mohawk Rd E': { baseLat: 43.2200, baseLon: -79.8400, dir: 'EW' },
-    'Locke St S': { baseLat: 43.2540, baseLon: -79.8850, dir: 'NS' },
-    'Fennell Ave E': { baseLat: 43.2350, baseLon: -79.8500, dir: 'EW' }
+    'King St W': { baseLat: 43.2580, baseLon: -79.8750, latSpan: 0.014, lonSpan: 0.065 },
+    'Main St W': { baseLat: 43.2550, baseLon: -79.8700, latSpan: 0.014, lonSpan: 0.065 },
+    'James St N': { baseLat: 43.2620, baseLon: -79.8700, latSpan: 0.045, lonSpan: 0.016 },
+    'Upper Wentworth St': { baseLat: 43.2250, baseLon: -79.8600, latSpan: 0.055, lonSpan: 0.018 },
+    'Barton St E': { baseLat: 43.2620, baseLon: -79.8300, latSpan: 0.016, lonSpan: 0.075 },
+    'Centennial Pkwy': { baseLat: 43.2300, baseLon: -79.7650, latSpan: 0.060, lonSpan: 0.020 },
+    'Mohawk Rd E': { baseLat: 43.2200, baseLon: -79.8400, latSpan: 0.016, lonSpan: 0.070 },
+    'Locke St S': { baseLat: 43.2540, baseLon: -79.8850, latSpan: 0.035, lonSpan: 0.016 },
+    'Fennell Ave E': { baseLat: 43.2350, baseLon: -79.8500, latSpan: 0.016, lonSpan: 0.065 },
+    'Upper James St': { baseLat: 43.2250, baseLon: -79.8850, latSpan: 0.060, lonSpan: 0.020 },
+    'Burlington St E': { baseLat: 43.2680, baseLon: -79.8100, latSpan: 0.014, lonSpan: 0.075 }
   },
   ottawa: {
-    'Bank St': { baseLat: 45.3900, baseLon: -75.6950, dir: 'NS' },
-    'Carling Ave': { baseLat: 45.3800, baseLon: -75.7300, dir: 'EW' },
-    'Elgin St': { baseLat: 45.4180, baseLon: -75.6920, dir: 'NS' },
-    'Rideau St': { baseLat: 45.4280, baseLon: -75.6880, dir: 'EW' },
-    'Hunt Club Rd': { baseLat: 45.3350, baseLon: -75.6800, dir: 'EW' },
-    'Baseline Rd': { baseLat: 45.3550, baseLon: -75.7500, dir: 'EW' },
-    'Sussex Dr': { baseLat: 45.4350, baseLon: -75.6950, dir: 'NS' },
-    'Preston St': { baseLat: 45.4050, baseLon: -75.7100, dir: 'NS' },
-    'Laurier Ave W': { baseLat: 45.4190, baseLon: -75.7000, dir: 'EW' },
-    'Albert St': { baseLat: 45.4180, baseLon: -75.7050, dir: 'EW' }
+    'Bank St': { baseLat: 45.3900, baseLon: -75.6950, latSpan: 0.080, lonSpan: 0.022 },
+    'Carling Ave': { baseLat: 45.3800, baseLon: -75.7300, latSpan: 0.020, lonSpan: 0.085 },
+    'Elgin St': { baseLat: 45.4180, baseLon: -75.6920, latSpan: 0.040, lonSpan: 0.016 },
+    'Rideau St': { baseLat: 45.4280, baseLon: -75.6880, latSpan: 0.014, lonSpan: 0.050 },
+    'Hunt Club Rd': { baseLat: 45.3350, baseLon: -75.6800, latSpan: 0.020, lonSpan: 0.085 },
+    'Baseline Rd': { baseLat: 45.3550, baseLon: -75.7500, latSpan: 0.020, lonSpan: 0.085 },
+    'Sussex Dr': { baseLat: 45.4350, baseLon: -75.6950, latSpan: 0.040, lonSpan: 0.018 },
+    'Preston St': { baseLat: 45.4050, baseLon: -75.7100, latSpan: 0.040, lonSpan: 0.016 },
+    'Laurier Ave W': { baseLat: 45.4190, baseLon: -75.7000, latSpan: 0.014, lonSpan: 0.045 },
+    'Albert St': { baseLat: 45.4180, baseLon: -75.7050, latSpan: 0.014, lonSpan: 0.045 },
+    'March Rd': { baseLat: 45.3350, baseLon: -75.9100, latSpan: 0.050, lonSpan: 0.028 },
+    'Terry Fox Dr': { baseLat: 45.3100, baseLon: -75.9000, latSpan: 0.055, lonSpan: 0.028 }
   },
   'kitchener-waterloo': {
-    'King St W': { baseLat: 43.4500, baseLon: -80.4900, dir: 'EW' },
-    'King St S': { baseLat: 43.4600, baseLon: -80.5200, dir: 'NS' },
-    'University Ave W': { baseLat: 43.4730, baseLon: -80.5350, dir: 'EW' },
-    'Weber St N': { baseLat: 43.4700, baseLon: -80.5150, dir: 'NS' },
-    'Columbia St W': { baseLat: 43.4780, baseLon: -80.5400, dir: 'EW' },
-    'Victoria St N': { baseLat: 43.4550, baseLon: -80.4850, dir: 'EW' },
-    'Erb St W': { baseLat: 43.4650, baseLon: -80.5300, dir: 'EW' },
-    'Phillip St': { baseLat: 43.4750, baseLon: -80.5380, dir: 'NS' },
-    'Hespeler Rd': { baseLat: 43.4100, baseLon: -80.3200, dir: 'NS' }
+    'King St W': { baseLat: 43.4500, baseLon: -80.4900, latSpan: 0.028, lonSpan: 0.060 },
+    'King St S': { baseLat: 43.4600, baseLon: -80.5200, latSpan: 0.050, lonSpan: 0.020 },
+    'University Ave W': { baseLat: 43.4730, baseLon: -80.5350, latSpan: 0.018, lonSpan: 0.065 },
+    'Weber St N': { baseLat: 43.4700, baseLon: -80.5150, latSpan: 0.065, lonSpan: 0.022 },
+    'Columbia St W': { baseLat: 43.4780, baseLon: -80.5400, latSpan: 0.018, lonSpan: 0.065 },
+    'Victoria St N': { baseLat: 43.4550, baseLon: -80.4850, latSpan: 0.022, lonSpan: 0.065 },
+    'Erb St W': { baseLat: 43.4650, baseLon: -80.5300, latSpan: 0.018, lonSpan: 0.065 },
+    'Phillip St': { baseLat: 43.4750, baseLon: -80.5380, latSpan: 0.040, lonSpan: 0.016 },
+    'Hespeler Rd': { baseLat: 43.4100, baseLon: -80.3200, latSpan: 0.065, lonSpan: 0.022 },
+    'Ira Needles Blvd': { baseLat: 43.4400, baseLon: -80.5550, latSpan: 0.065, lonSpan: 0.020 }
   }
 };
+
+function getSecondaryCoords(citySlug, street, streetNum, i, permitNum) {
+  const node = SECONDARY_STREET_NODES[citySlug]?.[street];
+  const baseCity = CITIES.find(c => c.slug === citySlug)?.coords || [43.8, -79.5];
+  const hash = getHash(`${permitNum || ''}:${streetNum}:${street}:${i}`);
+
+  if (node) {
+    const t = (((i * 17 + (streetNum % 100)) % 100) / 100) - 0.5;
+    const sideT = (((hash % 1000) / 1000) - 0.5) * 2;
+    const depthT = ((((hash >> 8) % 1000) / 1000) - 0.5) * 2;
+
+    const lat = node.baseLat + (t * (node.latSpan || 0.02)) + (sideT * 0.0035);
+    const lon = node.baseLon + (t * (node.lonSpan || 0.03)) + (depthT * 0.0045);
+    return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
+  }
+
+  const gridX = (((hash % 200) - 100) / 100) * 0.045;
+  const gridY = (((Math.floor(hash / 200) % 200) - 100) / 100) * 0.035;
+  const lat = baseCity[0] + gridY;
+  const lon = baseCity[1] + gridX;
+  return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
+}
 
 function getEdmontonCoords(address, i) {
   const clean = (address || '').toUpperCase();
@@ -216,14 +425,14 @@ function getEdmontonCoords(address, i) {
   }
   if (!aveMatch && !stMatch) {
     if (clean.includes('JASPER')) {
-      lat = 53.5410;
+      lat = 53.5410 + ((((i * 7) % 11) - 5) * 0.0006);
       lon = -113.4900 - ((i % 25) * 0.002);
     } else if (clean.includes('WHYTE') || clean.includes('82 AVE')) {
-      lat = 53.5180;
+      lat = 53.5180 + ((((i * 7) % 11) - 5) * 0.0006);
       lon = -113.4950 - ((i % 30) * 0.0025);
     } else if (clean.includes('CALGARY TRAIL') || clean.includes('GATEWAY')) {
       lat = 53.5000 - ((i % 35) * 0.002);
-      lon = -113.4950;
+      lon = -113.4950 + ((((i * 11) % 15) - 7) * 0.0018);
     } else {
       const gridX = (i * 17) % 60;
       const gridY = (i * 29) % 50;
@@ -234,72 +443,203 @@ function getEdmontonCoords(address, i) {
   return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
 }
 
-function getTorontoCoords(address, streetName, i) {
-  const clean = `${address || ''} ${streetName || ''}`.toUpperCase();
-  if (clean.includes('YONGE')) {
-    const lat = 43.6450 + ((i % 60) * 0.0022);
-    const lon = -79.3850 + (((i * 3) % 7) - 3) * 0.0004;
+// -------------------------------------------------------------------------------------------------
+// 2C. TORONTO FSA & CORRIDOR 2D RESOLVER
+// -------------------------------------------------------------------------------------------------
+const TORONTO_FSA_COORDS = {
+  'M5A': { lat: 43.6540, lon: -79.3600 },
+  'M5B': { lat: 43.6570, lon: -79.3780 },
+  'M5C': { lat: 43.6515, lon: -79.3750 },
+  'M5E': { lat: 43.6450, lon: -79.3730 },
+  'M5G': { lat: 43.6560, lon: -79.3870 },
+  'M5H': { lat: 43.6500, lon: -79.3840 },
+  'M5J': { lat: 43.6400, lon: -79.3810 },
+  'M5K': { lat: 43.6480, lon: -79.3820 },
+  'M5L': { lat: 43.6485, lon: -79.3790 },
+  'M5M': { lat: 43.7330, lon: -79.4190 },
+  'M5N': { lat: 43.7110, lon: -79.4180 },
+  'M5P': { lat: 43.6960, lon: -79.4120 },
+  'M5R': { lat: 43.6740, lon: -79.3990 },
+  'M5S': { lat: 43.6630, lon: -79.4000 },
+  'M5T': { lat: 43.6530, lon: -79.4000 },
+  'M5V': { lat: 43.6430, lon: -79.3980 },
+  'M5W': { lat: 43.6460, lon: -79.3740 },
+  'M5X': { lat: 43.6490, lon: -79.3820 },
+
+  'M4A': { lat: 43.7250, lon: -79.3130 },
+  'M4B': { lat: 43.6930, lon: -79.3090 },
+  'M4C': { lat: 43.6950, lon: -79.3180 },
+  'M4E': { lat: 43.6760, lon: -79.2930 },
+  'M4G': { lat: 43.7090, lon: -79.3630 },
+  'M4H': { lat: 43.7050, lon: -79.3490 },
+  'M4J': { lat: 43.6850, lon: -79.3380 },
+  'M4K': { lat: 43.6790, lon: -79.3520 },
+  'M4L': { lat: 43.6680, lon: -79.3150 },
+  'M4M': { lat: 43.6590, lon: -79.3400 },
+  'M4N': { lat: 43.7280, lon: -79.3880 },
+  'M4P': { lat: 43.7120, lon: -79.3900 },
+  'M4R': { lat: 43.7150, lon: -79.4050 },
+  'M4S': { lat: 43.7040, lon: -79.3880 },
+  'M4T': { lat: 43.6890, lon: -79.3830 },
+  'M4V': { lat: 43.6860, lon: -79.4000 },
+  'M4W': { lat: 43.6770, lon: -79.3770 },
+  'M4X': { lat: 43.6670, lon: -79.3670 },
+  'M4Y': { lat: 43.6650, lon: -79.3830 },
+
+  'M6A': { lat: 43.7220, lon: -79.4500 },
+  'M6B': { lat: 43.7090, lon: -79.4450 },
+  'M6C': { lat: 43.6930, lon: -79.4330 },
+  'M6E': { lat: 43.6890, lon: -79.4530 },
+  'M6G': { lat: 43.6690, lon: -79.4220 },
+  'M6H': { lat: 43.6640, lon: -79.4350 },
+  'M6J': { lat: 43.6480, lon: -79.4170 },
+  'M6K': { lat: 43.6360, lon: -79.4280 },
+  'M6L': { lat: 43.7140, lon: -79.4880 },
+  'M6M': { lat: 43.6920, lon: -79.4850 },
+  'M6N': { lat: 43.6730, lon: -79.4870 },
+  'M6P': { lat: 43.6610, lon: -79.4630 },
+  'M6R': { lat: 43.6480, lon: -79.4500 },
+  'M6S': { lat: 43.6510, lon: -79.4840 },
+
+  'M2H': { lat: 43.7920, lon: -79.3630 },
+  'M2J': { lat: 43.7780, lon: -79.3460 },
+  'M2K': { lat: 43.7690, lon: -79.3860 },
+  'M2L': { lat: 43.7570, lon: -79.3740 },
+  'M2M': { lat: 43.7890, lon: -79.4080 },
+  'M2N': { lat: 43.7700, lon: -79.4130 },
+  'M2P': { lat: 43.7520, lon: -79.4000 },
+  'M2R': { lat: 43.7830, lon: -79.4440 },
+  'M3A': { lat: 43.7530, lon: -79.3290 },
+  'M3B': { lat: 43.7450, lon: -79.3520 },
+  'M3C': { lat: 43.7280, lon: -79.3400 },
+  'M3H': { lat: 43.7580, lon: -79.4430 },
+  'M3J': { lat: 43.7640, lon: -79.4870 },
+  'M3K': { lat: 43.7370, lon: -79.4640 },
+  'M3L': { lat: 43.7390, lon: -79.5190 },
+  'M3M': { lat: 43.7280, lon: -79.4970 },
+  'M3N': { lat: 43.7610, lon: -79.5160 },
+
+  'M1B': { lat: 43.8060, lon: -79.1940 },
+  'M1C': { lat: 43.7840, lon: -79.1580 },
+  'M1E': { lat: 43.7630, lon: -79.1850 },
+  'M1G': { lat: 43.7700, lon: -79.2160 },
+  'M1H': { lat: 43.7730, lon: -79.2390 },
+  'M1J': { lat: 43.7440, lon: -79.2390 },
+  'M1K': { lat: 43.7270, lon: -79.2620 },
+  'M1L': { lat: 43.7110, lon: -79.2840 },
+  'M1M': { lat: 43.7160, lon: -79.2390 },
+  'M1N': { lat: 43.6920, lon: -79.2640 },
+  'M1P': { lat: 43.7570, lon: -79.2730 },
+  'M1R': { lat: 43.7500, lon: -79.2950 },
+  'M1S': { lat: 43.7940, lon: -79.2620 },
+  'M1T': { lat: 43.7810, lon: -79.3040 },
+  'M1V': { lat: 43.8150, lon: -79.2840 },
+  'M1W': { lat: 43.7990, lon: -79.3180 },
+  'M1X': { lat: 43.8340, lon: -79.2160 },
+
+  'M8V': { lat: 43.6050, lon: -79.5010 },
+  'M8W': { lat: 43.6020, lon: -79.5430 },
+  'M8X': { lat: 43.6530, lon: -79.5060 },
+  'M8Y': { lat: 43.6360, lon: -79.4980 },
+  'M8Z': { lat: 43.6280, lon: -79.5200 },
+  'M9A': { lat: 43.6670, lon: -79.5320 },
+  'M9B': { lat: 43.6500, lon: -79.5540 },
+  'M9C': { lat: 43.6430, lon: -79.5760 },
+  'M9L': { lat: 43.7560, lon: -79.5650 },
+  'M9M': { lat: 43.7330, lon: -79.5320 },
+  'M9N': { lat: 43.7060, lon: -79.5180 },
+  'M9P': { lat: 43.6960, lon: -79.5320 },
+  'M9R': { lat: 43.6880, lon: -79.5540 },
+  'M9V': { lat: 43.7390, lon: -79.5880 },
+  'M9W': { lat: 43.7140, lon: -79.5980 }
+};
+
+function getTorontoCoords(r, i) {
+  const pNum = r.PERMIT_NUM || `BP-TO-${i + 1}`;
+  const postal = (r.POSTAL || '').trim().toUpperCase();
+  const streetName = (r.STREET_NAME || '').trim().toUpperCase();
+  const streetNum = parseInt(r.STREET_NUM || '100', 10) || 100;
+  const hash = getHash(`${pNum}:${r.STREET_NUM}:${streetName}:${r.POSTAL}:${i}`);
+
+  const fsa = postal.slice(0, 3);
+  if (TORONTO_FSA_COORDS[fsa]) {
+    const fsaNode = TORONTO_FSA_COORDS[fsa];
+    const offsetLat = ((((hash % 1000) / 1000) - 0.5) * 0.016);
+    const offsetLon = (((((hash >> 8) % 1000) / 1000) - 0.5) * 0.022);
+    const lat = fsaNode.lat + offsetLat;
+    const lon = fsaNode.lon + offsetLon;
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('KING')) {
-    const lat = 43.6480 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4200 + ((i % 40) * 0.0018);
+
+  const t = (((i * 23 + (streetNum % 100)) % 100) / 100) - 0.5;
+  const side = ((((hash % 1000) / 1000) - 0.5) * 0.008);
+  const depth = (((((hash >> 8) % 1000) / 1000) - 0.5) * 0.010);
+
+  if (streetName.includes('YONGE')) {
+    const lat = 43.7100 + (t * 0.1200);
+    const lon = -79.3980 + (t * 0.0250) + depth;
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('QUEEN')) {
-    const lat = 43.6515 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4300 + ((i % 45) * 0.0019);
+  if (streetName.includes('BAY')) {
+    const lat = 43.6550 + (t * 0.0250);
+    const lon = -79.3850 + depth;
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('BLOOR')) {
-    const lat = 43.6705 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4500 + ((i % 50) * 0.0020);
+  if (streetName.includes('UNIVERSITY') || streetName.includes('AVENUE RD')) {
+    const lat = 43.6650 + (t * 0.0400);
+    const lon = -79.3930 + depth;
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('BAY') && !clean.includes('BAYVIEW')) {
-    const lat = 43.6440 + ((i % 30) * 0.0012);
-    const lon = -79.3830;
+  if (streetName.includes('SPADINA')) {
+    const lat = 43.6550 + (t * 0.0300);
+    const lon = -79.4000 + depth;
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('UNIVERSITY') || clean.includes('AVENUE RD')) {
-    const lat = 43.6500 + ((i % 35) * 0.0018);
-    const lon = -79.3900;
+  if (streetName.includes('KING')) {
+    const lat = 43.6480 + side;
+    const lon = -79.3900 + (t * 0.0700);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('DUNDAS')) {
-    const lat = 43.6550 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4300 + ((i % 40) * 0.0019);
+  if (streetName.includes('QUEEN')) {
+    const lat = 43.6520 + side;
+    const lon = -79.3950 + (t * 0.0800);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('EGLINTON')) {
-    const lat = 43.7050 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4500 + ((i % 50) * 0.0022);
+  if (streetName.includes('BLOOR')) {
+    const lat = 43.6680 + side;
+    const lon = -79.4000 + (t * 0.0900);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('SHEPPARD')) {
-    const lat = 43.7650 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4500 + ((i % 45) * 0.0025);
+  if (streetName.includes('DUNDAS')) {
+    const lat = 43.6550 + side;
+    const lon = -79.4000 + (t * 0.0800);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('FINCH')) {
-    const lat = 43.7800 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4600 + ((i % 45) * 0.0025);
+  if (streetName.includes('EGLINTON')) {
+    const lat = 43.7050 + side;
+    const lon = -79.4100 + (t * 0.1000);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('LAKESHORE') || clean.includes('QUEENS QUAY')) {
-    const lat = 43.6380 + (((i * 3) % 7) - 3) * 0.0003;
-    const lon = -79.4300 + ((i % 40) * 0.0020);
+  if (streetName.includes('SHEPPARD')) {
+    const lat = 43.7650 + side;
+    const lon = -79.4100 + (t * 0.1100);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  if (clean.includes('SPADINA')) {
-    const lat = 43.6420 + ((i % 25) * 0.0015);
-    const lon = -79.3990;
+  if (streetName.includes('FINCH')) {
+    const lat = 43.7800 + side;
+    const lon = -79.4200 + (t * 0.1100);
     return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
   }
-  const gridX = (i * 13) % 70;
-  const gridY = (i * 23) % 55;
-  const lat = 43.6400 + (gridY * 0.0025);
-  const lon = -79.4600 + (gridX * 0.0035);
+  if (streetName.includes('LAKESHORE') || streetName.includes('QUEENS QUAY')) {
+    const lat = 43.6380 + side;
+    const lon = -79.3900 + (t * 0.0900);
+    return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
+  }
+
+  const gridX = (((hash % 300) - 150) / 150) * 0.12;
+  const gridY = (((Math.floor(hash / 300) % 200) - 100) / 100) * 0.07;
+  const lat = 43.7000 + gridY;
+  const lon = -79.3900 + gridX;
   return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)) };
 }
 
@@ -322,12 +662,13 @@ async function harvestCalgary() {
       console.log(`  -> Calgary live payload returned ${data.length} records.`);
       return data.map((r, i) => {
         const pNum = r.permitnum || `BP2026-CGY-${String(i + 1).padStart(5, '0')}`;
-        const val = parseFloat(r.estprojectcost) || (350000 + ((i * 420000) % 15000000));
+        const subType = r.permittype || r.permitclass || 'Commercial Building Permit';
+        const desc = r.description || `${subType} in Calgary. Standard construction scope.`;
+        const rawVal = parseFloat(r.estprojectcost) || (350000 + ((i * 420000) % 15000000));
+        const val = normalizePermitValue(rawVal, subType, desc, i);
         const addr = r.originaladdress ? `${r.originaladdress}, Calgary, AB` : `${100 + i * 20} Centre St S, Calgary, AB`;
         const contr = r.contractorname || r.applicantname || 'Standard Permittee (Calgary)';
         const date = (r.issueddate || '2026-06-15').split('T')[0];
-        const subType = r.permittype || r.permitclass || 'Commercial Building Permit';
-        const desc = r.description || `${subType} in Calgary. Standard construction scope.`;
         const lat = parseFloat(r.latitude) || (51.0447 + Math.sin(i) * 0.04);
         const lon = parseFloat(r.longitude) || (-114.0719 + Math.cos(i) * 0.04);
 
@@ -380,12 +721,13 @@ async function harvestEdmonton() {
       console.log(`  -> Edmonton live payload returned ${data.length} records.`);
       return data.map((r, i) => {
         const pNum = r.row_id || `BP-EDM-2026-${String(i + 1).padStart(5, '0')}`;
-        const val = parseFloat(r.construction_value) || (280000 + ((i * 380000) % 12000000));
+        const subType = r.job_category || r.building_type || 'Commercial Building Permit';
+        const desc = r.job_description || `${subType} in Edmonton.`;
+        const rawVal = parseFloat(r.construction_value) || (280000 + ((i * 380000) % 12000000));
+        const val = normalizePermitValue(rawVal, subType, desc, i);
         const addr = r.address ? `${r.address}, Edmonton, AB` : `${100 + i * 20} Jasper Ave, Edmonton, AB`;
         const contr = r.job_description ? r.job_description.slice(0, 35) : 'Standard Permittee (Edmonton)';
         const date = (r.issue_date || '2026-06-15').split('T')[0];
-        const subType = r.job_category || r.building_type || 'Commercial Building Permit';
-        const desc = r.job_description || `${subType} in Edmonton.`;
         const { lat, lon } = getEdmontonCoords(addr, i);
 
         return {
@@ -437,12 +779,13 @@ async function harvestWinnipeg() {
       console.log(`  -> Winnipeg live payload returned ${data.length} records.`);
       return data.map((r, i) => {
         const pNum = r.permit_number || `BP-WPG-2026-${String(i + 1).padStart(5, '0')}`;
-        const val = 220000 + ((i * 310000) % 9500000);
+        const subType = r.sub_type || r.permit_type || 'Commercial Building Permit';
+        const desc = `${subType} at ${r.address || 'Portage Ave'}. Standard municipal scope.`;
+        const rawVal = 220000 + ((i * 310000) % 8500000);
+        const val = normalizePermitValue(rawVal, subType, desc, i);
         const addr = r.address ? `${r.address}, Winnipeg, MB` : `${100 + i * 20} Portage Ave, Winnipeg, MB`;
         const contr = r.applicant_business_name || 'Standard Permittee (Winnipeg)';
         const date = (r.issue_date || '2026-06-15').split('T')[0];
-        const subType = r.sub_type || r.permit_type || 'Commercial Building Permit';
-        const desc = `${subType} at ${addr}. Standard municipal scope.`;
         const lat = parseFloat(r.location?.latitude) || (49.8951 + Math.sin(i * 1.5) * 0.04);
         const lon = parseFloat(r.location?.longitude) || (-97.1384 + Math.cos(i * 1.5) * 0.04);
 
@@ -500,14 +843,23 @@ async function harvestVancouver() {
       for (const rec of data.records) {
         const r = rec.fields || {};
         const pNum = r.permitnumber || `BP-VAN-${vancouverPermits.length + 1}`;
-        const val = parseFloat(r.projectvalue) || (450000 + ((vancouverPermits.length * 580000) % 18000000));
         const addr = r.address ? `${r.address}, Vancouver, BC` : `1000 W Georgia St, Vancouver, BC`;
         const contr = r.applicant || 'Standard Permittee (Vancouver)';
         const date = (r.issuedate || '2026-06-15').split('T')[0];
         const subType = r.permitcategory || r.typeofwork || 'Commercial Building Permit';
         const desc = r.projectdescription || `${subType} at ${addr}.`;
-        const lat = r.geo_point_2d ? Number(r.geo_point_2d[0]) : (49.2827 + Math.sin(vancouverPermits.length) * 0.03);
-        const lon = r.geo_point_2d ? Number(r.geo_point_2d[1]) : (-123.1207 + Math.cos(vancouverPermits.length) * 0.03);
+        const val = normalizePermitValue(parseFloat(r.projectvalue), subType, desc, vancouverPermits.length + 1);
+
+        let lat = r.geo_point_2d ? Number(r.geo_point_2d[0]) : (49.2827 + Math.sin(vancouverPermits.length) * 0.03);
+        let lon = r.geo_point_2d ? Number(r.geo_point_2d[1]) : (-123.1207 + Math.cos(vancouverPermits.length) * 0.03);
+
+        // Sanitize coordinates against open data anomalies (e.g. coordinates outside Metro Vancouver)
+        if (isNaN(lat) || lat < 49.20 || lat > 49.32 || isNaN(lon) || lon < -123.28 || lon > -123.01) {
+          const u = (vancouverPermits.length * 17) % 100;
+          const v = (vancouverPermits.length * 31) % 100;
+          lat = 49.2500 + ((u - 50) / 50) * 0.035;
+          lon = -123.1200 + ((v - 50) / 50) * 0.065;
+        }
 
         vancouverPermits.push({
           id: `p-vancouver-${vancouverPermits.length + 1}`,
@@ -562,18 +914,17 @@ async function harvestToronto() {
       for (let i = 0; i < records.length; i++) {
         const r = records[i];
         const pNum = r.PERMIT_NUM || `BP-TO-${i + 1}`;
-        let val = parseFloat(String(r.EST_CONST_COST || '0').replace(/[^0-9.]/g, '')) || 0;
-        if (val <= 0) val = 650000 + ((i * 720000) % 25000000);
-
         let street = `${r.STREET_NUM || ''} ${r.STREET_NAME || ''} ${r.STREET_TYPE || ''}`.trim();
         if (!street) street = '100 King St W';
-        const addr = `${street}, Toronto, ON`;
+        const postalPart = r.POSTAL ? ` ${r.POSTAL}` : '';
+        const addr = `${street}${postalPart}, Toronto, ON`;
 
         const contr = r.BUILDER_NAME || 'Standard Permittee (Toronto)';
         const date = (r.ISSUED_DATE || '2026-05-20').split('T')[0];
-        const subType = r.PERMIT_TYPE || r.STRUCTURE_TYPE || 'Commercial High-Rise';
+        const subType = r.PERMIT_TYPE || r.STRUCTURE_TYPE || 'Commercial Building Permit';
         const desc = r.DESCRIPTION || `${subType} in Toronto.`;
-        const { lat, lon } = getTorontoCoords(addr, street, i);
+        const val = normalizePermitValue(r.EST_CONST_COST, subType, desc, i + 1);
+        const { lat, lon } = getTorontoCoords(r, i);
 
         torontoPermits.push({
           id: `p-toronto-${i + 1}`,
@@ -631,15 +982,15 @@ async function harvestBrampton() {
         const feat = features[i];
         const r = feat.attributes || {};
         const pNum = r.PERMITNUMBER || `BP-BRM-${i + 1}`;
-        const val = 350000 + ((i * 450000) % 16000000);
+        const subType = r.SUBDESC || r.WORKDESC || 'Commercial Building Permit';
+        const desc = `${subType} in Brampton.`;
+        const val = normalizePermitValue(350000 + ((i * 450000) % 14000000), subType, desc, i);
         const addr = r.ADDRESS || `${100 + i * 20} Dixie Rd, Brampton, ON`;
         const contr = r.CONTRACTOR || r.BUILDER || 'Standard Permittee (Brampton)';
         let date = '2026-05-15';
         if (r.ISSUEDATE && typeof r.ISSUEDATE === 'number') {
           date = new Date(r.ISSUEDATE).toISOString().split('T')[0];
         }
-        const subType = r.SUBDESC || r.WORKDESC || 'Commercial Building Permit';
-        const desc = `${subType} in Brampton.`;
 
         // Extract authentic GIS geometry
         let lat = feat.geometry?.y;
@@ -691,7 +1042,6 @@ async function harvestBrampton() {
 function generateSecondaryCityPermits(citySlug, cityName, province, count) {
   const contractors = MARKET_CONTRACTORS[citySlug] || ['PCL Construction', 'EllisDon', 'Bird Construction', 'Graham Construction'];
   const streets = SECONDARY_STREETS[citySlug] || ['Main St', 'King St', 'Commercial Blvd', 'Queen St', 'Park Ave'];
-  const baseCoords = CITIES.find(c => c.slug === citySlug)?.coords || [43.5, -79.5];
 
   const permits = [];
   for (let i = 1; i <= count; i++) {
@@ -702,37 +1052,40 @@ function generateSecondaryCityPermits(citySlug, cityName, province, count) {
     const contrIndex = (i - 1) % contractors.length;
     const contr = contractors[contrIndex];
     const street = streets[(i - 1) % streets.length];
-    const streetNum = 100 + (i * 25);
+    const streetNum = 100 + ((i * 35) % 4500);
     const addr = `${streetNum} ${street}, ${cityName}, ${province}`;
 
     const pNum = `BP-${citySlug.toUpperCase()}-2026-${String(i).padStart(4, '0')}`;
-    const isCommercial = i % 3 !== 0;
-    const subType = isCommercial
-      ? (i % 2 === 0 ? 'Commercial High-Rise' : 'Commercial Renovation')
-      : 'Single Family Dwelling New';
-
-    const val = isCommercial
-      ? Math.round(1800000 + (i * 850000) + ((i % 5) * 450000))
-      : Math.round(450000 + (i * 95000));
+    
+    // Rotate realistic construction project classes:
+    // 40% Commercial Renovation / Tenant Improvement ($150k - $1.6M)
+    // 30% Single Family Dwelling / Residential ($420k - $1.35M)
+    // 20% Commercial Addition / Light Industrial ($2.2M - $7.5M)
+    // 10% Commercial High-Rise ($14M - $36M)
+    let subType, workClass, rawEstimatedVal;
+    const typeMod = i % 10;
+    if (typeMod < 4) {
+      subType = (i % 2 === 0) ? 'Commercial Renovation' : 'Tenant Improvement / Interior Alteration';
+      workClass = 'Commercial';
+      rawEstimatedVal = 180000 + ((i * 68500) % 1450000);
+    } else if (typeMod < 7) {
+      subType = (i % 2 === 0) ? 'Single Family Dwelling New' : 'Residential Addition & Alteration';
+      workClass = 'Residential';
+      rawEstimatedVal = 420000 + ((i * 52000) % 920000);
+    } else if (typeMod < 9) {
+      subType = (i % 2 === 0) ? 'Commercial Addition' : 'Industrial Warehouse Facility';
+      workClass = 'Commercial';
+      rawEstimatedVal = 2200000 + ((i * 320000) % 5500000);
+    } else {
+      subType = 'Commercial High-Rise';
+      workClass = 'Commercial';
+      rawEstimatedVal = 14000000 + ((i * 1250000) % 22000000);
+    }
 
     const desc = `${subType} at ${addr}. Scope includes structural framing, commercial mechanical HVAC, and electrical service distribution.`;
+    const val = normalizePermitValue(rawEstimatedVal, subType, desc, i);
 
-    const streetDef = SECONDARY_STREET_COORDS[citySlug]?.[street];
-    let lat, lon;
-    if (streetDef) {
-      if (streetDef.dir === 'EW') {
-        lon = streetDef.baseLon + (((i % 15) - 7) * 0.0035);
-        lat = streetDef.baseLat + ((((i * 7) % 11) - 5) * 0.0004);
-      } else {
-        lat = streetDef.baseLat + (((i % 15) - 7) * 0.0032);
-        lon = streetDef.baseLon + ((((i * 7) % 11) - 5) * 0.0004);
-      }
-    } else {
-      const gridX = (i * 11) % 40;
-      const gridY = (i * 17) % 35;
-      lat = baseCoords[0] + ((gridY - 17) * 0.0018);
-      lon = baseCoords[1] + ((gridX - 20) * 0.0025);
-    }
+    const { lat, lon } = getSecondaryCoords(citySlug, street, streetNum, i, pNum);
 
     permits.push({
       id: `p-${citySlug}-${i}`,
@@ -751,7 +1104,7 @@ function generateSecondaryCityPermits(citySlug, cityName, province, count) {
       permit_type: subType,
       estimated_value: val,
       issue_date: date,
-      work_class: isCommercial ? 'Commercial' : 'Residential',
+      work_class: workClass,
       description: desc,
       ai_summary: `${cityName} permit ${pNum} for ${addr} ($${val.toLocaleString('en-CA')}).`,
       status: 'Issued',

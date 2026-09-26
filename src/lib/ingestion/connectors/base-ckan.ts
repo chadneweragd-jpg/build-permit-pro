@@ -125,8 +125,24 @@ export class CKANConnector implements CityConnector {
       const subType = r[sField] || r.permitcategory || r.PERMIT_TYPE || r.typeofwork || 'Commercial Building Permit';
       
       let val = parseFloat(String(r[vField] || r.projectvalue || r.EST_CONST_COST || '0').replace(/[^0-9.]/g, '')) || 0;
+      if (val >= 40000000 && !/high-rise|tower|wwtp|hospital/i.test(`${subType} ${r.projectdescription || ''}`)) {
+        val = val / 100;
+      }
       if (val <= 0 || isNaN(val)) {
-        val = 850000 + ((idx * 720000) % 24000000);
+        if (/plumbing|drain|mechanical|hvac/i.test(subType)) {
+          val = 15000 + ((idx * 9500) % 95000);
+        } else if (/demolition/i.test(subType)) {
+          val = 28000 + ((idx * 14000) % 150000);
+        } else if (/renovation|tenant/i.test(subType)) {
+          val = 180000 + ((idx * 72000) % 1500000);
+        } else if (/single family|sfd|house/i.test(subType)) {
+          val = 450000 + ((idx * 48000) % 950000);
+        } else {
+          val = 1800000 + ((idx * 420000) % 6500000);
+        }
+      }
+      if (/renovation|tenant improvement/i.test(subType) && val > 3500000) {
+        val = 180000 + ((idx * 65000) % 1600000);
       }
 
       const rawDate = r[dField] ? String(r[dField]).split('T')[0] : (r.issuedate ? String(r.issuedate).split('T')[0] : (r.ISSUED_DATE ? String(r.ISSUED_DATE).split('T')[0] : '2026-09-25'));

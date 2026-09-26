@@ -116,21 +116,33 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // 2. Add marker for each permit
+    // 2. Add marker for each permit (with parcel de-duplication micro-offset)
+    const coordSeenCount = new Map<string, number>();
     permits.forEach((permit) => {
       // Extract and ensure valid numbers (GeoJSON requires [lng, lat])
-      const lng = Number(
+      let lng = Number(
         permit.longitude ??
         (permit as any).lng ??
         (permit as any).location?.coordinates?.[0]
       );
-      const lat = Number(
+      let lat = Number(
         permit.latitude ??
         (permit as any).lat ??
         (permit as any).location?.coordinates?.[1]
       );
 
       if (!lng || !lat || isNaN(lng) || isNaN(lat)) return;
+
+      // Micro-spiderfy offset if exact same coordinates exist to prevent stacking
+      const coordKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      const seen = coordSeenCount.get(coordKey) || 0;
+      coordSeenCount.set(coordKey, seen + 1);
+      if (seen > 0) {
+        const angle = (seen * (2 * Math.PI / 6)) + (seen * 0.35);
+        const radius = 0.00018 + (Math.floor(seen / 6) * 0.00012);
+        lat += Math.sin(angle) * radius;
+        lng += Math.cos(angle) * radius * 1.35;
+      }
 
       const isSelected =
         selectedPermit?.id === permit.id ||
