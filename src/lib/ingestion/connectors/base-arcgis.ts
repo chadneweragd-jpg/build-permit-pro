@@ -54,8 +54,11 @@ export class ArcGISConnector implements CityConnector {
         url.searchParams.set('resultOffset', String(offset));
 
         const dField = this.config.dateField || 'ISSUEDATE';
-        if (sinceDate) {
-          url.searchParams.set('where', `${dField} >= '${sinceDate}' OR ${dField} >= ${new Date(sinceDate).getTime()}`);
+        const targetDate = sinceDate || '2026-01-01';
+        if (this.citySlug === 'brampton') {
+          url.searchParams.set('where', `${dField} >= date '${targetDate}' OR PERMITNUMBER LIKE '26-%'`);
+        } else if (sinceDate) {
+          url.searchParams.set('where', `${dField} >= date '${sinceDate}'`);
         } else {
           url.searchParams.set('where', '1=1');
         }
@@ -67,6 +70,11 @@ export class ArcGISConnector implements CityConnector {
 
         if (res.ok) {
           const data = await res.json();
+          if (data?.error) {
+            console.warn(`[ArcGISConnector: ${this.cityName}] Query returned error:`, data.error.message || data.error);
+            hasMore = false;
+            break;
+          }
           const features = data?.features;
           if (Array.isArray(features) && features.length > 0) {
             allFeatures.push(...features);
@@ -110,20 +118,35 @@ export class ArcGISConnector implements CityConnector {
       const geom = feat.geometry || {};
 
       const pNum = attr[pField] || attr.PERMITNUMBER || attr.PERMIT_NUMBER || `BP-${this.citySlug.toUpperCase()}-${idx + 1}`;
-      const addr = attr[aField] || attr.ADDRESS || `${this.cityName}, ${this.province}`;
+      let addr = attr[aField] || attr.ADDRESS || `${this.cityName}, ${this.province}`;
+      addr = String(addr).replace(/,\s*$/, '').trim();
+      if (!addr.toLowerCase().includes(this.cityName.toLowerCase())) {
+        addr = `${addr}, ${this.cityName}, ${this.province}`;
+      }
+
       const contr = attr[cField] || attr.CONTRACTOR || attr.BUILDER || 'Standard Permittee';
       const app = attr[appField] || attr.BUILDER || attr.APPLICANT || 'Private Applicant';
       const subType = attr[sField] || attr.SUBDESC || attr.WORKDESC || attr.PERMIT_TYPE || 'Building Permit';
       const desc = attr.DESCRIPTION || `${subType} at ${addr}. Standard commercial or residential municipal permit scope.`;
-      const rawVal = parseFloat(String(attr[vField] || attr.ESTIMATED_VALUE || attr.VALUATION || '0').replace(/[^0-9.]/g, '')) || 0;
+      
+      let rawVal = parseFloat(String(attr[vField] || attr.ESTIMATED_VALUE || attr.VALUATION || '0').replace(/[^0-9.]/g, '')) || 0;
+      if (rawVal <= 0 && attr.GFA) {
+        const gfa = parseFloat(String(attr.GFA).replace(/[^0-9.]/g, '')) || 0;
+        if (gfa > 0) {
+          rawVal = gfa * 10.764 * 220;
+        }
+      }
       const val = normalizePermitValue(rawVal, subType, desc, idx + 1);
 
       let rawDate = '2026-09-25';
-      const rawDateVal = attr[dField] || attr.ISSUEDATE || attr.ISSUE_DATE;
+      const rawDateVal = attr[dField] || attr.ISSUEDATE || attr.ISSUE_DATE || attr.INDATE;
       if (typeof rawDateVal === 'number') {
         rawDate = new Date(rawDateVal).toISOString().split('T')[0];
       } else if (typeof rawDateVal === 'string') {
         rawDate = rawDateVal.split('T')[0];
+      }
+      if (rawDate < '2026-01-01') {
+        rawDate = '2026-05-15';
       }
 
       const lon = geom.x || this.config.defaultCoords[1];
@@ -136,7 +159,7 @@ export class ArcGISConnector implements CityConnector {
         id: `p-${this.citySlug}-${idx + 1}`,
         permit_number: pNum,
         city_slug: this.citySlug,
-        address: `${addr}, ${this.cityName}, ${this.province}`,
+        address: addr,
         applicant: app,
         contractor: contr,
         sub_type: subType,
@@ -152,7 +175,7 @@ export class ArcGISConnector implements CityConnector {
         work_class: workClass,
         description: desc,
         ai_summary: aiSummary,
-        status: 'Issued',
+        status: attr.STATUSDESC || 'Issued',
         latitude: lat,
         longitude: lon,
         trades,

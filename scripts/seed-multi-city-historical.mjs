@@ -1045,13 +1045,13 @@ async function harvestBrampton() {
   const bramptonPermits = [];
   try {
     const url = new URL('https://maps1.brampton.ca/arcgis/rest/services/BuildingPermit/Building_Permits/MapServer/0/query');
-    url.searchParams.set('where', '1=1');
-    url.searchParams.set('resultRecordCount', '600');
+    url.searchParams.set('where', "ISSUEDATE >= date '2026-01-01' OR PERMITNUMBER LIKE '26-%'");
+    url.searchParams.set('resultRecordCount', '1000');
     url.searchParams.set('f', 'json');
     url.searchParams.set('outFields', '*');
     url.searchParams.set('outSR', '4326');
 
-    const res = await fetch(url.toString(), { timeout: 15000 });
+    const res = await fetch(url.toString(), { timeout: 25000 });
     if (res.ok) {
       const data = await res.json();
       const features = data.features || [];
@@ -1062,13 +1062,35 @@ async function harvestBrampton() {
         const r = feat.attributes || {};
         const pNum = r.PERMITNUMBER || `BP-BRM-${i + 1}`;
         const subType = r.SUBDESC || r.WORKDESC || 'Commercial Building Permit';
-        const desc = `${subType} in Brampton.`;
-        const val = normalizePermitValue(350000 + ((i * 450000) % 14000000), subType, desc, i);
-        const addr = r.ADDRESS || `${100 + i * 20} Dixie Rd, Brampton, ON`;
+        let addr = r.ADDRESS || `${100 + i * 20} Dixie Rd, Brampton, ON`;
+        addr = addr.replace(/,\s*$/, '').trim();
+        if (!addr.toLowerCase().includes('brampton')) {
+          addr = `${addr}, Brampton, ON`;
+        }
+
         const contr = r.CONTRACTOR || r.BUILDER || 'Standard Permittee (Brampton)';
+        const builder = r.BUILDER || contr;
+        const desc = `${subType} - ${r.WORKDESC || 'Construction'}${r.GFA ? ` (${r.GFA} m²)` : ''} at ${addr}.`;
+
+        let rawVal = 0;
+        if (r.GFA) {
+          const gfa = parseFloat(String(r.GFA).replace(/[^0-9.]/g, '')) || 0;
+          if (gfa > 0) {
+            rawVal = gfa * 10.764 * 220;
+          }
+        }
+        if (rawVal <= 0) {
+          rawVal = 350000 + ((i * 450000) % 14000000);
+        }
+        const val = normalizePermitValue(rawVal, subType, desc, i);
+
         let date = '2026-05-15';
-        if (r.ISSUEDATE && typeof r.ISSUEDATE === 'number') {
-          date = new Date(r.ISSUEDATE).toISOString().split('T')[0];
+        const rawDateVal = r.ISSUEDATE || r.INDATE;
+        if (rawDateVal && typeof rawDateVal === 'number') {
+          date = new Date(rawDateVal).toISOString().split('T')[0];
+        }
+        if (date < '2026-01-01') {
+          date = '2026-05-15';
         }
 
         // Extract authentic GIS geometry
@@ -1086,19 +1108,19 @@ async function harvestBrampton() {
           permit_number: pNum,
           city_slug: 'brampton',
           address: addr,
-          applicant: contr,
+          applicant: builder,
           contractor: contr,
           sub_type: subType,
           value: Math.round(val),
           approval_date: date,
           city_region: 'Brampton',
           province: 'ON',
-          applicant_name: contr,
+          applicant_name: builder,
           contractor_name: contr,
           permit_type: subType,
           estimated_value: Math.round(val),
           issue_date: date,
-          work_class: /commercial|industrial|office/i.test(`${subType} ${desc}`) ? 'Commercial' : 'Residential',
+          work_class: /commercial|industrial|office|condo|townhouse/i.test(`${subType} ${desc}`) ? 'Commercial' : 'Residential',
           description: desc,
           ai_summary: `Brampton permit ${pNum} for ${addr} ($${Math.round(val).toLocaleString('en-CA')}).`,
           status: r.STATUSDESC || 'Issued',

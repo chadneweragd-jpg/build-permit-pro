@@ -169,6 +169,19 @@ async function syncAllPermitsToSupabase() {
 
   console.log(`Loaded ${permits.length} permits from bundle.`);
 
+  // Purge any stale pre-2026 records from Brampton in Supabase
+  console.log('[*] Purging obsolete pre-2026 Brampton records from Supabase...');
+  const { error: purgeErr } = await supabase
+    .from('permits')
+    .delete()
+    .ilike('city_region', '%Brampton%')
+    .lt('issue_date', '2026-01-01');
+  if (purgeErr) {
+    console.warn('  Notice during purge:', purgeErr.message);
+  } else {
+    console.log('  -> Obsolete pre-2026 records purged successfully.');
+  }
+
   let successCount = 0;
   let errorCount = 0;
 
