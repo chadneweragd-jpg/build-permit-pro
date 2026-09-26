@@ -29,12 +29,17 @@ const MapContainer = dynamic(
 function SearchExplorerContent() {
   const searchParams = useSearchParams();
   const permitIdParam = searchParams.get('permitId');
+  const cityParam = searchParams.get('city');
 
-  const [activeCityId, setActiveCityId] = useState<string>('kelowna');
+  const [activeCityId, setActiveCityId] = useState<string>(cityParam || 'kelowna');
   const [permitsList, setPermitsList] = useState<Permit[]>(PermitsRepository.getAllPermits());
 
   useEffect(() => {
-    setActiveCityId(getSelectedCityId());
+    if (cityParam) {
+      setActiveCityId(cityParam);
+    } else {
+      setActiveCityId(getSelectedCityId());
+    }
 
     const handleCityChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ cityId: string }>;
@@ -163,10 +168,18 @@ function SearchExplorerContent() {
 
     if (selectedLocation !== 'All Locations') {
       list = list.filter((p) => (p.city_region || 'Kelowna').toLowerCase() === selectedLocation.toLowerCase());
-    } else if (activeCityId === 'calgary') {
-      list = list.filter((p) => (p.city_region || '').toLowerCase() === 'calgary' || p.address.toLowerCase().includes('calgary'));
-    } else {
-      list = list.filter((p) => (p.city_region || '').toLowerCase() !== 'calgary' && !p.address.toLowerCase().includes('calgary'));
+    } else if (activeCityId && activeCityId !== 'all') {
+      const target = activeCityId.toLowerCase().trim();
+      list = list.filter((p) => {
+        const pSlug = (p.city_slug || '').toLowerCase().trim();
+        const pRegion = (p.city_region || '').toLowerCase().trim();
+        const pAddr = (p.address || '').toLowerCase();
+        if (pSlug === target) return true;
+        if (pRegion === target) return true;
+        if (target === 'calgary' && (pRegion === 'calgary' || pAddr.includes('calgary'))) return true;
+        if (target === 'kelowna' && (pRegion === 'kelowna' || (!pSlug && !pAddr.includes('calgary')))) return true;
+        return false;
+      });
     }
 
     if (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types') {

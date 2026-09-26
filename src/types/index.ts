@@ -37,12 +37,21 @@ export interface VerifiedBuilder {
 
 export interface Permit {
   id: string;
-  municipality_id: string;
   permit_number: string;
+  city_slug?: string;
+  address: string;
+  applicant?: string;
+  contractor?: string;
+  sub_type?: string;
+  value?: number;
+  approval_date?: string;
+
+  // Additional & compatibility properties
+  municipality_id?: string;
   issue_date: string;
   application_date?: string;
-  address: string;
   city_region: string;
+  province?: string;
   legal_description?: string;
   permit_type: string;
   work_class: WorkClass;

@@ -10,16 +10,20 @@ const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
 const CURRENT_TIER_KEY = 'bpp_current_tier_v1';
 
 export class PermitsRepository {
-  private static cachedPermits: Permit[] = [
-    ...(rawPermits as unknown as Permit[]).map((p) => enrichPermitWithBuilder(p)),
-    ...getFallbackCalgaryPermits()
-  ];
+  private static cachedPermits: Permit[] = (() => {
+    const enriched = (rawPermits as unknown as Permit[]).map((p) => enrichPermitWithBuilder(p));
+    const seen = new Set(enriched.map((p) => `${(p.city_slug || p.city_region || 'kelowna').toLowerCase()}:${p.permit_number.toLowerCase()}`));
+    const calgary = getFallbackCalgaryPermits().filter(
+      (p) => !seen.has(`calgary:${p.permit_number.toLowerCase()}`)
+    );
+    return [...enriched, ...calgary];
+  })();
 
   /**
    * Asynchronously fetches all permits from live Supabase if available
    */
-  public static async fetchPermitsFromSupabase(dateRange?: string): Promise<Permit[]> {
-    if (!isSupabaseConfigured || !supabase) return this.cachedPermits;
+  public static async fetchPermitsFromSupabase(dateRange?: string, citySlug?: string): Promise<Permit[]> {
+    if (!isSupabaseConfigured || !supabase) return this.getPermitsByCity(citySlug);
 
     try {
       let query = supabase
@@ -36,6 +40,10 @@ export class PermitsRepository {
             )
           )
         `);
+
+      if (citySlug && citySlug !== 'all') {
+        query = query.eq('city_slug', citySlug.toLowerCase().trim());
+      }
 
       if (dateRange && dateRange !== 'all') {
         const now = new Date();
@@ -56,7 +64,7 @@ export class PermitsRepository {
       const { data, error } = await query.order('issue_date', { ascending: false });
 
       if (error || !data || data.length === 0) {
-        return this.cachedPermits;
+        return this.getPermitsByCity(citySlug);
       }
 
       const mapped: Permit[] = data.map((row: any) => {
@@ -77,23 +85,27 @@ export class PermitsRepository {
           id: row.id,
           municipality_id: row.municipality_id || existingFallback?.municipality_id || '22222222-2222-2222-2222-222222222222',
           permit_number: row.permit_number,
-          issue_date: row.issue_date,
+          city_slug: row.city_slug || existingFallback?.city_slug,
+          issue_date: row.issue_date || row.approval_date,
           application_date: row.application_date || row.issue_date,
           address: row.address,
-          city_region: row.city_region || 'Kelowna',
+          city_region: row.city_region || existingFallback?.city_region || 'Kelowna',
+          province: row.province || existingFallback?.province || 'BC',
           legal_description: row.legal_description || '',
-          permit_type: row.permit_type,
+          permit_type: row.permit_type || row.sub_type,
           work_class: row.work_class,
           description: row.description,
           ai_summary: row.ai_summary || existingFallback?.ai_summary || '',
-          estimated_value: Number(row.estimated_value || 0),
-          contractor_name: row.contractor_name || 'Owner / Builder',
+          estimated_value: Number(row.estimated_value || row.value || 0),
+          contractor_name: row.contractor_name || row.contractor || 'Owner / Builder',
           contractor_phone: isValidPhoneNumber(row.contractor_phone) ? row.contractor_phone : undefined,
           contractor_email: isValidEmail(row.contractor_email) ? row.contractor_email : undefined,
-          applicant_name: row.applicant_name || row.contractor_name,
+          applicant_name: row.applicant_name || row.applicant || row.contractor_name,
           status: row.status || 'Issued',
           latitude: Number(row.latitude || 49.888),
           longitude: Number(row.longitude || -119.496),
+          tier: row.tier || existingFallback?.tier || 2,
+          verified_builder: row.verified_builder || existingFallback?.verified_builder,
           trades: trades.length > 0 ? trades : (existingFallback?.trades || [])
         };
       });
@@ -102,7 +114,7 @@ export class PermitsRepository {
       this.cachedPermits = enrichedMapped;
       return enrichedMapped;
     } catch {
-      return this.cachedPermits;
+      return this.getPermitsByCity(citySlug);
     }
   }
 
@@ -114,33 +126,114 @@ export class PermitsRepository {
   }
 
   /**
-   * Retrieves permits filtered by active city ('kelowna', 'calgary', or undefined)
+   * Retrieves permits strictly filtered by active city ('WHERE city_slug = X')
    */
   public static getPermitsByCity(cityId?: string): Permit[] {
     if (!cityId || cityId === 'all') {
       return this.cachedPermits;
     }
-    const target = cityId.toLowerCase();
-    if (target === 'calgary') {
-      return this.cachedPermits.filter(
-        (p) => (p.city_region || '').toLowerCase() === 'calgary' || p.address.toLowerCase().includes('calgary')
-      );
-    }
-    if (target === 'kelowna') {
-      return this.cachedPermits.filter(
-        (p) => (p.city_region || '').toLowerCase() !== 'calgary' && !p.address.toLowerCase().includes('calgary')
-      );
-    }
-    return this.cachedPermits;
+    const target = cityId.toLowerCase().trim();
+    return this.cachedPermits.filter((p) => {
+      const slug = (p.city_slug || '').toLowerCase().trim();
+      const region = (p.city_region || '').toLowerCase().trim();
+      const addr = (p.address || '').toLowerCase();
+
+      if (slug === target) return true;
+      if (region === target) return true;
+      if (target === 'calgary' && (region === 'calgary' || addr.includes('calgary'))) return true;
+      if (target === 'kelowna' && (region === 'kelowna' || (!slug && !addr.includes('calgary')))) return true;
+      return false;
+    });
   }
 
   /**
-   * Appends or updates permits in the cache (e.g. freshly ingested Calgary Socrata permits)
+   * Retrieves active cities with permit count and metrics
+   */
+  public static getActiveCities(): Array<{
+    slug: string;
+    name: string;
+    province: string;
+    permitCount: number;
+    totalValue: number;
+    tier1Count: number;
+  }> {
+    const cityMap = new Map<string, { slug: string; name: string; province: string; permitCount: number; totalValue: number; tier1Count: number }>();
+    
+    for (const p of this.cachedPermits) {
+      const slug = (p.city_slug || (p.city_region || '').toLowerCase() || 'kelowna').toLowerCase().trim();
+      const existing = cityMap.get(slug) || {
+        slug,
+        name: p.city_region || (slug.charAt(0).toUpperCase() + slug.slice(1)),
+        province: p.province || 'BC',
+        permitCount: 0,
+        totalValue: 0,
+        tier1Count: 0
+      };
+      existing.permitCount += 1;
+      existing.totalValue += Number(p.estimated_value || p.value || 0);
+      if (p.tier === 1 || p.verified_builder) {
+        existing.tier1Count += 1;
+      }
+      cityMap.set(slug, existing);
+    }
+
+    return Array.from(cityMap.values()).sort((a, b) => b.totalValue - a.totalValue);
+  }
+
+  /**
+   * Global Dashboard Aggregation across all active BPP Canadian cities
+   */
+  public static getGlobalDashboardMetrics(): {
+    totalPermits: number;
+    totalPipelineValue: number;
+    totalVerifiedCount: number;
+    overallVerifiedRatio: number;
+    activeCitiesCount: number;
+    cities: Array<{
+      slug: string;
+      name: string;
+      province: string;
+      permitCount: number;
+      totalValue: number;
+      tier1Count: number;
+      verifiedRatio: number;
+    }>;
+    recentPermits: Permit[];
+  } {
+    const cities = this.getActiveCities().map((c) => ({
+      ...c,
+      verifiedRatio: c.permitCount > 0 ? (c.tier1Count / c.permitCount) : 0
+    }));
+
+    const totalPermits = this.cachedPermits.length;
+    const totalPipelineValue = this.cachedPermits.reduce((acc, p) => acc + Number(p.estimated_value || p.value || 0), 0);
+    const totalVerifiedCount = this.cachedPermits.filter((p) => p.tier === 1 || p.verified_builder).length;
+    const overallVerifiedRatio = totalPermits > 0 ? totalVerifiedCount / totalPermits : 0;
+    const recentPermits = [...this.cachedPermits]
+      .sort((a, b) => (b.issue_date || b.approval_date || '').localeCompare(a.issue_date || a.approval_date || ''))
+      .slice(0, 10);
+
+    return {
+      totalPermits,
+      totalPipelineValue,
+      totalVerifiedCount,
+      overallVerifiedRatio,
+      activeCitiesCount: cities.length,
+      cities,
+      recentPermits
+    };
+  }
+
+  /**
+   * Appends or updates permits in the cache (e.g. freshly ingested Canadian municipal permits)
    */
   public static appendPermits(newPermits: Permit[]): void {
-    const existingIds = new Set(this.cachedPermits.map((p) => p.id));
-    const toAdd = newPermits.filter((p) => !existingIds.has(p.id));
-    this.cachedPermits = [...this.cachedPermits, ...toAdd];
+    const existingMap = new Map(this.cachedPermits.map((p) => [`${(p.city_slug || 'kelowna').toLowerCase()}:${p.permit_number.toLowerCase()}`, p]));
+    for (const p of newPermits) {
+      const key = `${(p.city_slug || 'kelowna').toLowerCase()}:${p.permit_number.toLowerCase()}`;
+      existingMap.set(key, enrichPermitWithBuilder(p));
+    }
+    this.cachedPermits = Array.from(existingMap.values());
   }
 
   /**
