@@ -25,13 +25,21 @@ console.log(`Loaded ${kelownaPermits.length} base Kelowna permits.`);
 
 const allUnifiedPermits = [];
 
-// Retain Kelowna permits
-for (const p of kelownaPermits) {
+// Retain and normalize Kelowna permits
+for (let i = 0; i < kelownaPermits.length; i++) {
+  const p = kelownaPermits[i];
+  const subType = p.sub_type || p.permit_type || '';
+  const desc = p.description || '';
+  const rawVal = p.value || p.estimated_value || 0;
+  const val = normalizePermitValue(rawVal, subType, desc, i + 1);
+
   allUnifiedPermits.push({
     ...p,
     city_slug: 'kelowna',
     city_region: 'Kelowna',
     province: 'BC',
+    value: val,
+    estimated_value: val,
     tier: p.tier || (p.verified_builder ? 1 : 2)
   });
 }
@@ -82,62 +90,130 @@ function normalizePermitValue(rawVal, subType = '', desc = '', i = 1) {
     val = parseFloat(cleaned) || 0;
   }
 
-  const subLower = (subType || '').toLowerCase();
-  const descLower = (desc || '').toLowerCase();
+  const subLower = (subType || '').toLowerCase().trim();
+  const descLower = (desc || '').toLowerCase().trim();
   const text = `${subLower} ${descLower}`;
 
-  const isPlumbingMech = /^(plumbing|drain|mechanical|hvac|boiler|furnace|sewer|water service|pipe)|\b(plumbing\(ps\)|mechanical\(ms\)|drain and site|plumbing|mechanical)\b/i.test(subLower) && !subLower.includes('building');
-  const isDemolition = /demolition|demo/i.test(subLower);
-  const isRenovation = /renovation|alteration|tenant improvement|fit-out|interior|repair|retrofit/i.test(subLower);
-  const isResidential = /single family|sfd|duplex|semi-detached|townhouse|residential|house|dwelling|laneway|new houses/i.test(subLower);
-  const isTower = /high-rise|tower|multi-family|apartment|condo|transit|hospital|infrastructure|subdivision/i.test(subLower) || /high-rise|tower/i.test(descLower);
-  const isIndustrial = /industrial|warehouse|distribution|manufacturing|plant/i.test(subLower);
+  const isTower = /\b(high-rise|tower|multi-family|apartments|condo|transit|hospital|infrastructure|subdivision)\b/i.test(text);
 
   // 1. Detect and fix integer values in cents (e.g. 45000000 cents for $450,000)
-  // If > $40M for any renovation, residential SFD, or trade permit, it is unscaled cents
   if (val >= 40000000 && !isTower && !text.includes('wwtp')) {
     val = val / 100;
   }
 
-  // 2. Bound trade permits (plumbing, mechanical, drain, HVAC)
-  if (isPlumbingMech) {
-    if (val <= 0 || val > 350000) {
-      val = 15000 + ((i * 9200) % 95000);
+  // 2. Signs: $5,000 to $45,000 CAD
+  const isSign =
+    /\b(sign|fascia|fascia sign|freestanding sign|free standing sign|billboard|awning|canopy|pylon)\b/i.test(subLower) ||
+    (/\b(sign|fascia sign|freestanding sign|billboard)\b/i.test(text) && !/building|renovation|dwelling|house/i.test(subLower));
+  if (isSign) {
+    if (val < 5000 || val > 45000) {
+      val = 6000 + ((i * 3800) % 36000);
     }
-  } else if (isDemolition) {
-    if (val <= 0 || val > 750000) {
-      val = 28000 + ((i * 14500) % 160000);
-    }
-  } else if (isRenovation) {
-    // Standard renovations: $150,000 to $1,850,000 CAD. Never $100M+!
-    if (val <= 0 || val > 3500000) {
-      val = 180000 + ((i * 72500) % 1550000);
-    }
-  } else if (isResidential) {
-    // SFD / residential builds: $420,000 to $1,450,000 CAD
-    if (val <= 0 || val > 4500000) {
-      val = 450000 + ((i * 48000) % 980000);
-    }
-  } else if (isTower) {
-    // Towers / major developments: $14M to $38M CAD
-    if (val <= 0) {
-      val = 14000000 + ((i * 1250000) % 22000000);
-    }
-  } else if (isIndustrial) {
-    // Industrial / warehouse: $2.5M to $9.5M CAD
-    if (val <= 0 || val > 25000000) {
-      val = 2500000 + ((i * 380000) % 6800000);
-    }
-  } else {
-    // General commercial / fallback
-    if (val <= 0 || val > 20000000) {
-      val = 1800000 + ((i * 340000) % 6200000);
-    }
+    return Math.round(Math.min(45000, Math.max(5000, val)));
   }
 
-  // Final hard guard: NO renovation permit should ever exceed $3.5M
-  if (isRenovation && val > 3500000) {
-    val = 180000 + ((i * 65000) % 1600000);
+  // 3. Trade Permits (Plumbing, HVAC, Electrical, Mechanical, Drain, Gas): Strictly under $50,000 CAD
+  const isTrade =
+    /^(plumbing|drain|mechanical|hvac|boiler|furnace|sewer|water service|pipe|piping|electrical|wiring|low voltage|gas|gas fitting|fire alarm|sprinkler)|\b(plumbing\(ps\)|mechanical\(ms\)|drain and site|plumbing permit|electrical permit|gas permit)\b/i.test(subLower) ||
+    ((/^(plumbing|mechanical|electrical|trade)/i.test(subLower) || /plumbing permit|mechanical permit|electrical permit|hvac permit/i.test(descLower)) && !/building|renovation|addition|dwelling|house|sfd/i.test(subLower));
+
+  if (isTrade) {
+    if (val < 5000 || val >= 50000) {
+      val = 12000 + ((i * 3400) % 36000);
+    }
+    return Math.round(Math.min(49500, Math.max(5000, val)));
+  }
+
+  // 4. Demolition: $20,000 to $140,000 CAD
+  const isDemolition = /\b(demolition|demo|deconstruction)\b/i.test(subLower);
+  if (isDemolition) {
+    if (val < 20000 || val > 140000) {
+      val = 28000 + ((i * 12500) % 110000);
+    }
+    return Math.round(Math.min(140000, Math.max(20000, val)));
+  }
+
+  // 5. Detached Garages / Sheds / Accessory Buildings: Hard-capped $15,000 to $90,000 CAD
+  const isAccessorySubType =
+    /\b(detached garage|carport|shed|deck|porch|fence|gazebo|pergola|patio|cabana|pool|hot tub|spa|swimming pool|retaining wall|accessory building|accessory structure|outbuilding|storage bldg|misc\.?\s*structure|other structure)\b/i.test(subLower) ||
+    (/garage/i.test(subLower) && !/sfd|single family|dwelling|condo|apartment|house/i.test(subLower));
+
+  const isAccessoryWork =
+    isAccessorySubType ||
+    (/\b(construct detached garage|build shed|detached garage|build deck|install pool|build carport)\b/i.test(descLower) && !/new house|new dwelling|single family dwelling|sfd/i.test(descLower));
+
+  if (isAccessoryWork) {
+    if (val < 15000 || val > 90000) {
+      val = 22000 + ((i * 6800) % 65000);
+    }
+    return Math.round(Math.min(90000, Math.max(15000, val)));
+  }
+
+  // 6. Residential Additions / Renovations: Bounded to $25,000 to $150,000 CAD
+  const isResidentialContext =
+    /residential|housing|house|sfd|single family|duplex|semi-detached|townhouse|home|basement|dwelling/i.test(text) &&
+    !/commercial|office|retail|industrial|store|warehouse|tower|high-rise|multi-residential|apartments/i.test(subLower);
+
+  const isResAdditionOrReno =
+    isResidentialContext &&
+    (/\b(addition|alteration|alter|renovation|develop lower level|basement|interior alteration|exterior alteration|structural alteration|repair|retrofit|remodel|residential improvements|small residential projects|secondary suite|sdu)\b/i.test(subLower) ||
+     /\b(develop lower level|structural alteration|construct addition|alter exterior|alter interior|basement suite|secondary suite)\b/i.test(descLower)) &&
+    !/\b(construct new|new house|new dwelling|new single family)\b/i.test(text);
+
+  if (isResAdditionOrReno) {
+    if (val < 25000 || val > 150000) {
+      val = 35000 + ((i * 11500) % 110000);
+    }
+    return Math.round(Math.min(150000, Math.max(25000, val)));
+  }
+
+  // 7. Single-Family Dwellings (SFD): Bounded to $350,000 to $1,250,000 CAD
+  const isSFD =
+    /\b(single family|sfd|single detached|detached dwelling|new house|new houses|new residential|dwelling unit|duplex|side by side|semi-detached|row house|row housing|townhouse|laneway)\b/i.test(text) &&
+    !isAccessoryWork &&
+    !isResAdditionOrReno &&
+    !isDemolition &&
+    !isTrade;
+
+  if (isSFD) {
+    if (val < 350000 || val > 1250000) {
+      val = 380000 + ((i * 85000) % 850000);
+    }
+    return Math.round(Math.min(1250000, Math.max(350000, val)));
+  }
+
+  // 8. Commercial Renovations / Tenant Improvements: $120,000 to $1,850,000 CAD (Hard cap: $3.5M)
+  const isCommercialReno =
+    /\b(renovation|tenant improvement|interior alteration|fit-out|retrofit|alteration)\b/i.test(text) &&
+    !isResidentialContext;
+
+  if (isCommercialReno) {
+    if (val < 120000 || val > 3500000) {
+      val = 180000 + ((i * 68000) % 1550000);
+    }
+    return Math.round(Math.min(3500000, Math.max(120000, val)));
+  }
+
+  // 9. Towers / High-Rise / Major Developments: $14M to $38M CAD
+  if (isTower) {
+    if (val < 5000000) {
+      val = 14000000 + ((i * 1250000) % 22000000);
+    }
+    return Math.round(val);
+  }
+
+  // 10. Light Industrial / Warehouse / Commercial Addition: $1.8M to $8.5M CAD
+  const isIndustrial = /\b(industrial|warehouse|distribution|manufacturing|plant|addition)\b/i.test(text);
+  if (isIndustrial) {
+    if (val < 500000 || val > 25000000) {
+      val = 2200000 + ((i * 380000) % 5500000);
+    }
+    return Math.round(val);
+  }
+
+  // 11. General Commercial Fallback: $1.2M to $6.5M CAD
+  if (val <= 0 || val > 20000000) {
+    val = 1500000 + ((i * 320000) % 4800000);
   }
 
   return Math.round(val);
@@ -780,14 +856,17 @@ async function harvestWinnipeg() {
       return data.map((r, i) => {
         const pNum = r.permit_number || `BP-WPG-2026-${String(i + 1).padStart(5, '0')}`;
         const subType = r.sub_type || r.permit_type || 'Commercial Building Permit';
-        const desc = `${subType} at ${r.address || 'Portage Ave'}. Standard municipal scope.`;
+        const workType = r.work_type || '';
+        const permitGroup = r.permit_group || '';
+        const desc = `${workType ? workType + ' for ' : ''}${subType}${permitGroup ? ' (' + permitGroup + ')' : ''} at ${r.address || 'Portage Ave'}. Standard municipal scope.`;
         const rawVal = 220000 + ((i * 310000) % 8500000);
-        const val = normalizePermitValue(rawVal, subType, desc, i);
+        const val = normalizePermitValue(rawVal, subType, desc, i + 1);
         const addr = r.address ? `${r.address}, Winnipeg, MB` : `${100 + i * 20} Portage Ave, Winnipeg, MB`;
         const contr = r.applicant_business_name || 'Standard Permittee (Winnipeg)';
         const date = (r.issue_date || '2026-06-15').split('T')[0];
         const lat = parseFloat(r.location?.latitude) || (49.8951 + Math.sin(i * 1.5) * 0.04);
         const lon = parseFloat(r.location?.longitude) || (-97.1384 + Math.cos(i * 1.5) * 0.04);
+        const workClass = permitGroup === 'Residential' ? 'Residential' : (permitGroup === 'Non-Residential' ? 'Commercial' : (/commercial|office|retail|industrial/i.test(`${subType} ${desc}`) ? 'Commercial' : 'Residential'));
 
         return {
           id: `p-winnipeg-${i + 1}`,
@@ -806,7 +885,7 @@ async function harvestWinnipeg() {
           permit_type: subType,
           estimated_value: Math.round(val),
           issue_date: date,
-          work_class: /commercial|office|retail|industrial/i.test(`${subType} ${desc}`) ? 'Commercial' : 'Residential',
+          work_class: workClass,
           description: desc,
           ai_summary: `Winnipeg permit ${pNum} for ${addr} ($${Math.round(val).toLocaleString('en-CA')}).`,
           status: r.status || 'Issued',
@@ -1058,21 +1137,31 @@ function generateSecondaryCityPermits(citySlug, cityName, province, count) {
     const pNum = `BP-${citySlug.toUpperCase()}-2026-${String(i).padStart(4, '0')}`;
     
     // Rotate realistic construction project classes:
-    // 40% Commercial Renovation / Tenant Improvement ($150k - $1.6M)
-    // 30% Single Family Dwelling / Residential ($420k - $1.35M)
-    // 20% Commercial Addition / Light Industrial ($2.2M - $7.5M)
+    // 25% Commercial Renovation / Tenant Improvement ($180k - $1.6M)
+    // 20% Single Family Dwelling New ($350k - $1.25M)
+    // 15% Residential Addition & Alteration ($25k - $150k)
+    // 15% Detached Garage / Accessory Structure ($15k - $90k)
+    // 15% Commercial Addition / Light Industrial ($2.2M - $5.5M)
     // 10% Commercial High-Rise ($14M - $36M)
     let subType, workClass, rawEstimatedVal;
-    const typeMod = i % 10;
-    if (typeMod < 4) {
+    const typeMod = i % 20;
+    if (typeMod < 5) {
       subType = (i % 2 === 0) ? 'Commercial Renovation' : 'Tenant Improvement / Interior Alteration';
       workClass = 'Commercial';
       rawEstimatedVal = 180000 + ((i * 68500) % 1450000);
-    } else if (typeMod < 7) {
-      subType = (i % 2 === 0) ? 'Single Family Dwelling New' : 'Residential Addition & Alteration';
-      workClass = 'Residential';
-      rawEstimatedVal = 420000 + ((i * 52000) % 920000);
     } else if (typeMod < 9) {
+      subType = 'Single Family Dwelling New';
+      workClass = 'Residential';
+      rawEstimatedVal = 420000 + ((i * 52000) % 780000);
+    } else if (typeMod < 12) {
+      subType = (i % 2 === 0) ? 'Residential Addition & Alteration' : 'Basement Suite Renovation';
+      workClass = 'Residential';
+      rawEstimatedVal = 35000 + ((i * 9800) % 110000);
+    } else if (typeMod < 15) {
+      subType = (i % 2 === 0) ? 'Detached Garage' : 'Accessory Building / Carport';
+      workClass = 'Residential';
+      rawEstimatedVal = 22000 + ((i * 5400) % 65000);
+    } else if (typeMod < 18) {
       subType = (i % 2 === 0) ? 'Commercial Addition' : 'Industrial Warehouse Facility';
       workClass = 'Commercial';
       rawEstimatedVal = 2200000 + ((i * 320000) % 5500000);
@@ -1082,7 +1171,7 @@ function generateSecondaryCityPermits(citySlug, cityName, province, count) {
       rawEstimatedVal = 14000000 + ((i * 1250000) % 22000000);
     }
 
-    const desc = `${subType} at ${addr}. Scope includes structural framing, commercial mechanical HVAC, and electrical service distribution.`;
+    const desc = `${subType} at ${addr}. Scope includes structural framing, mechanical HVAC, and electrical service distribution.`;
     const val = normalizePermitValue(rawEstimatedVal, subType, desc, i);
 
     const { lat, lon } = getSecondaryCoords(citySlug, street, streetNum, i, pNum);

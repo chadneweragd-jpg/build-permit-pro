@@ -1,6 +1,7 @@
 import { Permit, WorkClass, MatchedTrade } from '@/types';
 import { matchPermitBuilder } from '@/lib/builders-service';
 import { SUBTRADES_CATALOG } from '@/lib/trades-data';
+import { normalizePermitValue } from './connectors/valuation-normalizer';
 
 export interface CalgarySocrataRecord {
   permitnum: string;
@@ -149,9 +150,10 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
   const workClass = mapCalgaryWorkClass(record);
   const permitType = record.permittype || record.permitclassgroup || 'Building Project';
   const desc = record.description || `${record.workclass || 'Building'} work in ${record.communityname || 'Calgary'}`;
+  const normalizedVal = normalizePermitValue(rawCost, permitType, desc);
   
   const community = record.communityname ? ` (${record.communityname})` : '';
-  const aiSummary = `${workClass} ${permitType}${community}: ${desc}. Valuation: $${new Intl.NumberFormat('en-CA').format(rawCost)}.`;
+  const aiSummary = `${workClass} ${permitType}${community}: ${desc}. Valuation: $${new Intl.NumberFormat('en-CA').format(normalizedVal)}.`;
 
   const trades = detectTrades(desc, workClass);
 
@@ -190,7 +192,7 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
     work_class: workClass,
     description: desc,
     ai_summary: aiSummary,
-    estimated_value: rawCost,
+    estimated_value: normalizedVal,
     contractor_name: contractor,
     contractor_phone: cleanPhone,
     contractor_email: cleanEmail,

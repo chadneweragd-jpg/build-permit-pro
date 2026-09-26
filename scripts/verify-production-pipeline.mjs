@@ -7,6 +7,17 @@ import { PermitsRepository } from '../src/lib/permits-repo';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL && fs.existsSync(path.resolve(__dirname, '../.env.local'))) {
+  const envContent = fs.readFileSync(path.resolve(__dirname, '../.env.local'), 'utf8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [k, ...v] = trimmed.split('=');
+      process.env[k.trim()] = v.join('=').trim().replace(/^['"]|['"]$/g, '');
+    }
+  }
+}
+
 // Supabase client initialization
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
