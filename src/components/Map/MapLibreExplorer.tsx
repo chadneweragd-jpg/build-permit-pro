@@ -10,6 +10,7 @@ interface MapLibreExplorerProps {
   permits: Permit[];
   selectedPermit: Permit | null;
   onSelectPermit: (permit: Permit) => void;
+  onSelectPermitId?: (permitId: string) => void;
   center?: [number, number]; // [lng, lat]
   zoom?: number;
 }
@@ -18,11 +19,18 @@ export const MapLibreExplorer: React.FC<MapLibreExplorerProps> = ({
   permits,
   selectedPermit,
   onSelectPermit,
+  onSelectPermitId,
   center = [-119.4960, 49.8880],
   zoom = 12
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const permitsRef = useRef<Permit[]>(permits);
+  permitsRef.current = permits;
+  const onSelectPermitRef = useRef(onSelectPermit);
+  onSelectPermitRef.current = onSelectPermit;
+  const onSelectPermitIdRef = useRef(onSelectPermitId);
+  onSelectPermitIdRef.current = onSelectPermitId;
   const [isHeatmapVisible, setIsHeatmapVisible] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -249,9 +257,12 @@ export const MapLibreExplorer: React.FC<MapLibreExplorerProps> = ({
         const feature = e.features?.[0];
         if (feature) {
           const permitId = feature.properties?.id;
-          const found = permits.find((p) => p.id === permitId);
-          if (found) {
-            onSelectPermit(found);
+          if (permitId && onSelectPermitIdRef.current) {
+            onSelectPermitIdRef.current(permitId);
+          }
+          const found = permitsRef.current.find((p) => p.id === permitId || p.permit_number === permitId);
+          if (found && onSelectPermitRef.current) {
+            onSelectPermitRef.current(found);
           }
         }
       });

@@ -19,6 +19,7 @@ export interface MapContainerProps {
   permits?: Permit[];
   selectedPermit?: Permit | null;
   onSelectPermit?: (permit: Permit) => void;
+  onSelectPermitId?: (permitId: string) => void;
   onAddToRoute?: (permit: Permit) => void;
   center?: [number, number]; // [lng, lat]
   zoom?: number;
@@ -34,6 +35,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
   permits = [],
   selectedPermit = null,
   onSelectPermit,
+  onSelectPermitId,
   onAddToRoute,
   center = [-119.4960, 49.8880],
   zoom = 12,
@@ -174,12 +176,21 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         `;
       }
 
-      el.addEventListener('click', (e) => {
+      el.setAttribute('data-permit-id', permit.id);
+      el.setAttribute('data-permit-number', permit.permit_number);
+
+      const handleMarkerClick = (e: Event) => {
         e.stopPropagation();
+        const pId = permit.id || permit.permit_number;
+        if (onSelectPermitId) {
+          onSelectPermitId(pId);
+        }
         if (onSelectPermit) {
           onSelectPermit(permit);
         }
-      });
+      };
+
+      el.addEventListener('click', handleMarkerClick);
 
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([lng, lat])
@@ -187,7 +198,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
       markersRef.current.push(marker);
     });
-  }, [permits, selectedPermit, onSelectPermit, mapLoaded]);
+  }, [permits, selectedPermit, onSelectPermit, onSelectPermitId, mapLoaded]);
 
   // Smoothly pan/fly to selected permit
   useEffect(() => {

@@ -23,8 +23,10 @@ function makeSeedPermits(
   }>
 ): UnifiedPermit[] {
   return records.map((r, i) => {
-    const lat = coords[0] + (Math.sin(i * 1.5) * 0.04);
-    const lon = coords[1] + (Math.cos(i * 1.5) * 0.04);
+    const gridX = ((i * 11) % 30) - 15;
+    const gridY = ((i * 17) % 30) - 15;
+    const lat = coords[0] + (gridY * 0.002);
+    const lon = coords[1] + (gridX * 0.003);
     const wClass = r.workClass || (/commercial|office|retail|industrial|multi|tower/i.test(`${r.subType} ${r.desc}`) ? 'Commercial' : 'Residential');
     return {
       id: `p-${citySlug}-${i + 1}`,

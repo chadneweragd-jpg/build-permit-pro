@@ -93,12 +93,19 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
     setTimeout(() => setPipelineToast(null), 4000);
   };
 
-  const isCalgaryPermit =
-    permit.city_region?.toLowerCase() === 'calgary' ||
-    permit.address.toLowerCase().includes('calgary') ||
-    permit.address.toLowerCase().includes(' ab');
-  const cityDisplay = permit.city_region || (isCalgaryPermit ? 'Calgary' : 'Kelowna');
-  const provDisplay = isCalgaryPermit ? 'AB' : 'BC';
+  const provMap: Record<string, string> = {
+    vancouver: 'BC', surrey: 'BC', burnaby: 'BC', richmond: 'BC', coquitlam: 'BC', kelowna: 'BC',
+    calgary: 'AB', edmonton: 'AB',
+    toronto: 'ON', mississauga: 'ON', brampton: 'ON', markham: 'ON', vaughan: 'ON', hamilton: 'ON', ottawa: 'ON', 'kitchener-waterloo': 'ON',
+    winnipeg: 'MB'
+  };
+
+  const rawSlug = (permit.city_slug || '').toLowerCase().trim();
+  const rawRegion = (permit.city_region || '').toLowerCase().trim();
+  const matchedSlug = Object.keys(provMap).find((k) => rawSlug === k || rawRegion.includes(k) || rawRegion.replace(/\s+/g, '-') === k);
+
+  const cityDisplay = permit.city_region || (matchedSlug ? (matchedSlug.charAt(0).toUpperCase() + matchedSlug.slice(1)) : (permit.city_slug ? (permit.city_slug.charAt(0).toUpperCase() + permit.city_slug.slice(1)) : 'Kelowna'));
+  const provDisplay = permit.province || (matchedSlug ? provMap[matchedSlug] : 'BC');
 
   return (
     <aside
@@ -121,7 +128,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
               </span>
             ) : (
               <span className="text-[10px] font-bold text-slate-400 bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                {isCalgaryPermit ? 'Standard Permittee (Calgary)' : 'Standard Permittee (Kelowna)'}
+                Standard Permittee ({cityDisplay})
               </span>
             )}
           </div>
@@ -280,8 +287,18 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           </Link>
           <a
             href={
-              isCalgaryPermit
+              matchedSlug === 'calgary'
                 ? 'https://data.calgary.ca/resource/c2es-76ed.json'
+                : matchedSlug === 'toronto'
+                ? 'https://open.toronto.ca/dataset/building-permits-active-permits/'
+                : matchedSlug === 'vancouver'
+                ? 'https://opendata.vancouver.ca/explore/dataset/issued-building-permits/'
+                : matchedSlug === 'edmonton'
+                ? 'https://data.edmonton.ca/resource/24uj-dj8v.json'
+                : matchedSlug === 'brampton'
+                ? 'https://geohub.brampton.ca/'
+                : matchedSlug === 'winnipeg'
+                ? 'https://data.winnipeg.ca/resource/it4w-cpf4.json'
                 : 'https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits'
             }
             target="_blank"
@@ -289,7 +306,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>{isCalgaryPermit ? 'Calgary Open Data' : 'Kelowna Registry'}</span>
+            <span>{cityDisplay} Portal</span>
           </a>
         </div>
         {/* Valuation & Issue Date Metric Bar */}

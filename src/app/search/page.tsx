@@ -52,19 +52,18 @@ function SearchExplorerContent() {
     return () => window.removeEventListener('bpp:city-change', handleCityChange);
   }, []);
 
-  // Fetch live Calgary Socrata permits if Calgary is active
+  // Fetch live permits for activeCityId from Supabase via API
   useEffect(() => {
-    if (activeCityId === 'calgary') {
-      fetch('/api/ingest/calgary?limit=150')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.permits && data.permits.length > 0) {
-            PermitsRepository.appendPermits(data.permits);
-            setPermitsList(PermitsRepository.getAllPermits());
-          }
-        })
-        .catch(() => {});
-    }
+    if (!activeCityId || activeCityId === 'all') return;
+    fetch(`/api/permits?city=${encodeURIComponent(activeCityId)}&dateRange=2026`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.permits && data.permits.length > 0) {
+          PermitsRepository.appendPermits(data.permits);
+          setPermitsList(PermitsRepository.getAllPermits());
+        }
+      })
+      .catch(() => {});
   }, [activeCityId]);
 
   const cityConfig = getActiveCityConfig(activeCityId);
@@ -81,8 +80,8 @@ function SearchExplorerContent() {
   // Mobile Map vs. List Toggle View
   const [mobileView, setMobileView] = useState<'map' | 'list'>('list');
 
-  // Selected Permit for slideout detail sheet
-  const [selectedPermit, setSelectedPermit] = useState<Permit | null>(allPermits[0] || null);
+  // Selected Permit for slideout detail sheet (initialized to null to prevent Kelowna bleed on secondary cities)
+  const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
 
   // Sync with bpp:global-search custom event & popstate
   useEffect(() => {
@@ -243,6 +242,81 @@ function SearchExplorerContent() {
     });
   }, [allPermits, activeCityId, searchQuery, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
+  // Synchronize selected permit when city changes (prevent Kelowna record stuck on secondary cities)
+  useEffect(() => {
+    if (!filteredPermits.length) {
+      setSelectedPermit(null);
+      return;
+    }
+    if (permitIdParam) return; // Handled by permitIdParam effect
+
+    if (selectedPermit && activeCityId !== 'all') {
+      const pSlug = (selectedPermit.city_slug || '').toLowerCase().trim();
+      const pRegion = (selectedPermit.city_region || '').toLowerCase().trim();
+      const target = activeCityId.toLowerCase().trim();
+      const matchesCity = pSlug === target || pRegion === target || pRegion.replace(/\s+/g, '-') === target;
+      if (!matchesCity) {
+        setSelectedPermit(filteredPermits[0] || null);
+      }
+    } else if (!selectedPermit) {
+      setSelectedPermit(filteredPermits[0] || null);
+    }
+  }, [activeCityId, filteredPermits]);
+
+  // Robust Map & Card Permit Selection Handler (passes and fetches exact permit ID)
+  const handleSelectPermit = async (permitOrId: Permit | string) => {
+    const pId = typeof permitOrId === 'string' ? permitOrId : (permitOrId.id || permitOrId.permit_number);
+    if (!pId) return;
+
+    if (typeof permitOrId === 'object' && permitOrId.id && permitOrId.address) {
+      setSelectedPermit(permitOrId);
+      const params = new URLSearchParams(window.location.search);
+      params.set('permitId', permitOrId.id);
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+      return;
+    }
+
+    // 1. Search in active filtered permits
+    let match = filteredPermits.find(
+      (p) => p.id.toLowerCase() === pId.toLowerCase() || p.permit_number.toLowerCase() === pId.toLowerCase()
+    );
+
+    // 2. Search in all loaded permits
+    if (!match) {
+      match = allPermits.find(
+        (p) => p.id.toLowerCase() === pId.toLowerCase() || p.permit_number.toLowerCase() === pId.toLowerCase()
+      );
+    }
+
+    // 3. Search in repository cache
+    if (!match) {
+      match = PermitsRepository.getPermitById(pId);
+    }
+
+    // 4. Fetch live from /api/permits?id=...
+    if (!match) {
+      try {
+        const res = await fetch(`/api/permits?id=${encodeURIComponent(pId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.permit) {
+            match = data.permit;
+            PermitsRepository.appendPermits([match!]);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch permit by ID:', err);
+      }
+    }
+
+    if (match) {
+      setSelectedPermit(match);
+      const params = new URLSearchParams(window.location.search);
+      params.set('permitId', match.id);
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }
+  };
+
   const activeFilterCount =
     (selectedLocation !== 'All Locations' ? 1 : 0) +
     (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types' ? 1 : 0) +
@@ -350,7 +424,7 @@ function SearchExplorerContent() {
                   key={permit.id}
                   permit={permit}
                   isSelected={selectedPermit?.id === permit.id}
-                  onSelect={(p) => setSelectedPermit(p)}
+                  onSelect={(p) => handleSelectPermit(p)}
                   isFavorite={favorites.includes(permit.id)}
                   onToggleFavorite={handleToggleFavorite}
                 />
@@ -370,7 +444,8 @@ function SearchExplorerContent() {
           <MapContainer
             permits={filteredPermits}
             selectedPermit={selectedPermit}
-            onSelectPermit={(p) => setSelectedPermit(p)}
+            onSelectPermit={handleSelectPermit}
+            onSelectPermitId={(id) => handleSelectPermit(id)}
             center={cityConfig.center}
             zoom={cityConfig.zoom}
           />
