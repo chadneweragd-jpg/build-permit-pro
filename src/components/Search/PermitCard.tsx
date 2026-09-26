@@ -82,7 +82,9 @@ export const PermitCard: React.FC<PermitCardProps> = ({
           </span>
         ) : (
           <span className="shrink-0 text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-            Standard Permittee
+            {(permit.city_region?.toLowerCase() === 'calgary' || permit.address?.toLowerCase().includes('calgary') || permit.address?.toLowerCase().includes(', ab'))
+              ? 'Standard Permittee (Calgary)'
+              : 'Standard Permittee (Kelowna)'}
           </span>
         )}
       </div>

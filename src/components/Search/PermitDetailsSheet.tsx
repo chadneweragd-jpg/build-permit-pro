@@ -121,7 +121,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
               </span>
             ) : (
               <span className="text-[10px] font-bold text-slate-400 bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                Standard Permittee
+                {isCalgaryPermit ? 'Standard Permittee (Calgary)' : 'Standard Permittee (Kelowna)'}
               </span>
             )}
           </div>

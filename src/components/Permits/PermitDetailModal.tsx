@@ -270,7 +270,9 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
                       </span>
                     ) : (
                       <span className="text-[10px] font-semibold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                        Standard Permittee
+                        {(permit.city_region?.toLowerCase() === 'calgary' || permit.address?.toLowerCase().includes('calgary') || permit.address?.toLowerCase().includes(', ab'))
+                          ? 'Standard Permittee (Calgary)'
+                          : 'Standard Permittee (Kelowna)'}
                       </span>
                     )}
                   </div>

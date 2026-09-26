@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { getCoreName } from '@/lib/builders-service';
+import { getCoreName, calculateTrigramSimilarity } from '@/lib/builders-service';
 import { ExternalLink, Search, ShieldAlert, PhoneOff, Mail } from 'lucide-react';
 
 export interface BuilderDossierProps {
@@ -16,6 +16,7 @@ export interface BuilderDossierProps {
     value?: number | string;
     estimated_value?: number | string;
     tier?: number;
+    verified_builder?: any;
   };
   builder?: {
     company_name: string;
@@ -25,6 +26,8 @@ export interface BuilderDossierProps {
     website?: string;
     physical_address?: string;
     association?: string;
+    city?: string;
+    province?: string;
   } | null;
 }
 
@@ -32,14 +35,28 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
   const contractorName = (permit.contractor_name || builder?.company_name || 'Owner / Builder').trim();
   const permitCore = getCoreName(contractorName);
   const builderCore = builder ? getCoreName(builder.company_name) : '';
+  const city = permit.city_region || permit.city || (permit.address?.toLowerCase().includes('calgary') ? 'Calgary' : 'Kelowna');
+  const isCalgary = city.toLowerCase() === 'calgary';
 
-  // Strict check: builder must be non-null AND core brand names must match
-  const isMatch = Boolean(builder && permitCore && builderCore && permitCore === builderCore);
-  const isVerified = (permit.tier === 1 || permit.tier === undefined) && Boolean(builder) && isMatch;
+  // Strict check: builder must be non-null, core name similarity >= 0.90, and strict city territory match
+  const similarity = builder ? calculateTrigramSimilarity(permitCore, builderCore) : 0;
+  const isCoreMatch = Boolean(
+    builder &&
+    permitCore &&
+    builderCore &&
+    (permitCore === builderCore || similarity >= 0.90)
+  );
+
+  const isCityMatch = builder
+    ? isCalgary
+      ? (builder.city?.toLowerCase() === 'calgary' || builder.province === 'AB')
+      : (builder.city?.toLowerCase() === 'kelowna' || builder.province === 'BC')
+    : false;
+
+  const isVerified = (permit.tier === 1 || permit.tier === undefined) && Boolean(builder) && isCoreMatch && isCityMatch;
 
   const subType = permit.sub_type || permit.permit_type || 'Approved Scope';
   const val = Number(permit.value ?? permit.estimated_value ?? 0);
-  const city = permit.city_region || permit.city || (permit.address.toLowerCase().includes('calgary') ? 'Calgary' : 'Kelowna');
 
   // ---------------------------------------------------------------------------
   // CASE 1: VERIFIED BUILDER DOSSIER (Strict Match)
@@ -85,7 +102,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
             <p><strong className="text-slate-400">Principal / Key Contact:</strong> {builder.key_principal}</p>
           )}
           {builder.physical_address && (
-            <p><strong className="text-slate-400">Office / Address:</strong> {builder.physical_address}</p>
+            <p><strong className="text-slate-400">Head Office Address:</strong> {builder.physical_address}</p>
           )}
           {builder.association && (
             <p><strong className="text-slate-400">Association:</strong> {builder.association}</p>
@@ -150,18 +167,19 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
   // Displays the true permit contractor name (e.g. "SOULEAU CONTRACTING")
   // ---------------------------------------------------------------------------
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${contractorName} ${city} contractor`)}`;
+  const unverifiedBadge = isCalgary ? 'Standard Permittee (Calgary)' : 'Standard Permittee (Kelowna)';
 
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl">
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
-            Standard Permittee Dossier
+            {unverifiedBadge}
           </span>
           <h3 className="text-lg font-bold text-white tracking-tight">{contractorName}</h3>
         </div>
         <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-400 border border-slate-700">
-          Standard Permittee
+          {unverifiedBadge}
         </span>
       </div>
 

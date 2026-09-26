@@ -155,26 +155,26 @@ export function transformCalgaryRecord(record: CalgarySocrataRecord): Permit | n
 
   const trades = detectTrades(desc, workClass);
 
-  // Check contractor against verified directory with strict Calgary / AB constraint & 0.85 threshold
+  // Check contractor against verified directory with strict Calgary constraint & 0.90 threshold
   const matchResult = matchPermitBuilder(contractor, {
     city: 'Calgary',
     province: 'AB',
-    minSimilarity: 0.85
+    minSimilarity: 0.90
   });
 
   const isVerified = matchResult.isVerified && !!matchResult.builder;
   const verifiedBuilder = isVerified ? matchResult.builder : null;
-  const isAlbertaBuilder = verifiedBuilder?.province === 'AB' || verifiedBuilder?.city?.toLowerCase() === 'calgary';
+  const isCalgaryBuilder = verifiedBuilder?.city?.toLowerCase() === 'calgary' || verifiedBuilder?.province === 'AB';
 
-  const cleanPhone = (isVerified && isAlbertaBuilder && !verifiedBuilder?.primary_phone?.includes('(250)'))
+  const cleanPhone = (isVerified && isCalgaryBuilder && !verifiedBuilder?.primary_phone?.includes('(250)'))
     ? verifiedBuilder?.primary_phone
     : undefined;
 
-  const cleanEmail = (isVerified && isAlbertaBuilder && !verifiedBuilder?.email?.includes('bc.ca'))
+  const cleanEmail = (isVerified && isCalgaryBuilder && !verifiedBuilder?.email?.includes('bc.ca'))
     ? verifiedBuilder?.email
     : undefined;
 
-  const finalVerifiedBuilder = (isVerified && isAlbertaBuilder && cleanPhone !== undefined) ? verifiedBuilder : null;
+  const finalVerifiedBuilder = (isVerified && isCalgaryBuilder) ? verifiedBuilder : null;
   const finalTier: 1 | 2 = finalVerifiedBuilder ? 1 : 2;
 
   return {
@@ -249,20 +249,116 @@ export async function fetchCalgaryPermits(limit: number = 100): Promise<Permit[]
 export function getFallbackCalgaryPermits(): Permit[] {
   const sampleRecords: CalgarySocrataRecord[] = [
     {
-      permitnum: 'BP2026-03502',
+      permitnum: 'BP2026-03510',
       statuscurrent: 'Issued Permit',
-      issueddate: '2026-03-07T00:00:00.000',
-      permittype: 'Commercial / Multi Family Project',
+      issueddate: '2026-03-08T00:00:00.000',
+      permittype: 'Multi-Family Residential Project',
       permitclassgroup: 'Apartment',
       permitclassmapped: 'Residential',
-      workclass: 'Alteration',
-      description: 'Interior alterations to multi-tenant commercial & apartment suites',
-      contractorname: 'INTERSCOPE PROJECTS',
-      estprojectcost: '1850000',
-      originaladdress: '836 15 AV SW',
-      communityname: 'BELTLINE',
-      latitude: '51.039194',
-      longitude: '-114.081232'
+      workclass: 'New Construction',
+      description: 'New 6-storey multi-family residential building (84 units) with underground parkade',
+      contractorname: 'TRUMAN HOMES 1995',
+      estprojectcost: '21500000',
+      originaladdress: '1820 14 ST SW',
+      communityname: 'BANKVIEW',
+      latitude: '51.037120',
+      longitude: '-114.095430'
+    },
+    {
+      permitnum: 'BP2026-03505',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-08T00:00:00.000',
+      permittype: 'Single Family New Construction',
+      permitclassgroup: 'Single Family',
+      permitclassmapped: 'Residential',
+      workclass: 'New Construction',
+      description: 'Single detached two-storey dwelling with developed basement and attached garage',
+      contractorname: 'JAYMAN BUILT',
+      estprojectcost: '540000',
+      originaladdress: '142 MAHOGANY WAY SE',
+      communityname: 'MAHOGANY',
+      latitude: '50.902140',
+      longitude: '-113.931250'
+    },
+    {
+      permitnum: 'BP2026-03500',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-07T00:00:00.000',
+      permittype: 'Single Family New Construction',
+      permitclassgroup: 'Single Family',
+      permitclassmapped: 'Residential',
+      workclass: 'New Construction',
+      description: 'Two-storey single family dwelling with basement secondary suite and double garage',
+      contractorname: 'MORRISON HOMES (CALGARY)',
+      estprojectcost: '610000',
+      originaladdress: '58 LIVINGSTON GATE NE',
+      communityname: 'LIVINGSTON',
+      latitude: '51.182410',
+      longitude: '-114.062890'
+    },
+    {
+      permitnum: 'BP2026-03495',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-07T00:00:00.000',
+      permittype: 'Single Family New Construction',
+      permitclassgroup: 'Single Family',
+      permitclassmapped: 'Residential',
+      workclass: 'New Construction',
+      description: 'Single family residential home with front-drive double attached garage',
+      contractorname: 'SHANE HOMES',
+      estprojectcost: '495000',
+      originaladdress: '84 BELMONT DRIVE SW',
+      communityname: 'BELMONT',
+      latitude: '50.871230',
+      longitude: '-114.072140'
+    },
+    {
+      permitnum: 'BP2026-03490',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-06T00:00:00.000',
+      permittype: 'Single Family Dwelling New',
+      permitclassgroup: 'Single Family',
+      permitclassmapped: 'Residential',
+      workclass: 'New Construction',
+      description: 'New two-storey residential dwelling with finished basement suite',
+      contractorname: 'CEDARGLEN GROUP (THE)',
+      estprojectcost: '580000',
+      originaladdress: '32 SETON PASS SE',
+      communityname: 'SETON',
+      latitude: '50.884120',
+      longitude: '-113.962140'
+    },
+    {
+      permitnum: 'BP2026-03485',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-06T00:00:00.000',
+      permittype: 'Residential Master Build',
+      permitclassgroup: 'Single Family',
+      permitclassmapped: 'Residential',
+      workclass: 'New Construction',
+      description: 'Master planned single family home with attached garage and solar rough-in',
+      contractorname: 'BROOKFIELD RESIDENTIAL (ALBERTA)',
+      estprojectcost: '625000',
+      originaladdress: '112 CRANSTON PARK SE',
+      communityname: 'CRANSTON',
+      latitude: '50.875410',
+      longitude: '-113.984120'
+    },
+    {
+      permitnum: 'BP2026-03480',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-06T00:00:00.000',
+      permittype: 'Commercial Office Development',
+      permitclassgroup: 'Commercial',
+      permitclassmapped: 'Commercial',
+      workclass: 'New Construction',
+      description: 'Multi-storey institutional educational and lab facility expansion',
+      contractorname: 'PCL CONSTRUCTION MANAGEMENT',
+      estprojectcost: '34500000',
+      originaladdress: '2500 UNIVERSITY DR NW',
+      communityname: 'UNIVERSITY OF CALGARY',
+      latitude: '51.078410',
+      longitude: '-114.131250'
     },
     {
       permitnum: 'BP2026-03488',
@@ -281,6 +377,22 @@ export function getFallbackCalgaryPermits(): Permit[] {
       longitude: '-114.060140'
     },
     {
+      permitnum: 'BP2026-03435',
+      statuscurrent: 'Issued Permit',
+      issueddate: '2026-03-05T00:00:00.000',
+      permittype: 'Commercial / Institutional Project',
+      permitclassgroup: 'Commercial',
+      permitclassmapped: 'Commercial',
+      workclass: 'New Construction',
+      description: 'Recreation centre expansion, gymnasium, mechanical and electrical infrastructure upgrade',
+      contractorname: 'CANA CONSTRUCTION',
+      estprojectcost: '12400000',
+      originaladdress: '7575 11 ST SE',
+      communityname: 'BURNS INDUSTRIAL',
+      latitude: '50.985410',
+      longitude: '-114.032140'
+    },
+    {
       permitnum: 'BP2026-03420',
       statuscurrent: 'Issued Permit',
       issueddate: '2026-03-05T00:00:00.000',
@@ -289,7 +401,7 @@ export function getFallbackCalgaryPermits(): Permit[] {
       permitclassmapped: 'Industrial',
       workclass: 'New Construction',
       description: 'Distribution logistics warehouse facility with 12 loading bays',
-      contractorname: 'GRAHAM CONSTRUCTION',
+      contractorname: 'GRAHAM CONSTRUCTION AND ENGINEERING LP',
       estprojectcost: '9800000',
       originaladdress: '11050 52 ST SE',
       communityname: 'EAST SHEPARD INDUSTRIAL',
@@ -297,36 +409,20 @@ export function getFallbackCalgaryPermits(): Permit[] {
       longitude: '-113.955430'
     },
     {
-      permitnum: 'BP2026-03395',
+      permitnum: 'BP2026-03350',
       statuscurrent: 'Issued Permit',
-      issueddate: '2026-03-04T00:00:00.000',
-      permittype: 'Commercial Multi-Family',
-      permitclassgroup: 'Apartment',
-      permitclassmapped: 'Residential',
-      workclass: 'New Construction',
-      description: '6-storey wood-frame multi-family residential building (96 units)',
-      contractorname: 'CHANDOS CONSTRUCTION',
-      estprojectcost: '18500000',
-      originaladdress: '2210 CENTRE ST NE',
-      communityname: 'CRESCENT HEIGHTS',
-      latitude: '51.071850',
-      longitude: '-114.062890'
-    },
-    {
-      permitnum: 'BP2026-03310',
-      statuscurrent: 'Issued Permit',
-      issueddate: '2026-03-02T00:00:00.000',
-      permittype: 'Tenant Improvement Project',
+      issueddate: '2026-03-03T00:00:00.000',
+      permittype: 'Commercial Renovation',
       permitclassgroup: 'Commercial',
       permitclassmapped: 'Commercial',
       workclass: 'Alteration',
-      description: 'Medical & dental clinic tenant fitout, plumbing & HVAC upgrade',
-      contractorname: 'CANAM CONSTRUCTION',
-      estprojectcost: '750000',
-      originaladdress: '1600 90 AV SW',
-      communityname: 'BAYVIEW',
-      latitude: '50.973410',
-      longitude: '-114.103250'
+      description: 'Commercial exterior building envelope alterations and glazing replacement',
+      contractorname: 'SOULEAU CONTRACTING',
+      estprojectcost: '145000',
+      originaladdress: '340 12 AV SW',
+      communityname: 'BELTLINE',
+      latitude: '51.041230',
+      longitude: '-114.070120'
     }
   ];
 

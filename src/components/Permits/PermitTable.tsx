@@ -77,7 +77,9 @@ export function PermitTable({ permits, onAddToRoute }: PermitTableProps) {
                           </span>
                         ) : (
                           <span className="inline-flex items-center text-[9px] font-semibold text-slate-400 mt-0.5">
-                            Standard Permittee
+                            {(p.city_region?.toLowerCase() === 'calgary' || p.address?.toLowerCase().includes('calgary') || p.address?.toLowerCase().includes(', ab'))
+                              ? 'Standard Permittee (Calgary)'
+                              : 'Standard Permittee (Kelowna)'}
                           </span>
                         )}
                       </div>
