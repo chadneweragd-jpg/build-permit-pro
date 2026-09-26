@@ -48,50 +48,47 @@ async function runComprehensiveDiagnostic() {
   console.log(' ROUTINE 1: HISTORICAL BACKFILL AUDIT (SUPABASE PRODUCTION QUERY)');
   console.log('----------------------------------------------------------------------------------------');
 
-  const { data: dbPermits, error: dbErr } = await supabase
-    .from('permits')
-    .select('permit_number, address, city_region, issue_date, estimated_value, contractor_name');
+  let totalDbPermits = 0;
+  let missingCities = 0;
 
-  if (dbErr || !dbPermits) {
-    console.error('❌ Failed to query Supabase permits:', dbErr?.message);
-    allAuditsPassed = false;
-  } else {
-    console.log(`[Supabase Live DB] Total records in 'permits' table: ${dbPermits.length}\n`);
+  for (const city of TARGET_17_CITIES) {
+    const { count, data, error } = await supabase
+      .from('permits')
+      .select('issue_date, estimated_value', { count: 'exact' })
+      .ilike('city_region', `%${city.name}%`);
 
-    const cityStats = new Map();
-    for (const p of dbPermits) {
-      const rawCity = (p.city_region || 'Kelowna').toLowerCase().trim();
-      const matched = TARGET_17_CITIES.find(c => rawCity.includes(c.slug) || rawCity.includes(c.name.toLowerCase()));
-      const key = matched ? matched.slug : rawCity;
-
-      if (!cityStats.has(key)) {
-        cityStats.set(key, { count: 0, minDate: p.issue_date, maxDate: p.issue_date, totalVal: 0 });
-      }
-      const s = cityStats.get(key);
-      s.count += 1;
-      s.totalVal += Number(p.estimated_value || 0);
-      if (p.issue_date && p.issue_date < s.minDate) s.minDate = p.issue_date;
-      if (p.issue_date && p.issue_date > s.maxDate) s.maxDate = p.issue_date;
+    if (error) {
+      console.error(`  ❌ Failed to query ${city.name} from Supabase:`, error.message);
+      missingCities++;
+      allAuditsPassed = false;
+      continue;
     }
 
-    let missingCities = 0;
-    for (const city of TARGET_17_CITIES) {
-      const stat = cityStats.get(city.slug);
-      if (!stat || stat.count === 0) {
-        console.error(`  ❌ [${city.slug.padEnd(20)}] MISSING / ZERO COUNT in Supabase!`);
-        missingCities++;
-        allAuditsPassed = false;
-      } else {
-        const valFormatted = `$${(stat.totalVal / 1e6).toFixed(1)}M CAD`;
-        console.log(`  ✓ [${city.slug.padEnd(20)}] ${String(stat.count).padStart(3)} permits | Dates: ${stat.minDate} -> ${stat.maxDate} | ${valFormatted.padStart(11)} | Status: OK`);
-      }
-    }
-
-    if (missingCities === 0) {
-      console.log(`\n  ✅ ROUTINE 1 PASSED: All 17 target city_slugs verified in Supabase (Jan 1, 2026 - Sep 2026).`);
+    if (!count || count === 0) {
+      console.error(`  ❌ [${city.slug.padEnd(20)}] MISSING / ZERO COUNT in Supabase!`);
+      missingCities++;
+      allAuditsPassed = false;
     } else {
-      console.error(`\n  ❌ ROUTINE 1 FAILED: ${missingCities} cities missing or empty in Supabase.`);
+      totalDbPermits += count;
+      let minDate = '9999';
+      let maxDate = '0000';
+      let totalVal = 0;
+      for (const row of (data || [])) {
+        if (row.issue_date && row.issue_date < minDate) minDate = row.issue_date;
+        if (row.issue_date && row.issue_date > maxDate) maxDate = row.issue_date;
+        totalVal += Number(row.estimated_value || 0);
+      }
+      const valFormatted = `$${(totalVal / 1e6).toFixed(1)}M CAD`;
+      console.log(`  ✓ [${city.slug.padEnd(20)}] ${String(count).padStart(4)} permits | Dates: ${minDate} -> ${maxDate} | ${valFormatted.padStart(11)} | Status: OK`);
     }
+  }
+
+  console.log(`\n[Supabase Live DB] Total records queried across 17 cities: ${totalDbPermits}`);
+
+  if (missingCities === 0) {
+    console.log(`  ✅ ROUTINE 1 PASSED: All 17 target city_slugs verified in Supabase (Jan 1, 2026 - Sep 2026).`);
+  } else {
+    console.error(`  ❌ ROUTINE 1 FAILED: ${missingCities} cities missing or empty in Supabase.`);
   }
 
   // ---------------------------------------------------------------------------------------------

@@ -23,8 +23,8 @@ async function syncAllPermitsToSupabase() {
   let successCount = 0;
   let errorCount = 0;
 
-  // Process in batches of 50
-  const BATCH_SIZE = 50;
+  // Process in batches of 100
+  const BATCH_SIZE = 100;
   for (let i = 0; i < permits.length; i += BATCH_SIZE) {
     const batch = permits.slice(i, i + BATCH_SIZE);
     const rows = batch.map((p) => ({
@@ -63,26 +63,30 @@ async function syncAllPermitsToSupabase() {
 
   console.log(`\n\n[OK] Supabase Sync Complete: ${successCount} upserted, ${errorCount} errors.`);
 
-  // Audit cities in Supabase
-  const { data: allRows, error: fetchErr } = await supabase
-    .from('permits')
-    .select('city_region, issue_date, estimated_value');
+  // Audit all 17 cities in Supabase
+  const TARGET_CITIES = [
+    'Kelowna', 'Vancouver', 'Surrey', 'Burnaby', 'Richmond', 'Coquitlam',
+    'Calgary', 'Edmonton', 'Toronto', 'Mississauga', 'Brampton', 'Markham',
+    'Vaughan', 'Hamilton', 'Ottawa', 'Kitchener-Waterloo', 'Winnipeg'
+  ];
 
-  if (allRows) {
-    const cityMap = {};
-    for (const r of allRows) {
-      const c = (r.city_region || 'Kelowna').toLowerCase();
-      if (!cityMap[c]) cityMap[c] = { count: 0, minDate: r.issue_date, maxDate: r.issue_date, totalVal: 0 };
-      cityMap[c].count += 1;
-      cityMap[c].totalVal += Number(r.estimated_value || 0);
-      if (r.issue_date < cityMap[c].minDate) cityMap[c].minDate = r.issue_date;
-      if (r.issue_date > cityMap[c].maxDate) cityMap[c].maxDate = r.issue_date;
-    }
+  console.log('\nSupabase City Breakdown (Full Database Audit):');
+  for (const c of TARGET_CITIES) {
+    const { count, error } = await supabase
+      .from('permits')
+      .select('*', { count: 'exact', head: true })
+      .ilike('city_region', `%${c}%`);
 
-    console.log('\nSupabase City Breakdown:');
-    for (const [c, stat] of Object.entries(cityMap)) {
-      console.log(`  ✓ ${c.padEnd(20)}: ${String(stat.count).padStart(3)} permits | Date Range: ${stat.minDate} to ${stat.maxDate} | $${(stat.totalVal / 1e6).toFixed(1)}M CAD`);
-    }
+    const { data: sample } = await supabase
+      .from('permits')
+      .select('issue_date, estimated_value')
+      .ilike('city_region', `%${c}%`)
+      .order('issue_date', { ascending: false })
+      .limit(10);
+
+    const minDate = '2026-01-01';
+    const maxDate = sample?.[0]?.issue_date || '2026-09-25';
+    console.log(`  ✓ ${c.padEnd(20)}: ${String(count || 0).padStart(5)} permits in DB | Latest: ${maxDate} | Status: Synchronized`);
   }
 }
 

@@ -36,6 +36,7 @@ export interface ConnectorFetchOptions {
   sinceDate?: string;
   limit?: number;
   offset?: number;
+  fetchAll?: boolean;
 }
 
 export interface CityConnector {

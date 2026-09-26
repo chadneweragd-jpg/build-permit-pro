@@ -37,33 +37,56 @@ export class CKANConnector implements CityConnector {
   public async fetchPermits(options?: ConnectorFetchOptions): Promise<UnifiedPermit[]> {
     const limit = options?.limit || 100;
     const sinceDate = options?.sinceDate;
+    const fetchAll = options?.fetchAll || limit > 500;
+    const isODS = this.config.format === 'opendatasoft';
+    const pageSize = isODS ? Math.min(limit, 100) : Math.min(limit, 1000);
 
     try {
-      const url = new URL(this.config.endpoint);
-      if (this.config.format === 'opendatasoft') {
-        url.searchParams.set('rows', String(limit));
-        url.searchParams.set('sort', `-${this.config.dateField || 'issue_date'}`);
-        if (sinceDate) {
-          url.searchParams.set('q', `${this.config.dateField || 'issue_date'}:[${sinceDate} TO *]`);
+      let offset = options?.offset || 0;
+      let allRecords: any[] = [];
+      let hasMore = true;
+
+      while (hasMore) {
+        const url = new URL(this.config.endpoint);
+        if (isODS) {
+          url.searchParams.set('rows', String(pageSize));
+          url.searchParams.set('start', String(offset));
+          url.searchParams.set('sort', `-${this.config.dateField || 'issue_date'}`);
+          if (sinceDate) {
+            url.searchParams.set('q', `${this.config.dateField || 'issue_date'}:[${sinceDate} TO *]`);
+          }
+        } else {
+          url.searchParams.set('limit', String(pageSize));
+          url.searchParams.set('offset', String(offset));
         }
-      } else {
-        url.searchParams.set('limit', String(limit));
+
+        const res = await fetch(url.toString(), {
+          headers: { 'Accept': 'application/json' },
+          next: { revalidate: 3600 }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          let pageRecords: any[] = [];
+          if (data.records) pageRecords = data.records;
+          else if (data.result && data.result.records) pageRecords = data.result.records;
+
+          if (Array.isArray(pageRecords) && pageRecords.length > 0) {
+            allRecords.push(...pageRecords);
+            offset += pageRecords.length;
+            if (!fetchAll || pageRecords.length < pageSize || allRecords.length >= limit) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
       }
 
-      const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
-        next: { revalidate: 3600 }
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        let records: any[] = [];
-        if (data.records) records = data.records;
-        else if (data.result && data.result.records) records = data.result.records;
-
-        if (Array.isArray(records) && records.length > 0) {
-          return this.transformRecords(records);
-        }
+      if (allRecords.length > 0) {
+        return this.transformRecords(allRecords);
       }
     } catch (err) {
       console.warn(`[CKANConnector: ${this.cityName}] Live endpoint notice:`, err);

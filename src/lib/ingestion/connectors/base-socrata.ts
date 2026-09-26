@@ -38,40 +38,62 @@ export class SocrataConnector implements CityConnector {
   public async fetchPermits(options?: ConnectorFetchOptions): Promise<UnifiedPermit[]> {
     const limit = options?.limit || 100;
     const sinceDate = options?.sinceDate;
+    const fetchAll = options?.fetchAll || limit > 1000;
+    const pageSize = Math.min(limit, 1000);
 
     try {
-      const url = new URL(this.config.endpoint);
-      url.searchParams.set('$limit', String(limit));
-      url.searchParams.set('$order', `${this.config.dateField || 'issueddate'} DESC`);
-      
-      if (sinceDate) {
-        url.searchParams.set('$where', `${this.config.dateField || 'issueddate'} >= '${sinceDate}'`);
-      }
+      let offset = options?.offset || 0;
+      let allRawRecords: any[] = [];
+      let hasMore = true;
 
-      const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
-        next: { revalidate: 3600 }
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          return this.transformRecords(data);
+      while (hasMore) {
+        const url = new URL(this.config.endpoint);
+        url.searchParams.set('$limit', String(pageSize));
+        url.searchParams.set('$offset', String(offset));
+        url.searchParams.set('$order', `${this.config.dateField || 'issueddate'} DESC`);
+        
+        if (sinceDate) {
+          url.searchParams.set('$where', `${this.config.dateField || 'issueddate'} >= '${sinceDate}'`);
         }
-      } else {
-        // Retry without $order if Socrata rejects ordering on certain columns
-        const fallbackUrl = new URL(this.config.endpoint);
-        fallbackUrl.searchParams.set('$limit', String(limit));
-        const retryRes = await fetch(fallbackUrl.toString(), {
+
+        let data: any[] | null = null;
+        let res = await fetch(url.toString(), {
           headers: { 'Accept': 'application/json' },
           next: { revalidate: 3600 }
         });
-        if (retryRes.ok) {
-          const retryData = await retryRes.json();
-          if (Array.isArray(retryData) && retryData.length > 0) {
-            return this.transformRecords(retryData);
+
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          // Retry without $order if column not orderable
+          const fallbackUrl = new URL(this.config.endpoint);
+          fallbackUrl.searchParams.set('$limit', String(pageSize));
+          fallbackUrl.searchParams.set('$offset', String(offset));
+          if (sinceDate) {
+            fallbackUrl.searchParams.set('$where', `${this.config.dateField || 'issueddate'} >= '${sinceDate}'`);
+          }
+          const retryRes = await fetch(fallbackUrl.toString(), {
+            headers: { 'Accept': 'application/json' },
+            next: { revalidate: 3600 }
+          });
+          if (retryRes.ok) {
+            data = await retryRes.json();
           }
         }
+
+        if (Array.isArray(data) && data.length > 0) {
+          allRawRecords.push(...data);
+          offset += data.length;
+          if (!fetchAll || data.length < pageSize || allRawRecords.length >= limit) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      if (allRawRecords.length > 0) {
+        return this.transformRecords(allRawRecords);
       }
     } catch (err) {
       console.warn(`[SocrataConnector: ${this.cityName}] Live API notice:`, err);
