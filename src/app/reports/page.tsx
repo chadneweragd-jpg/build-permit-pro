@@ -22,7 +22,8 @@ import {
   FileText,
   CheckCircle2,
   DollarSign,
-  Filter
+  Filter,
+  ChevronDown
 } from 'lucide-react';
 
 export default function ReportsPage() {
@@ -61,12 +62,41 @@ export default function ReportsPage() {
 
   const activeCity = SUPPORTED_CITIES[activeCityId] || SUPPORTED_CITIES.kelowna;
 
-  // Market Intelligence Data strictly isolated by active city
-  const metrics = useMemo(() => ReportsRepository.getExecutiveMetrics(activeCityId), [activeCityId, permitsVersion]);
-  const monthlyTrends = useMemo(() => ReportsRepository.getMonthlyTrends(activeCityId), [activeCityId, permitsVersion]);
-  const tradeBreakdown = useMemo(() => ReportsRepository.getSubtradeValuationBreakdown(activeCityId), [activeCityId, permitsVersion]);
-  const municipalityBreakdown = useMemo(() => ReportsRepository.getMunicipalityBreakdown(activeCityId), [activeCityId, permitsVersion]);
-  const contractorLeaderboard = useMemo(() => ReportsRepository.getTopContractorsLeaderboard(activeCityId), [activeCityId, permitsVersion]);
+  // Date Range Filtering State (Default: Last 90 Days)
+  const [selectedRange, setSelectedRange] = useState<'30d' | '90d' | '6m' | '2026'>('90d');
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
+
+  // Raw active city permits
+  const rawCityPermits = useMemo(() => {
+    return ReportsRepository.getPermits(activeCityId);
+  }, [activeCityId, permitsVersion]);
+
+  // Helper to determine if permit issue_date is within N days of now
+  const isWithinDays = (dateStr: string | undefined, days: number): boolean => {
+    if (!dateStr) return false;
+    const permitTime = new Date(dateStr).getTime();
+    if (isNaN(permitTime)) return false;
+    const now = new Date().getTime();
+    const diffDays = (now - permitTime) / (1000 * 60 * 60 * 24);
+    return diffDays >= 0 && diffDays <= days;
+  };
+
+  // Dynamically filtered permits based on selected date range
+  const filteredPermits = useMemo(() => {
+    return rawCityPermits.filter((p) => {
+      if (selectedRange === '30d') return isWithinDays(p.issue_date, 30);
+      if (selectedRange === '90d') return isWithinDays(p.issue_date, 90);
+      if (selectedRange === '6m') return isWithinDays(p.issue_date, 180);
+      return true; // All 2026
+    });
+  }, [rawCityPermits, selectedRange]);
+
+  // Market Intelligence Data dynamically recalculated from filteredPermits
+  const metrics = useMemo(() => ReportsRepository.getExecutiveMetrics(filteredPermits), [filteredPermits]);
+  const monthlyTrends = useMemo(() => ReportsRepository.getMonthlyTrends(filteredPermits), [filteredPermits]);
+  const tradeBreakdown = useMemo(() => ReportsRepository.getSubtradeValuationBreakdown(filteredPermits), [filteredPermits]);
+  const municipalityBreakdown = useMemo(() => ReportsRepository.getMunicipalityBreakdown(filteredPermits), [filteredPermits]);
+  const contractorLeaderboard = useMemo(() => ReportsRepository.getTopContractorsLeaderboard(filteredPermits), [filteredPermits]);
 
   // Mileage & CRA Logbook Data
   const [allLegs, setAllLegs] = useState<TripLeg[]>([]);
@@ -116,7 +146,7 @@ export default function ReportsPage() {
   }).format(metrics.avgValuation);
 
   const handleExportMarketCSV = () => {
-    ReportsRepository.exportExecutiveCSV(activeCityId);
+    ReportsRepository.exportExecutiveCSV(filteredPermits);
   };
 
   const handlePrintReport = () => {
@@ -194,11 +224,60 @@ export default function ReportsPage() {
       {activeTab === 'market' && (
         <div className="space-y-6 animate-in fade-in duration-150">
           {/* Action Row */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               {activeCity.region} Regional Tender Intelligence (2026)
             </span>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center flex-wrap gap-2">
+              {/* Date Range Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsDateRangeOpen(!isDateRangeOpen)}
+                  className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-sm transition-all"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                  <span>
+                    {selectedRange === '30d' && 'Last 30 Days'}
+                    {selectedRange === '90d' && 'Last 90 Days'}
+                    {selectedRange === '6m' && 'Last 6 Months'}
+                    {selectedRange === '2026' && 'All 2026 (Year-to-Date)'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                </button>
+
+                {isDateRangeOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 text-xs z-30 animate-in fade-in"
+                    onMouseLeave={() => setIsDateRangeOpen(false)}
+                  >
+                    {[
+                      { label: 'Last 30 Days', value: '30d', subtitle: 'Recent tenders' },
+                      { label: 'Last 90 Days', value: '90d', subtitle: 'Standard quarterly view' },
+                      { label: 'Last 6 Months', value: '6m', subtitle: 'Semi-annual pipeline' },
+                      { label: 'All 2026 (Year-to-Date)', value: '2026', subtitle: 'Full annual volume' }
+                    ].map((item) => (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRange(item.value as any);
+                          setIsDateRangeOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 transition-colors ${
+                          selectedRange === item.value
+                            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-bold'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'
+                        }`}
+                      >
+                        <div className="font-semibold">{item.label}</div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">{item.subtitle}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={handlePrintReport}

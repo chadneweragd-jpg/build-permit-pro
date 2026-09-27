@@ -40,8 +40,8 @@ export class ReportsRepository {
     return PermitsRepository.getPermitsByCity(city);
   }
 
-  public static getExecutiveMetrics(cityId?: string) {
-    const permits = this.getPermits(cityId);
+  public static getExecutiveMetrics(cityOrPermits?: string | Permit[]) {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
     const totalPermits = permits.length;
     const totalValuation = permits.reduce((acc, p) => acc + (p.estimated_value || 0), 0);
     const avgValuation = totalPermits > 0 ? totalValuation / totalPermits : 0;
@@ -58,8 +58,8 @@ export class ReportsRepository {
     };
   }
 
-  public static getMonthlyTrends(cityId?: string): VolumeTrendPoint[] {
-    const permits = this.getPermits(cityId);
+  public static getMonthlyTrends(cityOrPermits?: string | Permit[]): VolumeTrendPoint[] {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
 
     // Group permits by YYYY-MM
     const map = new Map<string, { count: number; val: number }>();
@@ -103,8 +103,8 @@ export class ReportsRepository {
     ];
   }
 
-  public static getSubtradeValuationBreakdown(cityId?: string): TradeValuationSummary[] {
-    const permits = this.getPermits(cityId);
+  public static getSubtradeValuationBreakdown(cityOrPermits?: string | Permit[]): TradeValuationSummary[] {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
     const tradeMap: Record<string, { totalValuation: number; count: number }> = {};
     let overallValuation = 0;
 
@@ -138,9 +138,10 @@ export class ReportsRepository {
     return summaries.sort((a, b) => b.totalValuation - a.totalValuation);
   }
 
-  public static getMunicipalityBreakdown(cityId?: string): MunicipalityBreakdown[] {
-    const permits = this.getPermits(cityId);
-    const targetCity = SUPPORTED_CITIES[cityId || getSelectedCityId()] || SUPPORTED_CITIES.kelowna;
+  public static getMunicipalityBreakdown(cityOrPermits?: string | Permit[]): MunicipalityBreakdown[] {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
+    const cityId = typeof cityOrPermits === 'string' ? cityOrPermits : getSelectedCityId();
+    const targetCity = SUPPORTED_CITIES[cityId] || SUPPORTED_CITIES.kelowna;
     const muniMap: Record<string, { val: number; count: number }> = {};
 
     for (const permit of permits) {
@@ -161,8 +162,8 @@ export class ReportsRepository {
       .sort((a, b) => b.totalValuation - a.totalValuation);
   }
 
-  public static getTopContractorsLeaderboard(cityId?: string): ContractorLeaderboardItem[] {
-    const permits = this.getPermits(cityId);
+  public static getTopContractorsLeaderboard(cityOrPermits?: string | Permit[]): ContractorLeaderboardItem[] {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
     const map: Record<string, { count: number; val: number; trades: Set<string> }> = {};
 
     for (const permit of permits) {
@@ -196,9 +197,10 @@ export class ReportsRepository {
       .slice(0, 10);
   }
 
-  public static exportExecutiveCSV(cityId?: string) {
-    const permits = this.getPermits(cityId);
-    const targetCity = SUPPORTED_CITIES[cityId || getSelectedCityId()] || SUPPORTED_CITIES.kelowna;
+  public static exportExecutiveCSV(cityOrPermits?: string | Permit[]) {
+    const permits = Array.isArray(cityOrPermits) ? cityOrPermits : this.getPermits(cityOrPermits);
+    const cityId = typeof cityOrPermits === 'string' ? cityOrPermits : getSelectedCityId();
+    const targetCity = SUPPORTED_CITIES[cityId] || SUPPORTED_CITIES.kelowna;
 
     const headers = [
       'Permit Number',
