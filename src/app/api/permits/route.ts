@@ -1,6 +1,11 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 import { NextResponse } from 'next/server';
 import { PermitsRepository } from '@/lib/permits-repo';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import { SubtradeKey, WorkClass } from '@/types';
 
 export async function GET(req: Request) {
@@ -78,8 +83,43 @@ export async function GET(req: Request) {
     }
   }
 
+  // Query uncapped exact count from Supabase when city is provided
+  let exactTotal: number | undefined;
+  if (isSupabaseConfigured && supabase && city && city !== 'all') {
+    try {
+      const target = city.toLowerCase().trim();
+      const cityConfig = SUPPORTED_CITIES[target];
+      const searchName = cityConfig ? cityConfig.name : city;
+      let countQuery = supabase
+        .from('permits')
+        .select('*', { count: 'exact', head: true })
+        .ilike('city_region', `%${searchName}%`);
+
+      if (dateRange && dateRange !== 'all') {
+        const now = new Date();
+        if (dateRange === '30d') {
+          countQuery = countQuery.gte('issue_date', new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        } else if (dateRange === '90d') {
+          countQuery = countQuery.gte('issue_date', new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        } else if (dateRange === '6m') {
+          countQuery = countQuery.gte('issue_date', new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        } else if (dateRange === '2026') {
+          countQuery = countQuery.gte('issue_date', '2026-01-01');
+        }
+      }
+
+      const { count } = await countQuery;
+      if (typeof count === 'number') {
+        exactTotal = count;
+      }
+    } catch (e) {
+      console.warn('Error fetching exact count in /api/permits:', e);
+    }
+  }
+
   return NextResponse.json({
-    total: permits.length,
+    total: exactTotal ?? permits.length,
+    exactCount: exactTotal ?? permits.length,
     permits,
     source: 'supabase_live'
   });

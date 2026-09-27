@@ -52,18 +52,42 @@ function SearchExplorerContent() {
     return () => window.removeEventListener('bpp:city-change', handleCityChange);
   }, []);
 
-  // Fetch live permits for activeCityId from Supabase via API
+  // Exact Uncapped City Count State
+  const [exactCityCount, setExactCityCount] = useState<number | null>(null);
+
+  // Fetch live permits for activeCityId from Supabase via API & retrieve exact uncapped counts
   useEffect(() => {
-    if (!activeCityId || activeCityId === 'all') return;
+    if (!activeCityId || activeCityId === 'all') {
+      setExactCityCount(null);
+      return;
+    }
+    let isCancelled = false;
+
     fetch(`/api/permits?city=${encodeURIComponent(activeCityId)}&dateRange=2026`)
       .then((res) => res.json())
       .then((data) => {
+        if (isCancelled) return;
         if (data && data.permits && data.permits.length > 0) {
           PermitsRepository.appendPermits(data.permits);
           setPermitsList(PermitsRepository.getAllPermits());
         }
+        if (data && typeof data.total === 'number') {
+          setExactCityCount(data.total);
+        }
       })
       .catch(() => {});
+
+    // Also fetch reports metadata for guaranteed exact uncapped count
+    fetch(`/api/reports?city=${encodeURIComponent(activeCityId)}&dateRange=all`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isCancelled && data && typeof data.totalPermits === 'number') {
+          setExactCityCount(data.totalPermits);
+        }
+      })
+      .catch(() => {});
+
+    return () => { isCancelled = true; };
   }, [activeCityId]);
 
   const cityConfig = getActiveCityConfig(activeCityId);
@@ -232,6 +256,38 @@ function SearchExplorerContent() {
     });
   }, [allPermits, activeCityId, searchQuery, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
+  // True total count for the city when default or broad view
+  const isDefaultView =
+    !searchQuery.trim() &&
+    (selectedPermitType === 'All Permit Types' || selectedPermitType === 'All Types') &&
+    selectedValueTier === 0 &&
+    (selectedDateRange === 'all' || selectedDateRange === '2026' || selectedDateRange === '90d');
+
+  const displayTotalCount = isDefaultView && exactCityCount && exactCityCount > filteredPermits.length
+    ? exactCityCount
+    : filteredPermits.length;
+
+  // Infinite scroll pagination state (50 items per page chunk)
+  const PAGE_CHUNK = 50;
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_CHUNK);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_CHUNK);
+  }, [activeCityId, searchQuery, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
+
+  const visiblePermits = useMemo(() => {
+    return filteredPermits.slice(0, visibleCount);
+  }, [filteredPermits, visibleCount]);
+
+  const handleFeedScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 300) {
+      if (visibleCount < filteredPermits.length) {
+        setVisibleCount((prev) => Math.min(prev + PAGE_CHUNK, filteredPermits.length));
+      }
+    }
+  };
+
   // Synchronize selected permit when city changes (prevent Kelowna record stuck on secondary cities)
   useEffect(() => {
     if (!filteredPermits.length) {
@@ -354,7 +410,7 @@ function SearchExplorerContent() {
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center space-x-2 flex-wrap gap-1">
               <span className="text-xs font-black text-slate-900 dark:text-white">
-                {filteredPermits.length} Permits
+                {displayTotalCount.toLocaleString()} Permits
               </span>
               <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full">
                 {cityConfig.label}
@@ -398,23 +454,39 @@ function SearchExplorerContent() {
             </div>
           </div>
 
-          {/* Scrollable Permit Card Feed */}
-          <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5">
+          {/* Scrollable Permit Card Feed with Infinite Pagination */}
+          <div
+            onScroll={handleFeedScroll}
+            className="flex-1 overflow-y-auto p-3.5 space-y-2.5"
+          >
             {filteredPermits.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs">
                 No permits match your active filter criteria.
               </div>
             ) : (
-              filteredPermits.map((permit) => (
-                <PermitCard
-                  key={permit.id}
-                  permit={permit}
-                  isSelected={selectedPermit?.id === permit.id}
-                  onSelect={(p) => handleSelectPermit(p)}
-                  isFavorite={favorites.includes(permit.id)}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ))
+              <>
+                {visiblePermits.map((permit) => (
+                  <PermitCard
+                    key={permit.id}
+                    permit={permit}
+                    isSelected={selectedPermit?.id === permit.id}
+                    onSelect={(p) => handleSelectPermit(p)}
+                    isFavorite={favorites.includes(permit.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+                {visibleCount < filteredPermits.length && (
+                  <div className="py-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((prev) => Math.min(prev + PAGE_CHUNK, filteredPermits.length))}
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 transition-all shadow-xs cursor-pointer"
+                    >
+                      Load More ({visibleCount} of {filteredPermits.length} loaded)
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </aside>
