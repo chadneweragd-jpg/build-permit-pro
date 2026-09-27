@@ -70,7 +70,6 @@ function SearchExplorerContent() {
   const allPermits = permitsList;
 
   // Filter States
-  const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedPermitType, setSelectedPermitType] = useState('All Permit Types');
   const [selectedValueTier, setSelectedValueTier] = useState<number>(0);
   const [selectedDateRange, setSelectedDateRange] = useState<string>('90d');
@@ -115,13 +114,6 @@ function SearchExplorerContent() {
     );
     if (found) {
       setSelectedPermit(found);
-      // Ensure active filters do not hide the targeted permit
-      if (
-        selectedLocation !== 'All Locations' &&
-        (found.city_region || 'Kelowna').toLowerCase() !== selectedLocation.toLowerCase()
-      ) {
-        setSelectedLocation('All Locations');
-      }
       if (selectedValueTier > (found.estimated_value || 0)) {
         setSelectedValueTier(0);
       }
@@ -165,9 +157,7 @@ function SearchExplorerContent() {
       });
     }
 
-    if (selectedLocation !== 'All Locations') {
-      list = list.filter((p) => (p.city_region || 'Kelowna').toLowerCase() === selectedLocation.toLowerCase());
-    } else if (activeCityId && activeCityId !== 'all') {
+    if (activeCityId && activeCityId !== 'all') {
       const target = activeCityId.toLowerCase().trim();
       list = list.filter((p) => {
         const pSlug = (p.city_slug || '').toLowerCase().trim();
@@ -240,7 +230,7 @@ function SearchExplorerContent() {
       }
       return new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime();
     });
-  }, [allPermits, activeCityId, searchQuery, selectedLocation, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
+  }, [allPermits, activeCityId, searchQuery, selectedPermitType, selectedValueTier, selectedDateRange, sortOrder]);
 
   // Synchronize selected permit when city changes (prevent Kelowna record stuck on secondary cities)
   useEffect(() => {
@@ -318,14 +308,12 @@ function SearchExplorerContent() {
   };
 
   const activeFilterCount =
-    (selectedLocation !== 'All Locations' ? 1 : 0) +
     (selectedPermitType !== 'All Permit Types' && selectedPermitType !== 'All Types' ? 1 : 0) +
     (selectedValueTier > 0 ? 1 : 0) +
     (selectedDateRange !== '90d' ? 1 : 0) +
     (searchQuery.trim() ? 1 : 0);
 
   const handleClearAll = () => {
-    setSelectedLocation('All Locations');
     setSelectedPermitType('All Permit Types');
     setSelectedValueTier(0);
     setSelectedDateRange('90d');
@@ -344,8 +332,6 @@ function SearchExplorerContent() {
     <div className="flex flex-col h-full overflow-hidden bg-slate-100 dark:bg-slate-950">
       {/* Top Filter Bar */}
       <FilterBar
-        selectedLocation={selectedLocation}
-        setSelectedLocation={setSelectedLocation}
         selectedPermitType={selectedPermitType}
         setSelectedPermitType={setSelectedPermitType}
         selectedValueTier={selectedValueTier}
