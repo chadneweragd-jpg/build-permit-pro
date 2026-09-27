@@ -278,7 +278,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           builder={permit.tier === 1 ? permit.verified_builder : null}
         />
 
-        {/* Quick Scout / Municipal Record Buttons */}
+        {/* Quick Scout / In-App Actions */}
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/routes/builder?destination=${permit.id}`}
@@ -287,29 +287,13 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <Compass className="w-3.5 h-3.5 text-blue-500" />
             <span>Scout Jobsite</span>
           </Link>
-          <a
-            href={
-              matchedSlug === 'calgary'
-                ? 'https://data.calgary.ca/resource/c2es-76ed.json'
-                : matchedSlug === 'toronto'
-                ? 'https://open.toronto.ca/dataset/building-permits-active-permits/'
-                : matchedSlug === 'vancouver'
-                ? 'https://opendata.vancouver.ca/explore/dataset/issued-building-permits/'
-                : matchedSlug === 'edmonton'
-                ? 'https://data.edmonton.ca/resource/24uj-dj8v.json'
-                : matchedSlug === 'brampton'
-                ? 'https://geohub.brampton.ca/'
-                : matchedSlug === 'winnipeg'
-                ? 'https://data.winnipeg.ca/resource/it4w-cpf4.json'
-                : 'https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits'
-            }
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={`/search?contractor=${encodeURIComponent(permit.contractor_name || '')}&city=${encodeURIComponent(permit.city_slug || '')}`}
             className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>{cityDisplay} Portal</span>
-          </a>
+            <HardHat className="w-3.5 h-3.5 text-amber-500" />
+            <span>Search Contractor</span>
+          </Link>
         </div>
         {/* Valuation & Issue Date Metric Bar */}
         <div className="grid grid-cols-2 gap-3">

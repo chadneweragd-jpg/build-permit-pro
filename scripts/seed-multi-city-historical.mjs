@@ -211,9 +211,14 @@ function normalizePermitValue(rawVal, subType = '', desc = '', i = 1) {
     return Math.round(val);
   }
 
-  // 11. General Commercial Fallback: $1.2M to $6.5M CAD
-  if (val <= 0 || val > 20000000) {
-    val = 1500000 + ((i * 320000) % 4800000);
+  // 11. General Commercial Fallback: $350k to $2.5M CAD
+  if (val <= 0) {
+    val = 350000 + ((i * 180000) % 2150000);
+  }
+
+  // Hard global cap: no single permit should exceed $35M CAD
+  if (val > 35000000) {
+    val = 14000000 + ((i * 1250000) % 20000000);
   }
 
   return Math.round(val);
@@ -980,33 +985,41 @@ async function harvestToronto() {
   console.log('[*] Harvesting Toronto live permits from CKAN Datastore...');
   const torontoPermits = [];
   try {
-    const url = new URL('https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search');
-    url.searchParams.set('resource_id', '6d0229af-bc54-46de-9c2b-26759b01dd05');
-    url.searchParams.set('limit', '1000');
+    const PAGE_SIZE = 1000;
+    const MAX_PAGES = 5;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const url = new URL('https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search');
+      url.searchParams.set('resource_id', '6d0229af-bc54-46de-9c2b-26759b01dd05');
+      url.searchParams.set('limit', String(PAGE_SIZE));
+      url.searchParams.set('offset', String(page * PAGE_SIZE));
 
-    const res = await fetch(url.toString(), { timeout: 15000 });
-    if (res.ok) {
+      const res = await fetch(url.toString(), { timeout: 15000 });
+      if (!res.ok) break;
       const data = await res.json();
       const records = data.result?.records || [];
-      console.log(`  -> Toronto live payload returned ${records.length} records.`);
+      if (page === 0) console.log(`  -> Toronto live payload returned ${data.result?.total || records.length} total records; paginating for 2026...`);
+      if (records.length === 0) break;
 
       for (let i = 0; i < records.length; i++) {
         const r = records[i];
-        const pNum = r.PERMIT_NUM || `BP-TO-${i + 1}`;
+        const pNum = r.PERMIT_NUM || `BP-TO-${torontoPermits.length + 1}`;
         let street = `${r.STREET_NUM || ''} ${r.STREET_NAME || ''} ${r.STREET_TYPE || ''}`.trim();
         if (!street) street = '100 King St W';
         const postalPart = r.POSTAL ? ` ${r.POSTAL}` : '';
         const addr = `${street}${postalPart}, Toronto, ON`;
 
         const contr = r.BUILDER_NAME || 'Standard Permittee (Toronto)';
-        const date = (r.ISSUED_DATE || '2026-05-20').split('T')[0];
+        const date = (r.ISSUED_DATE || r.APPLICATION_DATE || '2026-05-20').split('T')[0];
+        // Skip pre-2026 records (CKAN returns all-time data without date filter)
+        if (date < '2026-01-01') continue;
         const subType = r.PERMIT_TYPE || r.STRUCTURE_TYPE || 'Commercial Building Permit';
         const desc = r.DESCRIPTION || `${subType} in Toronto.`;
-        const val = normalizePermitValue(r.EST_CONST_COST, subType, desc, i + 1);
-        const { lat, lon } = getTorontoCoords(r, i);
+        const rawCost = parseFloat(String(r.EST_CONST_COST || r.ESTIMATED_COST || '0').replace(/[^0-9.]/g, '')) || 0;
+        const val = normalizePermitValue(rawCost, subType, desc, torontoPermits.length + 1);
+        const { lat, lon } = getTorontoCoords(r, torontoPermits.length);
 
         torontoPermits.push({
-          id: `p-toronto-${i + 1}`,
+          id: `p-toronto-${torontoPermits.length + 1}`,
           permit_number: pNum,
           city_slug: 'toronto',
           address: addr,
@@ -1031,8 +1044,13 @@ async function harvestToronto() {
           tier: 2,
           trades: []
         });
+
+        // Cap at 1000 Toronto permits max
+        if (torontoPermits.length >= 1000) break;
       }
+      if (torontoPermits.length >= 1000) break;
     }
+    console.log(`  -> Toronto 2026 permits harvested: ${torontoPermits.length}`);
   } catch (e) {
     console.warn('  Toronto harvest notice:', e.message);
   }
@@ -1076,11 +1094,16 @@ async function harvestBrampton() {
         if (r.GFA) {
           const gfa = parseFloat(String(r.GFA).replace(/[^0-9.]/g, '')) || 0;
           if (gfa > 0) {
-            rawVal = gfa * 10.764 * 220;
+            // GFA is in sq metres from ArcGIS; CA$2,200/m² is a realistic all-in construction cost
+            rawVal = gfa * 2200;
           }
         }
         if (rawVal <= 0) {
-          rawVal = 350000 + ((i * 450000) % 14000000);
+          // Realistic fallback: residential $280k–$850k, commercial $850k–$2.8M
+          const isCommercial = /commercial|industrial|office|condo|multi|warehouse/i.test(`${subType} ${desc}`);
+          rawVal = isCommercial
+            ? 850000 + ((i * 185000) % 1950000)
+            : 280000 + ((i * 72000) % 570000);
         }
         const val = normalizePermitValue(rawVal, subType, desc, i);
 
