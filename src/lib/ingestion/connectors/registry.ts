@@ -196,6 +196,7 @@ const torontoConnector = new CKANConnector({
   applicantField: 'BUILDER_NAME',
   subTypeField: 'PERMIT_TYPE',
   valueField: 'EST_CONST_COST',
+  defaultQuery: '2026',
   defaultCoords: [43.6532, -79.3832],
   fallbackRecords: makeSeedPermits('toronto', 'Toronto', 'ON', [43.6532, -79.3832], [
     { pNum: 'BP-TO-2026-10492', addr: '100 King St W', contr: 'EllisDon Corporation', app: 'First Canadian Place', subType: 'Commercial High-Rise', val: 75000000, date: '2026-09-25', desc: 'Financial tower podium upgrade, high-voltage switchgear, and commercial HVAC chillers.' },

@@ -15,6 +15,7 @@ export interface CKANConfig {
   applicantField?: string;
   subTypeField?: string;
   valueField?: string;
+  defaultQuery?: string;
   defaultCoords: [number, number]; // [lat, lng]
   fallbackRecords: any[];
 }
@@ -59,6 +60,9 @@ export class CKANConnector implements CityConnector {
         } else {
           url.searchParams.set('limit', String(pageSize));
           url.searchParams.set('offset', String(offset));
+          if (this.config.defaultQuery) {
+            url.searchParams.set('q', this.config.defaultQuery);
+          }
         }
 
         const res = await fetch(url.toString(), {
