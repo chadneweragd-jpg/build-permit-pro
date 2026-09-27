@@ -46,19 +46,23 @@ export default function ReportsPage() {
     return () => window.removeEventListener('bpp:city-change', handleCityChange);
   }, []);
 
-  // Ingest live Calgary permits if Calgary is selected
+  // Fetch live city permits from Supabase to hydrate local repository and all breakdown charts
   useEffect(() => {
-    if (activeCityId === 'calgary') {
-      fetch('/api/ingest/calgary?limit=150')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.permits && data.permits.length > 0) {
-            PermitsRepository.appendPermits(data.permits);
-            setPermitsVersion((v) => v + 1);
-          }
-        })
-        .catch((err) => console.warn('Calgary permit ingestion error:', err));
-    }
+    if (!activeCityId || activeCityId === 'all') return;
+    let isCancelled = false;
+
+    fetch(`/api/permits?city=${encodeURIComponent(activeCityId)}&dateRange=2026`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (isCancelled) return;
+        if (data && data.permits && data.permits.length > 0) {
+          PermitsRepository.appendPermits(data.permits);
+          setPermitsVersion((v) => v + 1);
+        }
+      })
+      .catch((err) => console.warn('Live permits hydration error on Reports:', err));
+
+    return () => { isCancelled = true; };
   }, [activeCityId]);
 
   const activeCity = SUPPORTED_CITIES[activeCityId] || SUPPORTED_CITIES.kelowna;
@@ -72,14 +76,14 @@ export default function ReportsPage() {
     return ReportsRepository.getPermits(activeCityId);
   }, [activeCityId, permitsVersion]);
 
-  // Helper to determine if permit issue_date is within N days of now
+  // Helper to determine if permit issue_date is within N days of now (with timezone buffer)
   const isWithinDays = (dateStr: string | undefined, days: number): boolean => {
     if (!dateStr) return false;
     const permitTime = new Date(dateStr).getTime();
     if (isNaN(permitTime)) return false;
     const now = new Date().getTime();
     const diffDays = (now - permitTime) / (1000 * 60 * 60 * 24);
-    return diffDays >= 0 && diffDays <= days;
+    return diffDays >= -2 && diffDays <= days;
   };
 
   // Dynamically filtered permits based on selected date range
@@ -111,9 +115,12 @@ export default function ReportsPage() {
     let isCancelled = false;
 
     async function loadExactMetrics() {
-      // 1. Fetch from /api/reports route
+      // 1. Ensure safe city name fallback
+      const cityName = activeCity?.name || activeCity?.id || 'Calgary';
+
+      // 2. Fetch from /api/reports route
       try {
-        const res = await fetch(`/api/reports?city=${encodeURIComponent(activeCityId)}&dateRange=${selectedRange}`);
+        const res = await fetch(`/api/reports?city=${encodeURIComponent(cityName)}&dateRange=${selectedRange}`);
         if (res.ok) {
           const json = await res.json();
           if (!isCancelled && json && typeof json.totalPermits === 'number') {
@@ -130,13 +137,14 @@ export default function ReportsPage() {
         // Fall through to direct Supabase query
       }
 
-      // 2. Direct Supabase query as fallback (uncapped count & valuation sum)
+      // 3. Safe, Native Supabase Direct Query as fallback (No Missing RPCs)
       if (isSupabaseConfigured && supabase) {
         try {
+          // Exact count using native city_region
           let countQuery = supabase
             .from('permits')
             .select('*', { count: 'exact', head: true })
-            .ilike('city_region', `%${activeCity.name}%`);
+            .ilike('city_region', `%${cityName}%`);
 
           if (selectedRange === '30d') {
             const d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -151,44 +159,58 @@ export default function ReportsPage() {
             countQuery = countQuery.gte('issue_date', '2026-01-01');
           }
 
-          const { count: totalPermits } = await countQuery;
+          const { count: totalCount, error: countErr } = await countQuery;
+          if (countErr) console.error('Count Error:', countErr);
 
-          if (typeof totalPermits === 'number' && !isCancelled) {
-            let valQuery = supabase
-              .from('permits')
-              .select('estimated_value, work_class')
-              .ilike('city_region', `%${activeCity.name}%`);
+          // Safe Valuation & Trade Aggregation
+          let valQuery = supabase
+            .from('permits')
+            .select('estimated_value, permit_type, work_class, issue_date')
+            .ilike('city_region', `%${cityName}%`);
 
-            if (selectedRange === '30d') {
-              const d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-              valQuery = valQuery.gte('issue_date', d);
-            } else if (selectedRange === '90d') {
-              const d = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-              valQuery = valQuery.gte('issue_date', d);
-            } else if (selectedRange === '6m') {
-              const d = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-              valQuery = valQuery.gte('issue_date', d);
-            } else if (selectedRange === '2026') {
-              valQuery = valQuery.gte('issue_date', '2026-01-01');
+          if (selectedRange === '30d') {
+            const d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            valQuery = valQuery.gte('issue_date', d);
+          } else if (selectedRange === '90d') {
+            const d = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            valQuery = valQuery.gte('issue_date', d);
+          } else if (selectedRange === '6m') {
+            const d = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            valQuery = valQuery.gte('issue_date', d);
+          } else if (selectedRange === '2026') {
+            valQuery = valQuery.gte('issue_date', '2026-01-01');
+          }
+
+          const { data: valData, error: valErr } = await valQuery
+            .order('issue_date', { ascending: false })
+            .limit(1000);
+
+          if (valErr) console.error('Valuation Error:', valErr);
+
+          // Calculate Totals Safely with Defaults
+          const totalPermits = totalCount || 0;
+          const sampleSum = (valData || []).reduce((sum, p: any) => sum + (Number(p.estimated_value || p.valuation) || 0), 0);
+          const totalValuation = totalPermits && totalPermits > (valData?.length || 0)
+            ? Math.round((sampleSum / (valData?.length || 1)) * totalPermits)
+            : sampleSum;
+          const avgProjectScale = totalPermits && totalPermits > 0 ? Math.round(totalValuation / totalPermits) : 0;
+
+          // Subtrade aggregation safely mapped
+          let commCount = 0;
+          (valData || []).forEach((p: any) => {
+            const trade = p.permit_type || p.project_subtype || 'General Construction';
+            if (p.work_class === 'Commercial' || p.work_class === 'Industrial' || /commercial|office|retail|industrial/i.test(trade)) {
+              commCount += 1;
             }
+          });
+          const commercialRatio = valData && valData.length > 0 ? Math.round((commCount / valData.length) * 100) : 35;
 
-            const { data: records } = await valQuery.order('issue_date', { ascending: false }).limit(1000);
-
-            let totalVal = 0;
-            let commRatio = 35;
-            if (records && records.length > 0) {
-              const sampleSum = records.reduce((acc, r) => acc + Number(r.estimated_value || 0), 0);
-              totalVal = totalPermits > records.length ? Math.round((sampleSum / records.length) * totalPermits) : sampleSum;
-              const commCount = records.filter(r => r.work_class === 'Commercial' || r.work_class === 'Industrial').length;
-              commRatio = Math.round((commCount / records.length) * 100);
-            }
-
-            const avgVal = totalPermits > 0 ? Math.round(totalVal / totalPermits) : 0;
+          if (!isCancelled) {
             setLiveMetrics({
               totalPermits,
-              totalValuation: totalVal,
-              avgValuation: avgVal,
-              commercialRatio: commRatio
+              totalValuation,
+              avgValuation: avgProjectScale,
+              commercialRatio
             });
           }
         } catch (err) {
@@ -199,7 +221,7 @@ export default function ReportsPage() {
 
     loadExactMetrics();
     return () => { isCancelled = true; };
-  }, [activeCityId, activeCity.name, selectedRange]);
+  }, [activeCityId, activeCity?.name, activeCity?.id, selectedRange]);
 
   const effectiveMetrics = liveMetrics || metrics;
 
