@@ -11,6 +11,8 @@ export interface BuilderDossierProps {
     city_region?: string;
     city?: string;
     contractor_name?: string;
+    contractor_phone?: string;
+    contractor_email?: string;
     sub_type?: string;
     permit_type?: string;
     value?: number | string;
@@ -32,28 +34,41 @@ export interface BuilderDossierProps {
 }
 
 export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
-  const contractorName = (permit.contractor_name || builder?.company_name || 'Owner / Builder').trim();
+  const activeBuilder = builder || (permit.tier === 1 ? permit.verified_builder : null);
+  const contractorName = (permit.contractor_name || activeBuilder?.company_name || 'Owner / Builder').trim();
   const permitCore = getCoreName(contractorName);
-  const builderCore = builder ? getCoreName(builder.company_name) : '';
-  const city = permit.city_region || permit.city || (permit.address?.toLowerCase().includes('calgary') ? 'Calgary' : 'Kelowna');
-  const isCalgary = city.toLowerCase() === 'calgary';
+  const builderCore = activeBuilder ? getCoreName(activeBuilder.company_name) : '';
+  const city = permit.city_region || permit.city || 'Local Market';
 
-  // Strict check: builder must be non-null, core name similarity >= 0.90, and strict city territory match
-  const similarity = builder ? calculateTrigramSimilarity(permitCore, builderCore) : 0;
+  const permitCityLower = (permit.city_region || permit.city || '').toLowerCase().trim();
+  const builderCityLower = (activeBuilder?.city || '').toLowerCase().trim();
+  const permitProv = (
+    permit.verified_builder?.province ||
+    (permit.city_region || '').split(/[,\s]+/).filter(Boolean).pop() ||
+    ''
+  ).toUpperCase();
+  const builderProv = (activeBuilder?.province || '').toUpperCase();
+
+  // Strict check: builder must be non-null, core name similarity >= 0.85, and city/province match
+  const similarity = activeBuilder ? calculateTrigramSimilarity(permitCore, builderCore) : 0;
   const isCoreMatch = Boolean(
-    builder &&
-    permitCore &&
-    builderCore &&
-    (permitCore === builderCore || similarity >= 0.90)
+    activeBuilder &&
+    (
+      permitCore === builderCore ||
+      similarity >= 0.85 ||
+      (permit.tier === 1 && Boolean(permit.verified_builder))
+    )
   );
 
-  const isCityMatch = builder
-    ? isCalgary
-      ? (builder.city?.toLowerCase() === 'calgary' || builder.province === 'AB')
-      : (builder.city?.toLowerCase() === 'kelowna' || builder.province === 'BC')
+  const isCityMatch = activeBuilder
+    ? Boolean(
+        (builderCityLower && permitCityLower && (builderCityLower.includes(permitCityLower) || permitCityLower.includes(builderCityLower))) ||
+        (builderProv && permitProv && builderProv === permitProv) ||
+        (permit.tier === 1 && Boolean(permit.verified_builder))
+      )
     : false;
 
-  const isVerified = (permit.tier === 1 || permit.tier === undefined) && Boolean(builder) && isCoreMatch && isCityMatch;
+  const isVerified = (permit.tier === 1 || permit.tier === undefined) && Boolean(activeBuilder) && isCoreMatch && isCityMatch;
 
   const subType = permit.sub_type || permit.permit_type || 'Approved Scope';
   const val = Number(permit.value ?? permit.estimated_value ?? 0);
@@ -61,13 +76,16 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
   // ---------------------------------------------------------------------------
   // CASE 1: VERIFIED BUILDER DOSSIER (Strict Match)
   // ---------------------------------------------------------------------------
-  if (isVerified && builder) {
-    const rawPhone = builder.primary_phone?.replace(/[^0-9+]/g, '') || '';
+  if (isVerified && activeBuilder) {
+    const phoneToDisplay = activeBuilder.primary_phone || permit.contractor_phone || '';
+    const emailToDisplay = activeBuilder.email || permit.contractor_email || '';
+    const rawPhone = phoneToDisplay.replace(/[^0-9+]/g, '');
+
     const emailSubject = encodeURIComponent(
       `Subtrade Bid Inquiry: Permit ${permit.permit_number} (${permit.address})`
     );
     const emailBody = encodeURIComponent(
-      `Hi ${builder.key_principal || 'Estimating Team'},\n\n` +
+      `Hi ${activeBuilder.key_principal || 'Estimating Team'},\n\n` +
       `I saw the recently approved permit ${permit.permit_number} for ${permit.address} ` +
       `(${subType}, estimated value: $${val.toLocaleString()}).\n\n` +
       `We specialize in subtrade services in ${city} and would like to review the project scope and submit a tender for this job.\n\n` +
@@ -75,12 +93,12 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
       `Thank you,\n`
     );
 
-    const mailtoUrl = builder.email
-      ? `mailto:${builder.email}?subject=${emailSubject}&body=${emailBody}`
+    const mailtoUrl = emailToDisplay
+      ? `mailto:${emailToDisplay}?subject=${emailSubject}&body=${emailBody}`
       : '#';
 
-    const websiteUrl = builder.website
-      ? (/^https?:\/\//i.test(builder.website) ? builder.website : `https://${builder.website}`)
+    const websiteUrl = activeBuilder.website
+      ? (/^https?:\/\//i.test(activeBuilder.website) ? activeBuilder.website : `https://${activeBuilder.website}`)
       : '#';
 
     return (
@@ -90,7 +108,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
             <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
               Verified Builder Dossier
             </span>
-            <h3 className="text-lg font-bold text-white">{builder.company_name}</h3>
+            <h3 className="text-lg font-bold text-white">{activeBuilder.company_name}</h3>
           </div>
           <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
             ✓ Verified Builder
@@ -98,25 +116,25 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
         </div>
 
         <div className="mt-4 space-y-2 text-sm text-slate-300">
-          {builder.key_principal && (
-            <p><strong className="text-slate-400">Principal / Key Contact:</strong> {builder.key_principal}</p>
+          {activeBuilder.key_principal && (
+            <p><strong className="text-slate-400">Principal / Key Contact:</strong> {activeBuilder.key_principal}</p>
           )}
-          {builder.physical_address && (
-            <p><strong className="text-slate-400">Head Office Address:</strong> {builder.physical_address}</p>
+          {activeBuilder.physical_address && (
+            <p><strong className="text-slate-400">Head Office Address:</strong> {activeBuilder.physical_address}</p>
           )}
-          {builder.association && (
-            <p><strong className="text-slate-400">Association:</strong> {builder.association}</p>
+          {activeBuilder.association && (
+            <p><strong className="text-slate-400">Association:</strong> {activeBuilder.association}</p>
           )}
         </div>
 
         {/* Action CTA Buttons */}
         <div className="mt-5 grid grid-cols-2 gap-3">
-          {builder.primary_phone ? (
+          {phoneToDisplay ? (
             <a
               href={`tel:${rawPhone}`}
               className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-500 active:scale-95"
             >
-              📞 Call {builder.primary_phone}
+              📞 Call {phoneToDisplay}
             </a>
           ) : (
             <button
@@ -128,7 +146,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
             </button>
           )}
 
-          {builder.email ? (
+          {emailToDisplay ? (
             <a
               href={mailtoUrl}
               className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95"
@@ -146,7 +164,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
           )}
         </div>
 
-        {builder.website && (
+        {activeBuilder.website && (
           <div className="mt-3 text-center">
             <a
               href={websiteUrl}
@@ -154,7 +172,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
               rel="noopener noreferrer"
               className="text-xs text-cyan-400 hover:text-cyan-300 hover:underline inline-flex items-center gap-1"
             >
-              ↗ Official Website ({builder.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})
+              ↗ Official Website ({activeBuilder.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})
             </a>
           </div>
         )}
@@ -164,10 +182,10 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
 
   // ---------------------------------------------------------------------------
   // CASE 2: UNVERIFIED PERMITTEE DOSSIER (Honest Fallback)
-  // Displays the true permit contractor name (e.g. "SOULEAU CONTRACTING")
+  // Displays the true permit contractor name
   // ---------------------------------------------------------------------------
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${contractorName} ${city} contractor`)}`;
-  const unverifiedBadge = isCalgary ? 'Standard Permittee (Calgary)' : 'Standard Permittee (Kelowna)';
+  const unverifiedBadge = `Standard Permittee (${city})`;
 
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl">

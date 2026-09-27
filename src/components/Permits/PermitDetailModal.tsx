@@ -270,9 +270,7 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
                       </span>
                     ) : (
                       <span className="text-[10px] font-semibold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                        {(permit.city_region?.toLowerCase() === 'calgary' || permit.address?.toLowerCase().includes('calgary') || permit.address?.toLowerCase().includes(', ab'))
-                          ? 'Standard Permittee (Calgary)'
-                          : 'Standard Permittee (Kelowna)'}
+                        {`Standard Permittee (${permit.city_region || 'Local Market'})`}
                       </span>
                     )}
                   </div>
@@ -295,7 +293,7 @@ export const PermitDetailModal: React.FC<PermitDetailModalProps> = ({
                               `Hi ${permit.verified_builder.key_principal || 'Estimating Team'},\n\n` +
                               `I saw the recently approved permit ${permit.permit_number} for ${permit.address} ` +
                               `(${permit.permit_type}, estimated value: $${Number(permit.estimated_value || 0).toLocaleString()}).\n\n` +
-                              `We are an Okanagan contractor specializing in subtrade services and would like to review the project scope and submit a tender for this job.\n\n` +
+                              `We are a ${permit.city_region || 'local'} contractor specializing in subtrade services and would like to review the project scope and submit a tender for this job.\n\n` +
                               `Could you please let us know the best contact or share the plans when available?\n\n` +
                               `Thank you,\n`
                             )}`}

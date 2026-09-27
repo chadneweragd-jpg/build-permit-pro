@@ -46,8 +46,10 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
   const [pipelineNotes, setPipelineNotes] = useState('');
   const [pipelineToast, setPipelineToast] = useState<string | null>(null);
 
-  const hasValidPhone = isValidPhoneNumber(permit?.contractor_phone);
-  const hasValidEmail = isValidEmail(permit?.contractor_email);
+  const contractorPhone = permit?.contractor_phone || permit?.verified_builder?.primary_phone;
+  const contractorEmail = permit?.contractor_email || permit?.verified_builder?.email;
+  const hasValidPhone = isValidPhoneNumber(contractorPhone);
+  const hasValidEmail = isValidEmail(contractorEmail);
 
   useEffect(() => {
     if (permit) {
@@ -177,7 +179,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           {/* Call Builder or Scout Jobsite */}
           {hasValidPhone ? (
             <a
-              href={`tel:${permit.contractor_phone?.replace(/\D/g, '')}`}
+              href={`tel:${contractorPhone?.replace(/\D/g, '')}`}
               className="py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30"
               title={`Call ${permit.contractor_name || 'Contractor'}`}
             >
