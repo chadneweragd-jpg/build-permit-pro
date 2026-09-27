@@ -46,7 +46,7 @@ export async function GET(req: Request) {
       } else if (dateRange === '6m') {
         const d = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
         countQuery = countQuery.gte('issue_date', d.toISOString().split('T')[0]);
-      } else if (dateRange === '2026') {
+      } else if (dateRange === '2026' || dateRange === 'all_2026' || dateRange === 'ytd') {
         countQuery = countQuery.gte('issue_date', '2026-01-01');
       }
     }
@@ -74,7 +74,7 @@ export async function GET(req: Request) {
       } else if (dateRange === '6m') {
         const d = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
         valQuery = valQuery.gte('issue_date', d.toISOString().split('T')[0]);
-      } else if (dateRange === '2026') {
+      } else if (dateRange === '2026' || dateRange === 'all_2026' || dateRange === 'ytd') {
         valQuery = valQuery.gte('issue_date', '2026-01-01');
       }
     }

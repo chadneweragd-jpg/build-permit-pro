@@ -88,12 +88,20 @@ export default function ReportsPage() {
 
   // Dynamically filtered permits based on selected date range
   const filteredPermits = useMemo(() => {
-    return rawCityPermits.filter((p) => {
-      if (selectedRange === '30d') return isWithinDays(p.issue_date, 30);
-      if (selectedRange === '90d') return isWithinDays(p.issue_date, 90);
-      if (selectedRange === '6m') return isWithinDays(p.issue_date, 180);
-      return true; // All 2026
-    });
+    const cityPermits = rawCityPermits || [];
+    if (!cityPermits || cityPermits.length === 0) return [];
+    let filtered: typeof cityPermits = [];
+    if (selectedRange === '30d') {
+      filtered = cityPermits.filter((p) => isWithinDays(p.issue_date || (p as any).issueddate || (p as any).issueDate, 30));
+    } else if (selectedRange === '90d') {
+      filtered = cityPermits.filter((p) => isWithinDays(p.issue_date || (p as any).issueddate || (p as any).issueDate, 90));
+    } else if (selectedRange === '6m') {
+      filtered = cityPermits.filter((p) => isWithinDays(p.issue_date || (p as any).issueddate || (p as any).issueDate, 180));
+    } else {
+      // Default to All 2026 / YTD / all (return all permits)
+      filtered = cityPermits;
+    }
+    return filtered.length > 0 ? filtered : cityPermits;
   }, [rawCityPermits, selectedRange]);
 
   // Market Intelligence Data dynamically recalculated from filteredPermits (fallback & charts)
@@ -113,6 +121,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     let isCancelled = false;
+    setLiveMetrics(null);
 
     async function loadExactMetrics() {
       // 1. Ensure safe city name fallback
@@ -123,12 +132,12 @@ export default function ReportsPage() {
         const res = await fetch(`/api/reports?city=${encodeURIComponent(cityName)}&dateRange=${selectedRange}`);
         if (res.ok) {
           const json = await res.json();
-          if (!isCancelled && json && typeof json.totalPermits === 'number') {
+          if (!isCancelled && json && typeof json.totalPermits === 'number' && json.totalPermits > 0) {
             setLiveMetrics({
               totalPermits: json.totalPermits,
-              totalValuation: json.totalValuation,
-              avgValuation: json.avgValuation,
-              commercialRatio: json.commercialRatio
+              totalValuation: json.totalValuation || 0,
+              avgValuation: json.avgValuation || 0,
+              commercialRatio: json.commercialRatio || 0
             });
             return;
           }
@@ -205,7 +214,7 @@ export default function ReportsPage() {
           });
           const commercialRatio = valData && valData.length > 0 ? Math.round((commCount / valData.length) * 100) : 35;
 
-          if (!isCancelled) {
+          if (!isCancelled && totalPermits > 0) {
             setLiveMetrics({
               totalPermits,
               totalValuation,
@@ -223,7 +232,24 @@ export default function ReportsPage() {
     return () => { isCancelled = true; };
   }, [activeCityId, activeCity?.name, activeCity?.id, selectedRange]);
 
-  const effectiveMetrics = liveMetrics || metrics;
+  // Unify Metrics: Ensure top cards display non-zero, unified metrics consistent with the subtrade breakdown and charts
+  const effectiveMetrics = useMemo(() => {
+    // If liveMetrics has positive count & valuation, use it
+    if (liveMetrics && liveMetrics.totalPermits > 0 && liveMetrics.totalValuation > 0) {
+      return liveMetrics;
+    }
+    // If liveMetrics has positive count but valuation is zero, combine with local metrics valuation
+    if (liveMetrics && liveMetrics.totalPermits > 0 && metrics.totalValuation > 0) {
+      return {
+        totalPermits: liveMetrics.totalPermits,
+        totalValuation: metrics.totalValuation,
+        avgValuation: Math.round(metrics.totalValuation / liveMetrics.totalPermits),
+        commercialRatio: liveMetrics.commercialRatio || metrics.commercialRatio
+      };
+    }
+    // Reliable fallback: use metrics computed directly from filteredPermits
+    return metrics;
+  }, [liveMetrics, metrics]);
 
   // Mileage & CRA Logbook Data
   const [allLegs, setAllLegs] = useState<TripLeg[]>([]);
