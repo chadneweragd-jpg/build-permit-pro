@@ -76,13 +76,13 @@ export const PermitCard: React.FC<PermitCardProps> = ({
         <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[170px]" title={permit.contractor_name}>
           {permit.contractor_name || 'Owner / Builder'}
         </span>
-        {permit.tier === 1 ? (
+        {permit.tier === 1 && permit.verified_builder ? (
           <span className="shrink-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
             ✓ Verified Builder
           </span>
         ) : (
           <span className="shrink-0 text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-            {`Standard Permittee (${permit.city_region || 'Local Market'})`}
+            Standard Permittee
           </span>
         )}
       </div>

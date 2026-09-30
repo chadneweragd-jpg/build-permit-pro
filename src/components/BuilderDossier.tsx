@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { getCoreName, calculateTrigramSimilarity } from '@/lib/builders-service';
-import { ExternalLink, Search, ShieldAlert, PhoneOff, Mail } from 'lucide-react';
+import { ExternalLink, Search, ShieldAlert, PhoneOff, Mail, Phone, Compass, CheckCircle2 } from 'lucide-react';
 
 export interface BuilderDossierProps {
   permit: {
+    id?: string;
     permit_number: string;
     address: string;
     city_region?: string;
@@ -13,12 +14,15 @@ export interface BuilderDossierProps {
     contractor_name?: string;
     contractor_phone?: string;
     contractor_email?: string;
+    applicant_name?: string;
     sub_type?: string;
     permit_type?: string;
     value?: number | string;
     estimated_value?: number | string;
     tier?: number;
     verified_builder?: any;
+    latitude?: number;
+    longitude?: number;
   };
   builder?: {
     company_name: string;
@@ -34,11 +38,13 @@ export interface BuilderDossierProps {
 }
 
 export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
+  const [copyToast, setCopyToast] = useState<string | null>(null);
+
   const activeBuilder = builder || (permit.tier === 1 ? permit.verified_builder : null);
-  const contractorName = (permit.contractor_name || activeBuilder?.company_name || 'Owner / Builder').trim();
+  const contractorName = (permit.contractor_name || activeBuilder?.company_name || 'Standard Permittee').trim();
   const permitCore = getCoreName(contractorName);
   const builderCore = activeBuilder ? getCoreName(activeBuilder.company_name) : '';
-  const city = permit.city_region || permit.city || 'Local Market';
+  const city = permit.city_region || permit.city || 'Calgary';
 
   const permitCityLower = (permit.city_region || permit.city || '').toLowerCase().trim();
   const builderCityLower = (activeBuilder?.city || '').toLowerCase().trim();
@@ -49,37 +55,72 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
   ).toUpperCase();
   const builderProv = (activeBuilder?.province || '').toUpperCase();
 
-  // Strict check: builder must be non-null, core name similarity >= 0.85, and city/province match
+  // Strict check: builder must be non-null, core name similarity >= 0.90, and city/province match
   const similarity = activeBuilder ? calculateTrigramSimilarity(permitCore, builderCore) : 0;
   const isCoreMatch = Boolean(
     activeBuilder &&
     (
       permitCore === builderCore ||
-      similarity >= 0.85 ||
-      (permit.tier === 1 && Boolean(permit.verified_builder))
+      similarity >= 0.90
     )
   );
 
   const isCityMatch = activeBuilder
     ? Boolean(
-        (builderCityLower && permitCityLower && (builderCityLower.includes(permitCityLower) || permitCityLower.includes(builderCityLower))) ||
-        (builderProv && permitProv && builderProv === permitProv) ||
-        (permit.tier === 1 && Boolean(permit.verified_builder))
+        !builderCityLower ||
+        !permitCityLower ||
+        builderCityLower.includes(permitCityLower) ||
+        permitCityLower.includes(builderCityLower) ||
+        (builderProv && permitProv && builderProv === permitProv)
       )
     : false;
 
-  const isVerified = (permit.tier === 1 || permit.tier === undefined) && Boolean(activeBuilder) && isCoreMatch && isCityMatch;
+  const isVerified = (permit.tier === 1) && Boolean(activeBuilder) && isCoreMatch && isCityMatch;
 
   const subType = permit.sub_type || permit.permit_type || 'Approved Scope';
   const val = Number(permit.value ?? permit.estimated_value ?? 0);
 
+  // Search Contractor Handler
+  const handleSearchContractor = () => {
+    const query = encodeURIComponent(`${permit.contractor_name || permit.applicant_name || contractorName} ${city} contractor`);
+    window.open(`https://www.google.com/search?q=${query}`, '_blank', 'noopener,noreferrer');
+  };
+
+  // Scout Jobsite Handler
+  const handleScoutJobsite = () => {
+    const lat = permit.latitude;
+    const lng = permit.longitude;
+    if (typeof window !== 'undefined') {
+      if (lat && lng) {
+        window.dispatchEvent(new CustomEvent('bpp:scout-permit', {
+          detail: { permitId: permit.permit_number, latitude: lat, longitude: lng }
+        }));
+      }
+      const query = (lat && lng) ? `${lat},${lng}` : encodeURIComponent(`${permit.address}, ${city}`);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   // ---------------------------------------------------------------------------
-  // CASE 1: VERIFIED BUILDER DOSSIER (Strict Match)
+  // CASE 1: VERIFIED BUILDER DOSSIER (Strict Master Database Match)
   // ---------------------------------------------------------------------------
   if (isVerified && activeBuilder) {
     const phoneToDisplay = activeBuilder.primary_phone || permit.contractor_phone || '';
     const emailToDisplay = activeBuilder.email || permit.contractor_email || '';
-    const rawPhone = phoneToDisplay.replace(/[^0-9+]/g, '');
+    const cleanPhone = phoneToDisplay.replace(/[^0-9+]/g, '');
+
+    const handleCallOrCopy = (e: React.MouseEvent) => {
+      if (!phoneToDisplay) return;
+      const isMobile = typeof window !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobile) {
+        e.preventDefault();
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(phoneToDisplay);
+        }
+        setCopyToast('Phone number copied to clipboard!');
+        setTimeout(() => setCopyToast(null), 3000);
+      }
+    };
 
     const emailSubject = encodeURIComponent(
       `Subtrade Bid Inquiry: Permit ${permit.permit_number} (${permit.address})`
@@ -102,7 +143,14 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
       : '#';
 
     return (
-      <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl">
+      <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl relative">
+        {copyToast && (
+          <div className="absolute top-3 right-3 bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg animate-in fade-in z-20">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>{copyToast}</span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
             <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
@@ -131,27 +179,32 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
         <div className="mt-5 flex flex-wrap gap-2 overflow-x-auto">
           {phoneToDisplay ? (
             <a
-              href={`tel:${rawPhone}`}
-              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-500 active:scale-95"
+              href={`tel:${cleanPhone}`}
+              onClick={handleCallOrCopy}
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-500 active:scale-95 cursor-pointer shadow-sm"
+              title="Call builder or copy number"
             >
-              📞 Call {phoneToDisplay}
+              <Phone className="w-3.5 h-3.5" />
+              <span>Call {phoneToDisplay}</span>
             </a>
           ) : (
             <button
               disabled
               className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
-              title="No builder phone on file"
+              title="No verified phone on record"
             >
-              📞 No Phone Listed
+              <PhoneOff className="w-3.5 h-3.5" />
+              <span>No Phone Listed</span>
             </button>
           )}
 
           {emailToDisplay ? (
             <a
               href={mailtoUrl}
-              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95"
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95 shadow-sm"
             >
-              ✉️ Email Estimating
+              <Mail className="w-3.5 h-3.5" />
+              <span>Email Estimating</span>
             </a>
           ) : (
             <button
@@ -159,9 +212,20 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
               className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
               title="No estimator email on file"
             >
-              ✉️ Email Estimating
+              <Mail className="w-3.5 h-3.5" />
+              <span>Email Estimating</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={handleScoutJobsite}
+            className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2.5 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
+            title="Scout Jobsite on Google Street View & Map"
+          >
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            <span>Scout Jobsite</span>
+          </button>
         </div>
 
         {activeBuilder.website && (
@@ -176,28 +240,37 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
             </a>
           </div>
         )}
+
+        <div className="mt-3 pt-3 border-t border-slate-800">
+          <button
+            type="button"
+            onClick={handleSearchContractor}
+            className="flex items-center justify-center gap-2 w-full rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white px-3 py-2 text-xs font-semibold transition-all text-center cursor-pointer"
+          >
+            <Search className="w-3.5 h-3.5 text-amber-400" />
+            <span>Search Contractor on Google</span>
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </button>
+        </div>
       </div>
     );
   }
 
   // ---------------------------------------------------------------------------
-  // CASE 2: UNVERIFIED PERMITTEE DOSSIER (Honest Fallback)
-  // Displays the true permit contractor name
+  // CASE 2: UNVERIFIED PERMITTEE DOSSIER (Standard Permittee)
+  // Displays genuine permit address (#140 3132 26 ST NE). No invented contacts.
   // ---------------------------------------------------------------------------
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${contractorName} ${city} contractor`)}`;
-  const unverifiedBadge = `Standard Permittee (${city})`;
-
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl">
+    <div className="rounded-xl border border-slate-700/60 bg-slate-900/90 p-5 text-white shadow-xl relative">
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
-            {unverifiedBadge}
+            Standard Permittee
           </span>
           <h3 className="text-lg font-bold text-white tracking-tight">{contractorName}</h3>
         </div>
         <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-400 border border-slate-700">
-          {unverifiedBadge}
+          Standard Permittee
         </span>
       </div>
 
@@ -214,16 +287,16 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
         </p>
       </div>
 
-      {/* Disabled Actions with Tooltip */}
+      {/* Action Buttons: Disabled Phone/Email with Tooltip + Functional Scout Jobsite */}
       <div className="mt-5 flex flex-wrap gap-2 overflow-x-auto">
         <button
           type="button"
           disabled
-          title="Direct estimator contact pending verification"
+          title="No verified phone on record"
           className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/50 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed"
         >
           <PhoneOff className="w-3.5 h-3.5 opacity-60" />
-          <span>Call Disabled</span>
+          <span>No Phone on Record</span>
         </button>
 
         <button
@@ -235,20 +308,29 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
           <Mail className="w-3.5 h-3.5 opacity-60" />
           <span>Email Disabled</span>
         </button>
+
+        <button
+          type="button"
+          onClick={handleScoutJobsite}
+          className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2.5 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
+          title="Scout Jobsite on Google Street View & Map"
+        >
+          <Compass className="w-3.5 h-3.5 text-amber-400" />
+          <span>Scout Jobsite</span>
+        </button>
       </div>
 
-      {/* Google Search Link for Contractor */}
+      {/* Functional Google Search Button for Contractor */}
       <div className="mt-3.5 pt-3 border-t border-slate-800">
-        <a
-          href={searchUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 hover:text-blue-300 px-3 py-2 text-xs font-bold transition-all text-center"
+        <button
+          type="button"
+          onClick={handleSearchContractor}
+          className="flex items-center justify-center gap-2 w-full rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 hover:text-blue-300 px-3 py-2 text-xs font-bold transition-all text-center cursor-pointer"
         >
           <Search className="w-3.5 h-3.5" />
           <span>Search Contractor on Google</span>
           <ExternalLink className="w-3 h-3 opacity-70" />
-        </a>
+        </button>
       </div>
     </div>
   );

@@ -23,7 +23,8 @@ import {
   Kanban,
   ShieldAlert,
   Send,
-  ExternalLink
+  ExternalLink,
+  PhoneOff
 } from 'lucide-react';
 import { isValidPhoneNumber, isValidEmail, formatPhoneNumber } from '@/lib/contact-utils';
 import { BuilderDossier } from '@/components/BuilderDossier';
@@ -45,11 +46,47 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
   const [pipelineQuote, setPipelineQuote] = useState('');
   const [pipelineNotes, setPipelineNotes] = useState('');
   const [pipelineToast, setPipelineToast] = useState<string | null>(null);
+  const [copyToast, setCopyToast] = useState<string | null>(null);
 
-  const contractorPhone = permit?.contractor_phone || permit?.verified_builder?.primary_phone;
-  const contractorEmail = permit?.contractor_email || permit?.verified_builder?.email;
-  const hasValidPhone = isValidPhoneNumber(contractorPhone);
-  const hasValidEmail = isValidEmail(contractorEmail);
+  const contractorPhone = permit?.verified_builder?.primary_phone || permit?.contractor_phone;
+  const contractorEmail = permit?.verified_builder?.email || permit?.contractor_email;
+  const hasValidPhone = Boolean(contractorPhone && isValidPhoneNumber(contractorPhone));
+  const hasValidEmail = Boolean(contractorEmail && isValidEmail(contractorEmail));
+
+  const handleCallOrCopy = (e: React.MouseEvent) => {
+    if (!contractorPhone) return;
+    const isMobile = typeof window !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile) {
+      e.preventDefault();
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(contractorPhone);
+      }
+      setCopyToast('Phone number copied to clipboard!');
+      setTimeout(() => setCopyToast(null), 3000);
+    }
+  };
+
+  const handleSearchContractor = () => {
+    if (!permit) return;
+    const city = permit.city_region || permit.city_slug || 'Calgary';
+    const query = encodeURIComponent(`${permit.contractor_name || permit.applicant_name || 'Contractor'} ${city} contractor`);
+    window.open(`https://www.google.com/search?q=${query}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleScoutJobsite = () => {
+    if (!permit) return;
+    if (typeof window !== 'undefined') {
+      if (permit.latitude && permit.longitude) {
+        window.dispatchEvent(new CustomEvent('bpp:scout-permit', {
+          detail: { permitId: permit.id, latitude: permit.latitude, longitude: permit.longitude }
+        }));
+      }
+      const query = (permit.latitude && permit.longitude)
+        ? `${permit.latitude},${permit.longitude}`
+        : encodeURIComponent(`${permit.address}, ${permit.city_region || permit.city_slug || 'Calgary'}`);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   useEffect(() => {
     if (permit) {
@@ -176,25 +213,27 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <span className="truncate">+ Add To Route</span>
           </button>
 
-          {/* Call Builder or Scout Jobsite */}
+          {/* Call Builder */}
           {hasValidPhone ? (
             <a
-              href={`tel:${contractorPhone?.replace(/\D/g, '')}`}
-              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30"
-              title={`Call ${permit.contractor_name || 'Contractor'}`}
+              href={`tel:${contractorPhone?.replace(/[^0-9+]/g, '')}`}
+              onClick={handleCallOrCopy}
+              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30 cursor-pointer"
+              title={`Call ${permit.contractor_name || 'Contractor'} or click to copy`}
             >
               <Phone className="w-4 h-4 shrink-0" />
               <span className="truncate">{permit.tier === 1 ? 'Call Builder' : 'Call GC'}</span>
             </a>
           ) : (
-            <Link
-              href={`/routes/builder?destination=${permit.id}`}
-              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95"
-              title="Scout Jobsite in Drive Mode"
+            <button
+              type="button"
+              disabled
+              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-1.5 text-center font-bold cursor-not-allowed opacity-60"
+              title="No verified phone on record"
             >
-              <Compass className="w-4 h-4 shrink-0 text-amber-500" />
-              <span className="truncate">Scout Site</span>
-            </Link>
+              <PhoneOff className="w-4 h-4 shrink-0" />
+              <span className="truncate">No Phone Listed</span>
+            </button>
           )}
         </div>
 
@@ -270,6 +309,13 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
         </div>
       )}
 
+      {copyToast && (
+        <div className="bg-emerald-600 text-white text-xs font-bold px-4 py-2 flex items-center space-x-2 animate-in fade-in">
+          <CheckCircle className="w-4 h-4" />
+          <span>{copyToast}</span>
+        </div>
+      )}
+
       {/* Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {/* Tier 1 Verified Builder Dossier OR Tier 2 Honest Standard Permittee Dossier */}
@@ -280,20 +326,24 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
 
         {/* Quick Scout / In-App Actions */}
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/routes/builder?destination=${permit.id}`}
-            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center border border-slate-200 dark:border-slate-700"
+          <button
+            type="button"
+            onClick={handleScoutJobsite}
+            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-center border border-slate-200 dark:border-slate-700 cursor-pointer active:scale-95"
+            title="Scout Jobsite on Google Street View & Map"
           >
             <Compass className="w-3.5 h-3.5 text-blue-500" />
             <span>Scout Jobsite</span>
-          </Link>
-          <Link
-            href={`/search?contractor=${encodeURIComponent(permit.contractor_name || '')}&city=${encodeURIComponent(permit.city_slug || '')}`}
-            className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center"
+          </button>
+          <button
+            type="button"
+            onClick={handleSearchContractor}
+            className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-300 dark:border-slate-700 transition-all text-center cursor-pointer active:scale-95"
+            title="Search Contractor on Google"
           >
             <HardHat className="w-3.5 h-3.5 text-amber-500" />
             <span>Search Contractor</span>
-          </Link>
+          </button>
         </div>
         {/* Valuation & Issue Date Metric Bar */}
         <div className="grid grid-cols-2 gap-3">

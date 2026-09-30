@@ -218,19 +218,41 @@ export function matchPermitToBuilder(
 }
 
 /**
- * Enriches a Permit record with Tier 1 (Verified Builder) or Tier 2 (Standard Permittee) details.
- * Strictly isolates city data to avoid cross-city builder contamination.
+ * Enriches a Permit record strictly against our verified master database
+ * (BILD Calgary, CCA, CHBA-CO, SICA). Never invents contacts or accepts mock dossiers.
  */
 export function enrichPermitWithBuilder(
   permit: Permit,
   buildersList?: VerifiedBuilder[]
 ): Permit {
-  // If permit already has a verified_builder assigned:
-  if (permit.verified_builder && permit.tier === 1) {
-    return permit;
-  }
-
+  const masterList = buildersList || VERIFIED_BUILDERS;
   const city = getPermitCity(permit);
+
+  // If permit has an existing verified_builder, strictly validate it exists in our master database
+  if (permit.verified_builder) {
+    const isAuthenticMaster = masterList.some(
+      (b) =>
+        b.id === permit.verified_builder?.id ||
+        (b.normalized_name && b.normalized_name === permit.verified_builder?.normalized_name) ||
+        (getCoreName(b.company_name) === getCoreName(permit.verified_builder?.company_name))
+    );
+
+    if (!isAuthenticMaster) {
+      // Purge fabricated mock builder dossier
+      permit = {
+        ...permit,
+        tier: 2,
+        verified_builder: null,
+        contractor_phone: undefined,
+        contractor_email: undefined
+      };
+    } else {
+      return {
+        ...permit,
+        tier: 1
+      };
+    }
+  }
 
   const match = matchPermitBuilder(
     permit.contractor_name,
@@ -238,7 +260,7 @@ export function enrichPermitWithBuilder(
       city,
       minSimilarity: 0.90
     },
-    buildersList
+    masterList
   );
 
   if (match.isVerified && match.builder) {
@@ -263,19 +285,19 @@ export function enrichPermitWithBuilder(
         ...permit,
         tier: 1,
         verified_builder: match.builder,
-        contractor_phone: permit.contractor_phone || match.builder.primary_phone,
-        contractor_email: permit.contractor_email || match.builder.email
+        contractor_phone: match.builder.primary_phone || undefined,
+        contractor_email: match.builder.email || undefined
       };
     }
   }
 
-  // If match is below 90% or unverified, keep permit's contractor_name
+  // Not in master verified database: Standard Permittee, contacts set to undefined
   return {
     ...permit,
     tier: 2,
     verified_builder: null,
-    contractor_name: permit.contractor_name,
-    contractor_phone: permit.contractor_phone,
-    contractor_email: permit.contractor_email
+    contractor_name: permit.contractor_name || 'Standard Permittee',
+    contractor_phone: undefined,
+    contractor_email: undefined
   };
 }

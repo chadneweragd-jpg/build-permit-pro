@@ -245,6 +245,29 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     }
   }, [selectedPermit, mapLoaded]);
 
+  // Listen for 'bpp:scout-permit' event to fly map directly to scouted permit coordinates
+  useEffect(() => {
+    const handleScout = (e: Event) => {
+      const customEvent = e as CustomEvent<{ latitude?: number; longitude?: number; permitId?: string }>;
+      const { latitude, longitude } = customEvent.detail || {};
+      const map = mapRef.current;
+      if (!map) return;
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        map.flyTo({
+          center: [lng, lat],
+          zoom: 16,
+          duration: 1400,
+          essential: true
+        });
+      }
+    };
+
+    window.addEventListener('bpp:scout-permit', handleScout);
+    return () => window.removeEventListener('bpp:scout-permit', handleScout);
+  }, []);
+
   // Smoothly pan/fly to center when center coordinates change (e.g. switching between Kelowna and Calgary)
   useEffect(() => {
     const map = mapRef.current;

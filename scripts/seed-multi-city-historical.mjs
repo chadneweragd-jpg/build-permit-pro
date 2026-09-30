@@ -1330,41 +1330,10 @@ async function main() {
     'townline': 'townline.ca'
   };
 
-  const PRINCIPAL_TITLES = [
-    'Dave Henderson, VP Preconstruction & Estimating',
-    'Sarah Tremblay, Director of Estimating',
-    'Michael Kowalski, Senior Project Director',
-    'David Wilson, Chief Estimator',
-    'Robert Chen, Managing Principal',
-    'Mark Visscher, Director of Field Operations',
-    'Jason Campbell, VP Commercial Operations',
-    'Andrew Miller, Lead Estimator'
-  ];
-
-  function generateLocalizedContact(contrName, citySlug, seed) {
-    const profile = MUNICIPAL_PROFILES[citySlug] || MUNICIPAL_PROFILES['vancouver'];
-    const prefix = profile.prefixes[Math.abs(seed) % profile.prefixes.length];
-    const lineNum = String(2000 + (Math.abs(seed * 37 + contrName.length * 13) % 7800)).padStart(4, '0');
-    const phone = `${profile.areaCode} ${prefix}-${lineNum}`;
-
-    const lower = contrName.toLowerCase();
-    let matchedDomain;
-    for (const [key, dom] of Object.entries(KNOWN_CONTRACTOR_DOMAINS)) {
-      if (lower.includes(key)) { matchedDomain = dom; break; }
-    }
-    let domain = matchedDomain;
-    if (!domain) {
-      const clean = lower.replace(/[^a-z0-9]/g, '').slice(0, 16);
-      domain = (clean && clean.length >= 3 && clean !== 'contractor' && clean !== 'builder')
-        ? `${clean}group.ca` : profile.domainFallback;
-    }
-
-    const email = `estimating@${domain}`;
-    const website = `https://www.${domain}`;
-    const cityLabel = citySlug.charAt(0).toUpperCase() + citySlug.slice(1);
-    const address = `${100 + (Math.abs(seed * 41) % 1800)} ${profile.streetName}, ${cityLabel}, ${profile.province}`;
-    const principal = PRINCIPAL_TITLES[Math.abs(seed) % PRINCIPAL_TITLES.length];
-    return { phone, email, website, address, principal, association: profile.association, province: profile.province };
+  const verifiedBuildersPath = path.resolve(__dirname, '../src/data/verified-builders.json');
+  let masterVerifiedList = [];
+  if (fs.existsSync(verifiedBuildersPath)) {
+    masterVerifiedList = JSON.parse(fs.readFileSync(verifiedBuildersPath, 'utf8'));
   }
 
   // Group by city
@@ -1381,44 +1350,24 @@ async function main() {
       continue;
     }
 
-    const cityMeta = CITIES.find(c => c.slug === slug);
-    const cName = cityMeta?.name || slug;
-
-    const targetTier1 = Math.max(1, Math.round(list.length * 0.355));
-    // Sort permits descending by value so highest value projects qualify for Tier 1
-    const sorted = [...list].sort((a, b) => b.value - a.value);
-
-    for (let i = 0; i < sorted.length; i++) {
-      const p = sorted[i];
-      const isTier1 = i < targetTier1;
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
       const contrName = (p.contractor || p.contractor_name || 'Standard Permittee').trim();
+      const contrClean = contrName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      if (isTier1) {
-        const contact = generateLocalizedContact(contrName, slug, i);
-        const cleanDomain = contrName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 14) || 'builder';
+      // Check authentic master verified builders list
+      const matched = masterVerifiedList.find(b => {
+        const bClean = (b.normalized_name || b.company_name).toLowerCase().replace(/[^a-z0-9]/g, '');
+        return contrClean && bClean && (contrClean.includes(bClean) || bClean.includes(contrClean));
+      });
 
-        const verifiedBuilder = {
-          id: `builder-${slug}-${cleanDomain}`,
-          company_name: contrName,
-          normalized_name: contrName.toLowerCase(),
-          category: p.work_class === 'Commercial' ? 'Commercial General Contractor' : 'Residential Master Builder',
-          association: contact.association,
-          city: cName,
-          province: contact.province,
-          primary_phone: contact.phone,
-          email: contact.email,
-          website: contact.website,
-          physical_address: contact.address,
-          key_principal: contact.principal,
-          similarity_score: 1.0
-        };
-
+      if (matched) {
         finalPermits.push({
           ...p,
           tier: 1,
-          verified_builder: verifiedBuilder,
-          contractor_phone: contact.phone,
-          contractor_email: contact.email,
+          verified_builder: matched,
+          contractor_phone: matched.primary_phone || undefined,
+          contractor_email: matched.email || undefined,
           trades: [
             { subtrade_key: 'electrical', name: 'Electrical', color: '#2563EB', icon: 'Zap', confidence: 0.9, matched_terms: ['electrical'] },
             { subtrade_key: 'hvac_plumbing', name: 'Plumbing & Mechanical / HVAC', color: '#DC2626', icon: 'Flame', confidence: 0.9, matched_terms: ['hvac', 'mechanical'] }

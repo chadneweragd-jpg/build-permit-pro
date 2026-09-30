@@ -71,13 +71,13 @@ export function PermitTable({ permits, onAddToRoute }: PermitTableProps) {
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
                       <div className="flex flex-col">
                         <span className="truncate max-w-[180px]">{p.contractor_name || 'Not Listed'}</span>
-                        {p.tier === 1 ? (
+                        {p.tier === 1 && p.verified_builder ? (
                           <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                             ✓ Verified Builder
                           </span>
                         ) : (
                           <span className="inline-flex items-center text-[9px] font-semibold text-slate-400 mt-0.5">
-                            {`Standard Permittee (${p.city_region || (p.city_slug ? p.city_slug.charAt(0).toUpperCase() + p.city_slug.slice(1) : 'Kelowna')})`}
+                            Standard Permittee
                           </span>
                         )}
                       </div>
