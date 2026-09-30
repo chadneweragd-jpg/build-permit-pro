@@ -128,18 +128,18 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
         </div>
 
         {/* Action CTA Buttons */}
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-5 flex flex-wrap gap-2 overflow-x-auto">
           {phoneToDisplay ? (
             <a
               href={`tel:${rawPhone}`}
-              className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-500 active:scale-95"
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-500 active:scale-95"
             >
               📞 Call {phoneToDisplay}
             </a>
           ) : (
             <button
               disabled
-              className="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
               title="No builder phone on file"
             >
               📞 No Phone Listed
@@ -149,14 +149,14 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
           {emailToDisplay ? (
             <a
               href={mailtoUrl}
-              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95"
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 active:scale-95"
             >
               ✉️ Email Estimating
             </a>
           ) : (
             <button
               disabled
-              className="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
+              className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed opacity-50"
               title="No estimator email on file"
             >
               ✉️ Email Estimating
@@ -215,12 +215,12 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
       </div>
 
       {/* Disabled Actions with Tooltip */}
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <div className="mt-5 flex flex-wrap gap-2 overflow-x-auto">
         <button
           type="button"
           disabled
           title="Direct estimator contact pending verification"
-          className="flex items-center justify-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/50 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed"
+          className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/50 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed"
         >
           <PhoneOff className="w-3.5 h-3.5 opacity-60" />
           <span>Call Disabled</span>
@@ -230,7 +230,7 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
           type="button"
           disabled
           title="Direct estimator contact pending verification"
-          className="flex items-center justify-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/50 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed"
+          className="flex-1 min-w-[130px] flex items-center justify-center gap-2 rounded-lg bg-slate-800/80 border border-slate-700/50 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed"
         >
           <Mail className="w-3.5 h-3.5 opacity-60" />
           <span>Email Disabled</span>

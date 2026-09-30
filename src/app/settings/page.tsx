@@ -19,7 +19,10 @@ import {
   Lock,
   Volume2,
   Play,
-  Smartphone
+  Smartphone,
+  Moon,
+  Sun,
+  Bell
 } from 'lucide-react';
 import { getAvailableVoices, testVoice, saveSelectedVoice, VOICE_STORAGE_KEY, VoiceOption } from '@/lib/voice-utils';
 import { AuthService } from '@/lib/auth-service';
@@ -43,8 +46,27 @@ export default function SettingsPage() {
   const [wakeLockEnabled, setWakeLockEnabled] = useState<boolean>(true);
   const [isWakeLockSupported, setIsWakeLockSupported] = useState<boolean>(true);
 
+  // Appearance & Notification Preferences
+  const [isDark, setIsDark] = useState<boolean>(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+
   useEffect(() => {
     setCurrentTier(PermitsRepository.getCurrentTier());
+
+    // Load Theme Preference
+    const savedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('bpp_theme') : null;
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const activeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    setIsDark(activeDark);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', activeDark);
+    }
+
+    // Load Notifications Preference
+    const savedNotifs = typeof localStorage !== 'undefined' ? localStorage.getItem('bpp_notifications_enabled') : null;
+    if (savedNotifs !== null) {
+      setNotificationsEnabled(savedNotifs === 'true');
+    }
 
     // Load available browser voices
     const updateVoices = () => {
@@ -91,6 +113,25 @@ export default function SettingsPage() {
     setIsTestingVoice(true);
     testVoice(selectedVoice);
     setTimeout(() => setIsTestingVoice(false), 2200);
+  };
+
+  const handleToggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', next);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('bpp_theme', next ? 'dark' : 'light');
+    }
+  };
+
+  const handleToggleNotifications = () => {
+    const next = !notificationsEnabled;
+    setNotificationsEnabled(next);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('bpp_notifications_enabled', String(next));
+    }
   };
 
   const handleWakeLockToggle = () => {
@@ -334,6 +375,66 @@ export default function SettingsPage() {
                   ? 'Compatible with iOS Safari (iOS 16.4+), Android Chrome, Microsoft Edge, and Desktop browsers.'
                   : 'Note: If accessing via an older browser, the device operating system display timeout will apply.'}
               </span>
+            </div>
+          </div>
+
+          {/* Appearance & Global Notification Controls */}
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h2 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center space-x-2">
+              <Sun className="w-4 h-4 text-amber-500" />
+              <span>Appearance & Notification Preferences</span>
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Day / Night Theme Toggle */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                    {isDark ? <Moon className="w-4 h-4 text-blue-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                    <span>Theme Display</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 block">
+                    {isDark ? 'Dark Mode (Night)' : 'Light Mode (Day)'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleTheme}
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-600 shadow-xs transition-all flex items-center space-x-1.5"
+                >
+                  {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-500" />}
+                  <span>Switch to {isDark ? 'Light' : 'Dark'}</span>
+                </button>
+              </div>
+
+              {/* Notification Alerts Toggle */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                    <Bell className="w-4 h-4 text-blue-500" />
+                    <span>In-App Notifications</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 block">
+                    {notificationsEnabled ? 'Alerts Enabled' : 'Alerts Muted'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notificationsEnabled}
+                  onClick={handleToggleNotifications}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    notificationsEnabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 

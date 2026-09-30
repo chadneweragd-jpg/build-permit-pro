@@ -10,6 +10,11 @@ export const CRA_RATE_TIER_1 = 0.70;
 export const CRA_RATE_TIER_2 = 0.64;
 export const CRA_TIER_1_THRESHOLD = 5000;
 
+export interface MileageRateConfig {
+  mode: 'cra' | 'custom';
+  customRate?: number; // $/km, e.g. 0.68
+}
+
 export function calculateCRADeduction(distanceKm: number, priorBusinessKmThisYear: number = 0): number {
   if (distanceKm <= 0) return 0;
 
@@ -24,6 +29,21 @@ export function calculateCRADeduction(distanceKm: number, priorBusinessKmThisYea
     const tier2Portion = distanceKm - tier1Portion;
     return Number(((tier1Portion * CRA_RATE_TIER_1) + (tier2Portion * CRA_RATE_TIER_2)).toFixed(2));
   }
+}
+
+export function calculateReimbursement(
+  distanceKm: number,
+  config?: MileageRateConfig,
+  priorBusinessKmThisYear: number = 0
+): number {
+  if (distanceKm <= 0) return 0;
+  if (config && config.mode === 'custom') {
+    const rate = typeof config.customRate === 'number' && config.customRate >= 0
+      ? config.customRate
+      : CRA_RATE_TIER_1;
+    return Number((distanceKm * rate).toFixed(2));
+  }
+  return calculateCRADeduction(distanceKm, priorBusinessKmThisYear);
 }
 
 export const INITIAL_TRIP_LEGS: TripLeg[] = [
@@ -267,7 +287,7 @@ export class MileageRepository {
     return true;
   }
 
-  public static getStats(legs?: TripLeg[]) {
+  public static getStats(legs?: TripLeg[], rateConfig?: MileageRateConfig) {
     const list = legs || this.getStoredLegs();
     let totalBusinessKm = 0;
     let totalPersonalKm = 0;
@@ -291,7 +311,11 @@ export class MileageRepository {
     for (const leg of list) {
       if (leg.trip_type === 'business') {
         totalBusinessKm += leg.distance_km;
-        totalDeductibleCad += (leg.deductible_cad ?? calculateCRADeduction(leg.distance_km));
+        if (rateConfig && rateConfig.mode === 'custom') {
+          totalDeductibleCad += calculateReimbursement(leg.distance_km, rateConfig);
+        } else {
+          totalDeductibleCad += (leg.deductible_cad ?? calculateCRADeduction(leg.distance_km));
+        }
       } else {
         totalPersonalKm += leg.distance_km;
       }
@@ -316,8 +340,17 @@ export class MileageRepository {
     };
   }
 
-  public static generateCRAExportCSV(legs?: TripLeg[]): string {
+  public static generateCRAExportCSV(legs?: TripLeg[], rateConfig?: MileageRateConfig): string {
     const list = legs || this.getStoredLegs();
+    const isCustom = rateConfig?.mode === 'custom';
+    const customRate = (typeof rateConfig?.customRate === 'number' && rateConfig.customRate >= 0)
+      ? rateConfig.customRate
+      : CRA_RATE_TIER_1;
+
+    const basisMetadata = isCustom
+      ? `Reimbursement Basis: Company Agreed Rate ($${customRate.toFixed(2)}/km)`
+      : `Reimbursement Basis: Official CRA Rate ($${CRA_RATE_TIER_1.toFixed(2)}/$${CRA_RATE_TIER_2.toFixed(2)})`;
+
     const headers = [
       'Date',
       'Trip Type',
@@ -327,15 +360,25 @@ export class MileageRepository {
       'Distance (km)',
       'Duration (min)',
       'Permit Reference',
-      'CRA Rate ($/km)',
+      isCustom ? 'Agreed Rate ($/km)' : 'CRA Rate ($/km)',
       'Allowable Deduction ($ CAD)',
       'Driver Notes'
     ];
 
     const rows = list.map(l => {
       const date = new Date(l.recorded_at).toLocaleDateString('en-CA');
-      const rate = l.trip_type === 'business' ? CRA_RATE_TIER_1.toFixed(2) : '0.00';
-      const deductible = (l.deductible_cad ?? (l.trip_type === 'business' ? l.distance_km * CRA_RATE_TIER_1 : 0)).toFixed(2);
+      let rateStr = '0.00';
+      let deductibleStr = '0.00';
+
+      if (l.trip_type === 'business') {
+        if (isCustom) {
+          rateStr = customRate.toFixed(2);
+          deductibleStr = (l.distance_km * customRate).toFixed(2);
+        } else {
+          rateStr = CRA_RATE_TIER_1.toFixed(2);
+          deductibleStr = (l.deductible_cad ?? (l.distance_km * CRA_RATE_TIER_1)).toFixed(2);
+        }
+      }
       
       return [
         `"${date}"`,
@@ -346,12 +389,12 @@ export class MileageRepository {
         l.distance_km.toFixed(2),
         l.duration_min,
         `"${l.permit_number || ''}"`,
-        rate,
-        deductible,
+        rateStr,
+        deductibleStr,
         `"${(l.notes || '').replace(/"/g, '""')}"`
       ].join(',');
     });
 
-    return [headers.join(','), ...rows].join('\n');
+    return [basisMetadata, headers.join(','), ...rows].join('\n');
   }
 }

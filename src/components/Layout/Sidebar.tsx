@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { label: 'Routes', href: '/routes', icon: Route },
     { label: 'CRA Mileage', href: '/routes/mileage', icon: Car, badge: 'CRA' },
     { label: 'Reports', href: '/reports', icon: BarChart3 },
-    { label: 'Search', href: '/search', icon: Search },
+    { label: 'Permit Intel', href: '/search', icon: Search },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 

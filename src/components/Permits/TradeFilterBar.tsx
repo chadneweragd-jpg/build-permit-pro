@@ -122,7 +122,7 @@ export const TradeFilterBar: React.FC<TradeFilterBarProps> = ({
         </div>
 
         {/* Work Class Filter Pills */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 lg:pb-0">
+        <div className="flex items-center flex-wrap gap-1.5 overflow-x-auto pb-1 lg:pb-0">
           {(['Commercial', 'Industrial', 'Residential', 'Institutional'] as WorkClass[]).map((wc) => {
             const isSelected = selectedWorkClasses.includes(wc);
             return (
@@ -143,7 +143,7 @@ export const TradeFilterBar: React.FC<TradeFilterBarProps> = ({
       </div>
 
       {/* Subtrade Pills Bar */}
-      <div className="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-100 flex items-center space-x-2 overflow-x-auto scrollbar-none">
+      <div className="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-100 flex items-center flex-wrap gap-2 overflow-x-auto">
         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap mr-1">
           Trades:
         </span>

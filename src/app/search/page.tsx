@@ -35,6 +35,7 @@ function SearchExplorerContent() {
   const [permitsList, setPermitsList] = useState<Permit[]>(PermitsRepository.getAllPermits());
 
   useEffect(() => {
+    document.title = 'Permit Intel | BuildPermitPro';
     if (cityParam) {
       setActiveCityId(cityParam);
     } else {
@@ -409,7 +410,11 @@ function SearchExplorerContent() {
           {/* Feed Header */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center space-x-2 flex-wrap gap-1">
-              <span className="text-xs font-black text-slate-900 dark:text-white">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                Permit Intel
+              </span>
+              <span className="text-slate-300 dark:text-slate-700 font-bold">&bull;</span>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                 {displayTotalCount.toLocaleString()} Permits
               </span>
               <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full">

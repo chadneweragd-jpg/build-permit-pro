@@ -298,7 +298,7 @@ export default function DashboardPage() {
               </h2>
             </div>
             <Link
-              href={selectedCity === 'all' ? '/permits' : `/permits?city=${selectedCity}`}
+              href={selectedCity === 'all' ? '/pipeline' : `/pipeline?city=${selectedCity}`}
               className="text-xs font-bold text-blue-600 hover:underline"
             >
               View Full City Pipeline &rarr;

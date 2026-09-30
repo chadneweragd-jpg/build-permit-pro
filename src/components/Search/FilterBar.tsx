@@ -59,8 +59,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const selectedDateObj = DATE_RANGES.find((d) => d.value === selectedDateRange) || DATE_RANGES[1];
 
   return (
-    <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3 flex flex-wrap items-center justify-between gap-3 relative z-20">
-      <div className="flex items-center space-x-2.5 flex-wrap gap-y-2">
+    <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 relative z-20">
+      <div className="flex items-center flex-wrap gap-2 overflow-x-auto">
 
         {/* Permit Type Dropdown Pill */}
         <div className="relative">

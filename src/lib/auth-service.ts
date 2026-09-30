@@ -9,6 +9,7 @@ export interface UserProfile {
   tierBadge: string;
   initials: string;
   isPartner: boolean;
+  allowed_regions?: string[];
 }
 
 export const PARTNER_ACCOUNTS: UserProfile[] = [
@@ -20,7 +21,8 @@ export const PARTNER_ACCOUNTS: UserProfile[] = [
     role: 'Co-Founder & Product',
     tierBadge: 'Partner / Admin',
     initials: 'CP',
-    isPartner: true
+    isPartner: true,
+    allowed_regions: ['all']
   },
   {
     id: '4984332e-8c91-426e-ba90-566221b4ce49',
@@ -30,7 +32,8 @@ export const PARTNER_ACCOUNTS: UserProfile[] = [
     role: 'Commercial Strategy',
     tierBadge: 'Partner / Admin',
     initials: 'DP',
-    isPartner: true
+    isPartner: true,
+    allowed_regions: ['all']
   },
   {
     id: '68f167fe-4198-45ee-9e0d-f2c90cb6b9b4',
@@ -40,7 +43,8 @@ export const PARTNER_ACCOUNTS: UserProfile[] = [
     role: 'Okanagan Operations',
     tierBadge: 'Partner / Admin',
     initials: 'CS',
-    isPartner: true
+    isPartner: true,
+    allowed_regions: ['all']
   }
 ];
 
@@ -131,6 +135,7 @@ export class AuthService {
       .toUpperCase() || 'BP';
 
     const isPartnerDomain = cleanEmail.endsWith('@buildpermitpro.ca');
+    const allowed_regions = (isPartnerDomain || partner) ? ['all'] : ['kelowna'];
 
     return {
       id: id || cleanEmail,
@@ -140,7 +145,8 @@ export class AuthService {
       role: isPartnerDomain ? 'Partner / Admin' : 'Estimator Member',
       tierBadge: isPartnerDomain ? 'Partner / Admin' : 'Pro Scout',
       initials,
-      isPartner: isPartnerDomain
+      isPartner: isPartnerDomain,
+      allowed_regions
     };
   }
 
@@ -158,3 +164,19 @@ export class AuthService {
     return this.getActiveUserSync().email;
   }
 }
+
+/**
+ * Checks if the current user has access to a given city/region.
+ * Partners, Admins, and Enterprise accounts have access to all cities.
+ */
+export function isCityAllowed(citySlug: string, user?: UserProfile | null): boolean {
+  if (!user) return true;
+  if (user.isPartner || user.role?.toLowerCase().includes('admin') || user.tierBadge?.toLowerCase().includes('admin') || user.tierBadge?.toLowerCase().includes('enterprise')) {
+    return true;
+  }
+  const allowed = user.allowed_regions || ['kelowna'];
+  if (allowed.includes('all')) return true;
+  const clean = citySlug.toLowerCase().trim();
+  return allowed.some(r => r.toLowerCase().trim() === clean);
+}
+

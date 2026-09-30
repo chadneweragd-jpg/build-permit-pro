@@ -11,7 +11,6 @@ import { PermitTable } from '@/components/Permits/PermitTable';
 import {
   FileText,
   Search,
-  Download,
   Filter,
   ArrowUpDown,
   Building2,
@@ -75,49 +74,6 @@ function PermitsListContent() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleExportCSV = () => {
-    const headers = [
-      'Permit Number',
-      'City Slug',
-      'Issue Date',
-      'Address',
-      'City / Region',
-      'Province',
-      'Work Class',
-      'Permit Type',
-      'Estimated Value CAD',
-      'General Contractor',
-      'Builder Tier',
-      'Primary Subtrades',
-      'Estimator AI Flash Summary'
-    ];
-
-    const rows = filtered.map((p) => [
-      `"${p.permit_number}"`,
-      `"${p.city_slug || 'kelowna'}"`,
-      `"${p.issue_date || p.approval_date}"`,
-      `"${p.address.replace(/"/g, '""')}"`,
-      `"${p.city_region || 'Kelowna'}"`,
-      `"${p.province || 'BC'}"`,
-      `"${p.work_class}"`,
-      `"${p.permit_type || p.sub_type}"`,
-      p.estimated_value || p.value || 0,
-      `"${(p.contractor_name || p.contractor || '').replace(/"/g, '""')}"`,
-      p.tier === 1 ? 'Tier 1 (Verified Builder)' : 'Tier 2 (Standard Permittee)',
-      `"${p.trades.map((t) => t.name).join('; ')}"`,
-      `"${(p.ai_summary || '').replace(/"/g, '""')}"`
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `BPP_${selectedCity.toUpperCase()}_Permits_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const selectedCityInfo = activeCities.find((c) => c.slug === selectedCity);
 
   return (
@@ -134,18 +90,8 @@ function PermitsListContent() {
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Browse, filter, and export municipal building permits across Canada with strict municipal siloing.
+            Browse, filter, and track municipal building permits across Canada with strict municipal siloing.
           </p>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Filtered CSV ({filtered.length})</span>
-          </button>
         </div>
       </div>
 

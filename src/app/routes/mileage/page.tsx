@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { MileageRepository } from '@/lib/mileage-repo';
+import { MileageRepository, MileageRateConfig, CRA_RATE_TIER_1, CRA_RATE_TIER_2 } from '@/lib/mileage-repo';
 import { TripLeg, TripType, PurposeTag } from '@/types';
 import {
   FileText,
@@ -20,7 +20,8 @@ import {
   MapPin,
   Clock,
   Filter,
-  X
+  X,
+  Sliders
 } from 'lucide-react';
 
 const PURPOSE_TAGS: PurposeTag[] = [
@@ -37,6 +38,15 @@ export default function MileagePage() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterPurpose, setFilterPurpose] = useState<string>('all');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Rate Selector State (Option A: CRA Prescribed Tier, Option B: Custom Company Rate)
+  const [rateMode, setRateMode] = useState<'cra' | 'custom'>('cra');
+  const [customRate, setCustomRate] = useState<number>(0.68);
+
+  const rateConfig: MileageRateConfig = useMemo(() => ({
+    mode: rateMode,
+    customRate: customRate
+  }), [rateMode, customRate]);
 
   // Manual Trip Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -63,7 +73,7 @@ export default function MileagePage() {
     loadData();
   }, []);
 
-  const stats = MileageRepository.getStats(legs);
+  const stats = MileageRepository.getStats(legs, rateConfig);
 
   // Filtered list
   const filteredLegs = legs.filter((l) => {
@@ -72,14 +82,16 @@ export default function MileagePage() {
     return true;
   });
 
-  // Handler: Export CSV
+  // Handler: Export CSV with Reimbursement Basis metadata header
   const handleExportCSV = () => {
-    const csvContent = MileageRepository.generateCRAExportCSV(filteredLegs);
+    const csvContent = MileageRepository.generateCRAExportCSV(filteredLegs, rateConfig);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `cra_mileage_logbook_${new Date().toISOString().split('T')[0]}.csv`);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const prefix = rateMode === 'custom' ? 'company_mileage_logbook' : 'cra_mileage_logbook';
+    link.setAttribute('download', `${prefix}_${dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -142,7 +154,7 @@ export default function MileagePage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Canada Revenue Agency compliant automobile expense tracking ($0.70/km first 5,000 km, $0.64/km thereafter)
+              Canada Revenue Agency compliant automobile expense tracking & commercial fleet reimbursement
             </p>
           </div>
         </div>
@@ -151,7 +163,7 @@ export default function MileagePage() {
         <div className="flex items-center space-x-2.5">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-blue-600/20 transition-all"
+            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-blue-600/20 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Log Manual Trip</span>
@@ -159,19 +171,106 @@ export default function MileagePage() {
 
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm"
+            className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-600" />
-            <span>Export CRA Audit CSV</span>
+            <span>Export Mileage Audit CSV</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
+        {/* Rate Selector Banner (CRA Prescribed Tier vs Custom Company Rate) */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Reimbursement Engine</span>
+                <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
+                  {rateMode === 'cra' ? 'Official CRA Prescribed Tier' : `Custom Company Rate ($${customRate.toFixed(2)}/km)`}
+                </span>
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                Select Mileage Deduction Basis
+              </h3>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Option A: CRA Prescribed Tier */}
+            <label
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                rateMode === 'cra'
+                  ? 'border-blue-600 bg-blue-50/70 text-blue-700 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-300 shadow-xs'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="mileageRateMode"
+                value="cra"
+                checked={rateMode === 'cra'}
+                onChange={() => setRateMode('cra')}
+                className="text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <div>
+                <span>Official CRA Prescribed Tier</span>
+                <span className="block text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                  $0.70/km (first 5k) &bull; $0.64/km (thereafter)
+                </span>
+              </div>
+            </label>
+
+            {/* Option B: Custom Company Rate */}
+            <label
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                rateMode === 'custom'
+                  ? 'border-blue-600 bg-blue-50/70 text-blue-700 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-300 shadow-xs'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="mileageRateMode"
+                value="custom"
+                checked={rateMode === 'custom'}
+                onChange={() => setRateMode('custom')}
+                className="text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <div className="flex items-center space-x-2">
+                <div>
+                  <span>Custom Company Rate</span>
+                  <span className="block text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                    Agreed fleet reimbursement ($/km)
+                  </span>
+                </div>
+                {rateMode === 'custom' && (
+                  <div className="flex items-center space-x-1 pl-1" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-slate-400">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      max="5.00"
+                      value={customRate}
+                      onChange={(e) => setCustomRate(parseFloat(e.target.value) || 0)}
+                      className="w-16 px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <span className="text-slate-400 text-[10px]">/km</span>
+                  </div>
+                )}
+              </div>
+            </label>
+          </div>
+        </div>
+
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Business Mileage</span>
               <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600">
@@ -187,10 +286,10 @@ export default function MileagePage() {
             <span className="text-[11px] text-slate-400 mt-1 block">Qualified commercial trips</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                CRA Tax Allowance
+                {rateMode === 'cra' ? 'CRA Tax Allowance' : 'Company Reimbursement'}
               </span>
               <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600">
                 <DollarSign className="w-4 h-4" />
@@ -202,10 +301,12 @@ export default function MileagePage() {
               </span>
               <span className="text-xs font-bold text-slate-400">CAD</span>
             </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">Deductible vehicle expense</span>
+            <span className="text-[11px] text-slate-400 mt-1 block">
+              {rateMode === 'cra' ? 'Deductible vehicle expense ($0.70/$0.64)' : `Calculated at $${customRate.toFixed(2)}/km`}
+            </span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Personal Mileage</span>
               <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
@@ -221,7 +322,7 @@ export default function MileagePage() {
             <span className="text-[11px] text-slate-400 mt-1 block">Personal commute & errands</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Logged Legs</span>
               <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600">
@@ -248,7 +349,7 @@ export default function MileagePage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 font-semibold text-xs text-slate-900 dark:text-white focus:outline-none"
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 font-semibold text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
               <option value="all">All Trip Types</option>
               <option value="business">Business Only</option>
@@ -259,7 +360,7 @@ export default function MileagePage() {
             <select
               value={filterPurpose}
               onChange={(e) => setFilterPurpose(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 font-semibold text-xs text-slate-900 dark:text-white focus:outline-none"
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 font-semibold text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
               <option value="all">All Purpose Tags</option>
               {PURPOSE_TAGS.map((tag) => (
@@ -270,24 +371,24 @@ export default function MileagePage() {
             </select>
           </div>
 
-          <div className="text-xs text-slate-500 font-medium">
-            Showing <span className="font-bold text-slate-900 dark:text-white">{filteredLegs.length}</span> trips
+          <div className="text-xs text-slate-500 font-semibold">
+            Showing <span className="font-black text-slate-900 dark:text-white">{filteredLegs.length}</span> of {legs.length} trip legs
           </div>
         </div>
 
-        {/* Itemized CRA Logbook Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        {/* Table of Trip Legs */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-black uppercase tracking-wider text-slate-500">
+              <thead className="bg-slate-50/75 dark:bg-slate-800/50 text-[11px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-3.5 px-4">Date</th>
                   <th className="py-3.5 px-4">Type</th>
-                  <th className="py-3.5 px-4">Purpose Tag</th>
-                  <th className="py-3.5 px-4">Origin & Destination</th>
+                  <th className="py-3.5 px-4">Purpose</th>
+                  <th className="py-3.5 px-4">Route</th>
                   <th className="py-3.5 px-4">Distance</th>
                   <th className="py-3.5 px-4">Duration</th>
-                  <th className="py-3.5 px-4">CRA Deduction</th>
+                  <th className="py-3.5 px-4">{rateMode === 'cra' ? 'CRA Deduction' : 'Reimbursement'}</th>
                   <th className="py-3.5 px-4">Notes</th>
                   <th className="py-3.5 px-4 text-right">Action</th>
                 </tr>
@@ -307,6 +408,12 @@ export default function MileagePage() {
                       day: 'numeric',
                       year: 'numeric'
                     });
+
+                    const rowDeductible = isBusiness
+                      ? (rateMode === 'custom'
+                          ? (leg.distance_km * customRate).toFixed(2)
+                          : (leg.deductible_cad ?? (leg.distance_km * CRA_RATE_TIER_1)).toFixed(2))
+                      : null;
 
                     return (
                       <tr key={leg.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
@@ -348,7 +455,7 @@ export default function MileagePage() {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {isBusiness ? (
                             <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
-                              ${(leg.deductible_cad ?? (leg.distance_km * 0.70)).toFixed(2)} CAD
+                              ${rowDeductible} CAD
                             </span>
                           ) : (
                             <span className="text-slate-400 font-mono">-</span>
@@ -360,7 +467,7 @@ export default function MileagePage() {
                         <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <button
                             onClick={() => handleDeleteLeg(leg.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                             title="Delete entry"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -378,13 +485,13 @@ export default function MileagePage() {
 
       {/* Manual Trip Entry Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-black text-slate-900 dark:text-white">Log Commercial Trip</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -447,7 +554,7 @@ export default function MileagePage() {
                   <select
                     value={manualTripType}
                     onChange={(e) => setManualTripType(e.target.value as TripType)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                   >
                     <option value="business">Business (Tax Deductible)</option>
                     <option value="personal">Personal</option>
@@ -459,7 +566,7 @@ export default function MileagePage() {
                   <select
                     value={manualPurpose}
                     onChange={(e) => setManualPurpose(e.target.value as PurposeTag)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                   >
                     {PURPOSE_TAGS.map((tag) => (
                       <option key={tag} value={tag}>
@@ -485,7 +592,7 @@ export default function MileagePage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-blue-600/20"
+                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{isSubmitting ? 'Logging Trip...' : 'Save to CRA Logbook'}</span>

@@ -151,14 +151,14 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
       {/* Primary Action Buttons Bar with Safe Area Padding */}
       <div className="pb-4 px-4 pt-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-2.5 text-xs font-bold shrink-0">
         {/* Prominent Action Button Row: [Open in Maps], [+ Add To Route], [Call Builder / Scout Site] */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto">
           {/* Open in Maps */}
           <button
             type="button"
             onClick={() => {
               launchNativeNavigation('Current Location', permit.address);
             }}
-            className="py-3 px-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-sm"
+            className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-sm"
             title="Open in Apple or Google Maps"
           >
             <MapPin className="w-4 h-4 shrink-0" />
@@ -169,7 +169,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           <button
             type="button"
             onClick={handleAddToRoute}
-            className="py-3 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black shadow-md shadow-blue-600/30 active:scale-95"
+            className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black shadow-md shadow-blue-600/30 active:scale-95"
             title="Add to active route"
           >
             <Plus className="w-4 h-4 shrink-0" />
@@ -180,7 +180,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           {hasValidPhone ? (
             <a
               href={`tel:${contractorPhone?.replace(/\D/g, '')}`}
-              className="py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30"
+              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-black active:scale-95 shadow-md shadow-emerald-600/30"
               title={`Call ${permit.contractor_name || 'Contractor'}`}
             >
               <Phone className="w-4 h-4 shrink-0" />
@@ -189,7 +189,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
           ) : (
             <Link
               href={`/routes/builder?destination=${permit.id}`}
-              className="py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95"
+              className="flex-1 min-w-[95px] py-3 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-center font-bold active:scale-95"
               title="Scout Jobsite in Drive Mode"
             >
               <Compass className="w-4 h-4 shrink-0 text-amber-500" />
@@ -199,10 +199,10 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
         </div>
 
         {/* Secondary: BPP Scout Drive Mode & Pipeline */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto">
           <Link
             href={`/routes/builder?destination=${permit.id}`}
-            className="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center justify-center space-x-1.5 transition-all text-center font-bold"
+            className="flex-1 min-w-[120px] py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center justify-center space-x-1.5 transition-all text-center font-bold"
           >
             <Compass className="w-3.5 h-3.5 text-blue-500" />
             <span>Drive Mode</span>
@@ -214,7 +214,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
               setPipelineQuote(Math.round(permit.estimated_value * 0.15).toString());
               setIsPipelinePopupOpen(true);
             }}
-            className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center space-x-1.5 transition-all font-black shadow-sm"
+            className="flex-1 min-w-[120px] py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center space-x-1.5 transition-all font-black shadow-sm"
           >
             <Kanban className="w-3.5 h-3.5" />
             <span>+ Pipeline</span>
@@ -222,11 +222,11 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
         </div>
 
         {/* In-Cab Turn-by-Turn Deep Links */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] flex-wrap gap-2">
           <span className="text-slate-400 font-bold flex items-center gap-1">
             <span>🛻 In-Cab:</span>
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
             <a
               href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(permit.address)}&travelmode=driving`}
               target="_blank"
