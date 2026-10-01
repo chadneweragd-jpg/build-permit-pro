@@ -31,6 +31,60 @@ export interface MapContainerProps {
   showBufferControls?: boolean;
 }
 
+export function getCategoryPinStyle(permit: Permit): { bg: string; border: string; glyphSvg: string; label: string } {
+  const subtype = (
+    (permit as any).project_subtype ||
+    permit.permit_type ||
+    permit.description ||
+    permit.work_class ||
+    ''
+  ).toLowerCase();
+
+  // 1. Commercial / Multi-Family / Industrial: Solid Blue (#2563EB) with building glyph
+  if (
+    subtype.includes('commercial') ||
+    subtype.includes('multi-family') ||
+    subtype.includes('multifamily') ||
+    subtype.includes('industrial') ||
+    subtype.includes('office') ||
+    subtype.includes('retail') ||
+    subtype.includes('mixed') ||
+    permit.work_class?.toLowerCase().includes('commercial')
+  ) {
+    return {
+      bg: '#2563EB',
+      border: '#1D4ED8',
+      label: 'Commercial / Multi-Family',
+      glyphSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>`
+    };
+  }
+
+  // 2. Single Family Dwelling New: Solid Emerald (#059669) with house glyph
+  if (
+    subtype.includes('single') ||
+    subtype.includes('sfd') ||
+    subtype.includes('dwelling') ||
+    subtype.includes('residential new') ||
+    subtype.includes('house') ||
+    subtype.includes('single family')
+  ) {
+    return {
+      bg: '#059669',
+      border: '#047857',
+      label: 'Single Family New',
+      glyphSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
+    };
+  }
+
+  // 3. Renovations / Tenant Improvements: Solid Amber (#D97706) with tool glyph
+  return {
+    bg: '#D97706',
+    border: '#B45309',
+    label: 'Renovations & Alterations',
+    glyphSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 3.26-6.5 6.5"/></svg>`
+  };
+}
+
 export const MapContainer: React.FC<MapContainerProps> = ({
   permits = [],
   selectedPermit = null,
@@ -148,8 +202,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         selectedPermit?.id === permit.id ||
         selectedPermit?.permit_number === permit.permit_number;
 
-      const primaryTrade = permit.trades?.[0];
-      const tradeColor = primaryTrade?.color || '#EA580C';
+      const catStyle = getCategoryPinStyle(permit);
 
       const formattedVal =
         permit.estimated_value >= 1000000
@@ -158,13 +211,13 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
       // Create marker DOM element
       const el = document.createElement('div');
-      el.className = 'cursor-pointer transform hover:scale-125 transition-transform z-10 group';
+      el.className = 'cursor-pointer transform hover:scale-125 transition-all duration-200 z-10 group bpp-map-pin';
 
       if (isSelected) {
         el.innerHTML = `
-          <div class="relative flex flex-col items-center justify-center">
-            <div class="absolute -inset-2 bg-blue-500 rounded-full animate-ping opacity-60"></div>
-            <div class="w-7 h-7 bg-blue-600 border-2 border-white rounded-full shadow-2xl flex items-center justify-center text-white text-xs font-black ring-2 ring-blue-400">
+          <div class="relative flex flex-col items-center justify-center bpp-pin-container">
+            <div class="absolute -inset-2 rounded-full animate-ping opacity-60" style="background-color: ${catStyle.bg};"></div>
+            <div class="bpp-pin-body w-7 h-7 rounded-full shadow-2xl flex items-center justify-center text-white text-xs font-black ring-4 ring-blue-400 border-2 border-white" style="background-color: ${catStyle.bg};">
               ★
             </div>
             <div class="absolute -bottom-6 bg-slate-950 text-white font-mono text-[10px] font-black px-2 py-0.5 rounded shadow-xl whitespace-nowrap border border-blue-400">
@@ -174,14 +227,15 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         `;
       } else {
         el.innerHTML = `
-          <div class="relative flex flex-col items-center">
+          <div class="relative flex flex-col items-center bpp-pin-container transition-transform duration-200">
             <div 
-              class="w-4 h-4 rounded-full border-2 border-white shadow-md transition-all hover:scale-110 flex items-center justify-center"
-              style="background-color: ${tradeColor};"
-              title="${permit.address} - ${formattedVal}"
+              class="bpp-pin-body w-6 h-6 rounded-full border-2 border-white shadow-lg transition-all flex items-center justify-center"
+              style="background-color: ${catStyle.bg};"
+              title="${permit.address} - ${formattedVal} (${catStyle.label})"
             >
+              ${catStyle.glyphSvg}
             </div>
-            <div class="mt-0.5 bg-slate-900/90 text-white font-mono text-[9px] font-bold px-1 py-0.2 rounded shadow whitespace-nowrap opacity-80 group-hover:opacity-100">
+            <div class="mt-0.5 bg-slate-950/90 text-white font-mono text-[9px] font-bold px-1.5 py-0.2 rounded shadow whitespace-nowrap opacity-85 group-hover:opacity-100 border border-slate-700/80">
               ${formattedVal}
             </div>
           </div>
@@ -200,9 +254,23 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         if (onSelectPermit) {
           onSelectPermit(permit);
         }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('bpp:focus-permit-card', { detail: { permitId: permit.id } })
+          );
+        }
+      };
+
+      const handleMarkerMouseEnter = () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('bpp:focus-permit-card', { detail: { permitId: permit.id } })
+          );
+        }
       };
 
       el.addEventListener('click', handleMarkerClick);
+      el.addEventListener('mouseenter', handleMarkerMouseEnter);
 
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([lng, lat])
@@ -266,6 +334,34 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
     window.addEventListener('bpp:scout-permit', handleScout);
     return () => window.removeEventListener('bpp:scout-permit', handleScout);
+  }, []);
+
+  // Listen for 'bpp:permit-card-hover' to scale up and glow the corresponding map pin
+  useEffect(() => {
+    const handleCardHover = (e: Event) => {
+      const { permitId, isHovered } = (e as CustomEvent<{ permitId?: string; isHovered: boolean }>).detail || {};
+      if (!permitId) return;
+      const pinEl = document.querySelector(`[data-permit-id="${permitId}"], [data-permit-number="${permitId}"]`) as HTMLElement;
+      if (pinEl) {
+        const pinBody = pinEl.querySelector('.bpp-pin-body') as HTMLElement;
+        if (isHovered) {
+          pinEl.style.transform = 'scale(1.35)';
+          pinEl.style.zIndex = '50';
+          if (pinBody) {
+            pinBody.classList.add('ring-4', 'ring-blue-400', 'shadow-2xl');
+          }
+        } else {
+          pinEl.style.transform = '';
+          pinEl.style.zIndex = '';
+          if (pinBody) {
+            pinBody.classList.remove('ring-4', 'ring-blue-400', 'shadow-2xl');
+          }
+        }
+      }
+    };
+
+    window.addEventListener('bpp:permit-card-hover', handleCardHover);
+    return () => window.removeEventListener('bpp:permit-card-hover', handleCardHover);
   }, []);
 
   // Smoothly pan/fly to center when center coordinates change (e.g. switching between Kelowna and Calgary)

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Permit } from '@/types';
-import { MapPin, Calendar, DollarSign, ChevronRight, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 interface PermitCardProps {
   permit: Permit;
@@ -10,6 +10,7 @@ interface PermitCardProps {
   onSelect: (permit: Permit) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (permitId: string, e: React.MouseEvent) => void;
+  density?: 'comfortable' | 'compact';
 }
 
 export const PermitCard: React.FC<PermitCardProps> = ({
@@ -17,7 +18,8 @@ export const PermitCard: React.FC<PermitCardProps> = ({
   isSelected,
   onSelect,
   isFavorite = false,
-  onToggleFavorite
+  onToggleFavorite,
+  density = 'comfortable'
 }) => {
   const formattedVal = new Intl.NumberFormat('en-CA', {
     style: 'currency',
@@ -25,9 +27,81 @@ export const PermitCard: React.FC<PermitCardProps> = ({
     maximumFractionDigits: 0
   }).format(permit.estimated_value);
 
+  const handleMouseEnter = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('bpp:permit-card-hover', {
+          detail: { permitId: permit.id, isHovered: true }
+        })
+      );
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('bpp:permit-card-hover', {
+          detail: { permitId: permit.id, isHovered: false }
+        })
+      );
+    }
+  };
+
+  // Compact Single-Row Tabular Mode
+  if (density === 'compact') {
+    return (
+      <div
+        id={`permit-card-${permit.id}`}
+        onClick={() => onSelect(permit)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`px-3 py-2 rounded-xl border transition-all cursor-pointer group flex items-center justify-between gap-2.5 text-xs ${
+          isSelected
+            ? 'bg-blue-50/90 dark:bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-400'
+            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs'
+        }`}
+      >
+        <div className="flex items-center space-x-2 min-w-0">
+          <span className="font-mono text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+            {permit.permit_number}
+          </span>
+          <span className="font-bold text-slate-900 dark:text-white truncate max-w-[140px] sm:max-w-[180px] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={permit.address}>
+            {permit.address}
+          </span>
+          <span className="text-[11px] text-slate-400 truncate hidden md:inline max-w-[100px]" title={permit.contractor_name}>
+            {permit.contractor_name || 'Owner/Builder'}
+          </span>
+        </div>
+
+        <div className="flex items-center space-x-2 shrink-0">
+          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">
+            {formattedVal}
+          </span>
+          <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+            {permit.issue_date}
+          </span>
+          {onToggleFavorite && (
+            <button
+              type="button"
+              onClick={(e) => onToggleFavorite(permit.id, e)}
+              className="p-1 rounded text-slate-300 hover:text-amber-400 dark:hover:text-amber-300 transition-colors"
+              title="Toggle Favorite"
+            >
+              <Star className={`w-3.5 h-3.5 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Comfortable Mode (Default Rich View)
   return (
     <div
+      id={`permit-card-${permit.id}`}
       onClick={() => onSelect(permit)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={`p-4 rounded-2xl border transition-all cursor-pointer group relative ${
         isSelected
           ? 'bg-blue-50/90 dark:bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-400'
@@ -51,6 +125,7 @@ export const PermitCard: React.FC<PermitCardProps> = ({
           </span>
           {onToggleFavorite && (
             <button
+              type="button"
               onClick={(e) => onToggleFavorite(permit.id, e)}
               className="p-1 rounded-lg text-slate-300 hover:text-amber-400 dark:hover:text-amber-300 transition-colors"
             >
@@ -88,7 +163,7 @@ export const PermitCard: React.FC<PermitCardProps> = ({
       </div>
 
       {/* Trade Tags (Small Color Chips) */}
-      {permit.trades.length > 0 && (
+      {permit.trades && permit.trades.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1">
           {permit.trades.slice(0, 3).map((trade) => (
             <span

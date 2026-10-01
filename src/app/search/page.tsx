@@ -9,7 +9,7 @@ import { Permit } from '@/types';
 import { FilterBar } from '@/components/Search/FilterBar';
 import { PermitCard } from '@/components/Search/PermitCard';
 import { PermitDetailsSheet } from '@/components/Search/PermitDetailsSheet';
-import { ArrowUpDown, Search as SearchIcon, CheckCircle2 } from 'lucide-react';
+import { ArrowUpDown, Search as SearchIcon, CheckCircle2, LayoutList, AlignJustify, Car, Phone, PhoneOff, MapPin, Navigation, Compass } from 'lucide-react';
 import { getSelectedCityId, getActiveCityConfig } from '@/lib/cities';
 
 // Dynamically import MapContainer with ssr: false as required
@@ -104,8 +104,42 @@ function SearchExplorerContent() {
   // Mobile Map vs. List Toggle View
   const [mobileView, setMobileView] = useState<'map' | 'list'>('list');
 
+  // Full-Screen In-Cab Drive Mode State
+  const [isDriveMode, setIsDriveMode] = useState(false);
+  const [driveStopIndex, setDriveStopIndex] = useState(0);
+
+  // Sync mobileView with URL parameter (?mobileView=map / ?mobileView=list)
+  const mobileViewParam = searchParams.get('mobileView');
+  useEffect(() => {
+    if (mobileViewParam === 'map' || mobileViewParam === 'list') {
+      setMobileView(mobileViewParam);
+    }
+  }, [mobileViewParam]);
+
+  // Card Density Toggle (Comfortable vs Compact)
+  const [cardDensity, setCardDensity] = useState<'comfortable' | 'compact'>('comfortable');
+
   // Selected Permit for slideout detail sheet (initialized to null to prevent Kelowna bleed on secondary cities)
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
+
+  // Map-to-Card Auto-Scroll & Temporary Glow Listener
+  useEffect(() => {
+    const handleFocusCard = (e: Event) => {
+      const { permitId } = (e as CustomEvent<{ permitId?: string }>).detail || {};
+      if (!permitId) return;
+      const cardEl = document.getElementById(`permit-card-${permitId}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cardEl.classList.add('ring-4', 'ring-blue-500', 'border-blue-500', 'shadow-xl', 'scale-[1.01]');
+        setTimeout(() => {
+          cardEl.classList.remove('ring-4', 'ring-blue-500', 'border-blue-500', 'shadow-xl', 'scale-[1.01]');
+        }, 1500);
+      }
+    };
+
+    window.addEventListener('bpp:focus-permit-card', handleFocusCard);
+    return () => window.removeEventListener('bpp:focus-permit-card', handleFocusCard);
+  }, []);
 
   // Sync with bpp:global-search custom event & popstate
   useEffect(() => {
@@ -445,24 +479,73 @@ function SearchExplorerContent() {
               )}
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as any)}
-                className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 text-xs focus:outline-none cursor-pointer"
+            {/* Sort & Density Switcher */}
+            <div className="flex items-center space-x-2 shrink-0">
+              {/* Card Density Toggle */}
+              <div className="flex items-center bg-slate-200/70 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300/80 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setCardDensity('comfortable')}
+                  className={`p-1 rounded-md transition-all ${
+                    cardDensity === 'comfortable'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                  title="Comfortable View (Full Card)"
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardDensity('compact')}
+                  className={`p-1 rounded-md transition-all ${
+                    cardDensity === 'compact'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                  title="Compact View (Tabular Rows)"
+                >
+                  <AlignJustify className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* In-Cab Drive Mode Trigger Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDriveMode(true);
+                  if (!selectedPermit && filteredPermits.length > 0) {
+                    setSelectedPermit(filteredPermits[0]);
+                  }
+                }}
+                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-400/40 text-xs font-black shadow-xs transition-all active:scale-95 cursor-pointer"
+                title="Enter Fullscreen In-Cab Driving Mode"
               >
-                <option value="newest" className="bg-white dark:bg-slate-900">Sort Newest First</option>
-                <option value="highest_value" className="bg-white dark:bg-slate-900">Sort Highest Value</option>
-              </select>
+                <Car className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Drive Mode</span>
+              </button>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
+                <ArrowUpDown className="w-3 h-3" />
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 text-xs focus:outline-none cursor-pointer"
+                >
+                  <option value="newest" className="bg-white dark:bg-slate-900">Sort Newest</option>
+                  <option value="highest_value" className="bg-white dark:bg-slate-900">Sort Value</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Scrollable Permit Card Feed with Infinite Pagination */}
           <div
             onScroll={handleFeedScroll}
-            className="flex-1 overflow-y-auto p-3.5 space-y-2.5"
+            className={`flex-1 overflow-y-auto p-3.5 ${
+              cardDensity === 'compact' ? 'space-y-1.5' : 'space-y-2.5'
+            }`}
           >
             {filteredPermits.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs">
@@ -474,6 +557,7 @@ function SearchExplorerContent() {
                   <PermitCard
                     key={permit.id}
                     permit={permit}
+                    density={cardDensity}
                     isSelected={selectedPermit?.id === permit.id}
                     onSelect={(p) => handleSelectPermit(p)}
                     isFavorite={favorites.includes(permit.id)}
@@ -551,6 +635,126 @@ function SearchExplorerContent() {
           </div>
         )}
       </div>
+
+      {/* Full-Screen In-Cab Driving Mode */}
+      {isDriveMode && (
+        <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col overflow-hidden text-white animate-in fade-in duration-200">
+          {/* Top In-Cab HUD Header */}
+          <div className="h-14 px-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between z-10 shrink-0">
+            <div className="flex items-center space-x-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="font-mono text-xs font-black uppercase tracking-wider text-emerald-400">
+                In-Cab GPS Corridor &bull; {cityConfig.label}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsDriveMode(false)}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <span>✕ Exit Drive Mode</span>
+            </button>
+          </div>
+
+          {/* 85% Viewport Dedicated Vector Map */}
+          <div className="flex-1 relative w-full h-[calc(85vh-56px)] bg-slate-950">
+            <MapContainer
+              permits={filteredPermits}
+              selectedPermit={filteredPermits[driveStopIndex] || selectedPermit}
+              onSelectPermit={(p) => {
+                const idx = filteredPermits.findIndex((item) => item.id === p.id);
+                if (idx !== -1) setDriveStopIndex(idx);
+                setSelectedPermit(p);
+              }}
+              center={cityConfig.center}
+              zoom={cityConfig.zoom}
+            />
+          </div>
+
+          {/* Bottom Floating Card: Next Jobsite Along Route */}
+          {filteredPermits.length > 0 && (
+            <div className="p-4 bg-slate-900 border-t border-slate-800 shadow-2xl z-20 shrink-0">
+              {(() => {
+                const currentDrivePermit = filteredPermits[driveStopIndex] || selectedPermit || filteredPermits[0];
+                const phone = currentDrivePermit?.contractor_phone;
+                return (
+                  <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                          Next Jobsite #{driveStopIndex + 1} of {filteredPermits.length}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-emerald-400">
+                          ${currentDrivePermit.estimated_value?.toLocaleString('en-CA')} CAD
+                        </span>
+                      </div>
+                      <h3 className="text-base font-extrabold text-white truncate mt-0.5">
+                        {currentDrivePermit.address}
+                      </h3>
+                      <p className="text-xs text-slate-400 truncate">
+                        {currentDrivePermit.contractor_name || 'Owner/Builder'} &bull; {currentDrivePermit.permit_type}
+                      </p>
+                    </div>
+
+                    {/* Large 1-Tap In-Cab Action Buttons */}
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                      {phone ? (
+                        <a
+                          href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
+                          className="min-h-[48px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all shrink-0 cursor-pointer"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>Call GC</span>
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="min-h-[48px] px-4 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 opacity-60 shrink-0 cursor-not-allowed"
+                        >
+                          <PhoneOff className="w-4 h-4" />
+                          <span>No Phone</span>
+                        </button>
+                      )}
+
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(currentDrivePermit.address)}&travelmode=driving`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-h-[48px] px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30 active:scale-95 transition-all shrink-0 cursor-pointer"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        <span>Google Maps</span>
+                      </a>
+
+                      <a
+                        href={`https://waze.com/ul?ll=${currentDrivePermit.latitude},${currentDrivePermit.longitude}&navigate=yes`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-h-[48px] px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/30 active:scale-95 transition-all shrink-0 cursor-pointer"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        <span>Waze</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = (driveStopIndex + 1) % filteredPermits.length;
+                          setDriveStopIndex(next);
+                          setSelectedPermit(filteredPermits[next]);
+                        }}
+                        className="min-h-[48px] px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center border border-slate-700 transition-all shrink-0 cursor-pointer"
+                      >
+                        <span>Next Job &rarr;</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

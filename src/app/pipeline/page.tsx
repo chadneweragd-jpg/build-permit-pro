@@ -148,6 +148,22 @@ export default function PipelinePage() {
     }
   };
 
+  // Immediate Follow-Up update from Overdue Popover
+  const handleUpdateFollowUp = (dealId: string, newDate: string, updatedStage?: DealStage) => {
+    setDeals((prev) =>
+      prev.map((d) => {
+        if (d.id === dealId) {
+          return {
+            ...d,
+            follow_up_date: newDate,
+            ...(updatedStage ? { stage: updatedStage } : {})
+          };
+        }
+        return d;
+      })
+    );
+  };
+
   // HTML5 Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     e.dataTransfer.setData('text/plain', dealId);
@@ -403,6 +419,7 @@ export default function PipelinePage() {
                       onDragStart={handleDragStart}
                       onClick={handleOpenDrawer}
                       onStageChange={handleStageChange}
+                      onUpdateFollowUp={handleUpdateFollowUp}
                     />
                   ))}
 

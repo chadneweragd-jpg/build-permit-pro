@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ScoutVoiceAssistant } from '@/components/Scout/ScoutVoiceAssistant';
 import { BugReporter } from '@/components/feedback/BugReporter';
+import { MobileNav } from './MobileNav';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -32,10 +33,15 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Main Content Pane */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <Header onOpenMobileMenu={() => setIsMobileNavOpen(true)} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50 dark:bg-slate-950">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50 dark:bg-slate-950 pb-14 md:pb-0">
           {children}
         </main>
       </div>
+
+      {/* Sticky Bottom Mobile Navigation Bar (<768px) */}
+      <React.Suspense fallback={null}>
+        <MobileNav />
+      </React.Suspense>
 
       {/* Global In-App Scout AI Voice & Chat Assistant (Bottom-Right) */}
       <ScoutVoiceAssistant />

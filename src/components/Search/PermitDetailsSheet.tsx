@@ -24,7 +24,8 @@ import {
   ShieldAlert,
   Send,
   ExternalLink,
-  PhoneOff
+  PhoneOff,
+  ChevronDown
 } from 'lucide-react';
 import { isValidPhoneNumber, isValidEmail, formatPhoneNumber } from '@/lib/contact-utils';
 import { BuilderDossier } from '@/components/BuilderDossier';
@@ -42,6 +43,7 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
 }) => {
   const [addedToast, setAddedToast] = useState<string | null>(null);
   const [isPipelinePopupOpen, setIsPipelinePopupOpen] = useState(false);
+  const [isSplitMenuOpen, setIsSplitMenuOpen] = useState(false);
   const [pipelineStage, setPipelineStage] = useState<DealStage>('watched');
   const [pipelineQuote, setPipelineQuote] = useState('');
   const [pipelineNotes, setPipelineNotes] = useState('');
@@ -129,6 +131,20 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
     );
     setIsPipelinePopupOpen(false);
     setPipelineToast(`Added ${permit.address} to Pipeline (${pipelineStage})`);
+    setTimeout(() => setPipelineToast(null), 4000);
+  };
+
+  const handleQuickStage = async (stage: DealStage) => {
+    if (!permit) return;
+    const defaultQuote = Math.round(permit.estimated_value * 0.15);
+    await CRMRepository.createDealFromPermit(
+      permit,
+      stage,
+      defaultQuote,
+      `Quick staged into ${stage} on ${new Date().toLocaleDateString()}`
+    );
+    setIsSplitMenuOpen(false);
+    setPipelineToast(`Added ${permit.address} to Pipeline (${stage})`);
     setTimeout(() => setPipelineToast(null), 4000);
   };
 
@@ -247,17 +263,68 @@ export const PermitDetailsSheet: React.FC<PermitDetailsSheetProps> = ({
             <span>Drive Mode</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => {
-              setPipelineQuote(Math.round(permit.estimated_value * 0.15).toString());
-              setIsPipelinePopupOpen(true);
-            }}
-            className="flex-1 min-w-[120px] py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center space-x-1.5 transition-all font-black shadow-sm"
-          >
-            <Kanban className="w-3.5 h-3.5" />
-            <span>+ Pipeline</span>
-          </button>
+          {/* Quick-Stage Pipeline Split Button */}
+          <div className="flex-1 min-w-[150px] relative inline-flex rounded-xl shadow-sm">
+            <button
+              type="button"
+              onClick={() => {
+                setPipelineQuote(Math.round(permit.estimated_value * 0.15).toString());
+                setIsPipelinePopupOpen(true);
+              }}
+              className="flex-1 py-2.5 px-3 rounded-l-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center space-x-1.5 transition-all font-black text-xs cursor-pointer"
+            >
+              <Kanban className="w-3.5 h-3.5" />
+              <span>+ Add to Pipeline</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSplitMenuOpen(!isSplitMenuOpen)}
+              className="px-2.5 py-2.5 rounded-r-xl bg-indigo-700 hover:bg-indigo-600 border-l border-indigo-500/40 text-white flex items-center justify-center transition-all cursor-pointer"
+              title="Select quick stage"
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isSplitMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isSplitMenuOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-1 z-30 text-xs animate-in fade-in zoom-in-95">
+                <div className="px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-700/60 mb-0.5">
+                  Direct Stage To:
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStage('watched')}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-slate-800 dark:text-slate-200 font-bold flex items-center space-x-2 cursor-pointer transition-colors"
+                >
+                  <span>⭐</span>
+                  <span>Watched</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStage('visited')}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-slate-800 dark:text-slate-200 font-bold flex items-center space-x-2 cursor-pointer transition-colors"
+                >
+                  <span>📍</span>
+                  <span>Site Visited</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStage('estimating')}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-slate-800 dark:text-slate-200 font-bold flex items-center space-x-2 cursor-pointer transition-colors"
+                >
+                  <span>📝</span>
+                  <span>In Estimating</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickStage('quoted')}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-slate-800 dark:text-slate-200 font-bold flex items-center space-x-2 cursor-pointer transition-colors"
+                >
+                  <span>📤</span>
+                  <span>Quote Sent</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* In-Cab Turn-by-Turn Deep Links */}

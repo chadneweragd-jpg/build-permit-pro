@@ -122,16 +122,17 @@ export function BuilderDossier({ permit, builder }: BuilderDossierProps) {
       }
     };
 
+    const siteAddr = (permit as any).site_address || permit.address || '';
+    const projDesc = (permit as any).project_description || (permit as any).description || (permit as any).permit_type || (permit as any).work_class || 'Construction';
     const emailSubject = encodeURIComponent(
-      `Subtrade Bid Inquiry: Permit ${permit.permit_number} (${permit.address})`
+      `Subtrade Quote Inquiry - Permit ${permit.permit_number} (${siteAddr})`
     );
     const emailBody = encodeURIComponent(
-      `Hi ${activeBuilder.key_principal || 'Estimating Team'},\n\n` +
-      `I saw the recently approved permit ${permit.permit_number} for ${permit.address} ` +
-      `(${subType}, estimated value: $${val.toLocaleString()}).\n\n` +
-      `We specialize in subtrade services in ${city} and would like to review the project scope and submit a tender for this job.\n\n` +
-      `Could you please let us know the best contact or share the plans when available?\n\n` +
-      `Thank you,\n`
+      `Hi Estimating Team at ${activeBuilder.company_name},\n\n` +
+      `I noticed your recently approved permit for the project at ${siteAddr} (${projDesc}).\n\n` +
+      `We are a local trade contractor specializing in [Your Trade Scope] and would welcome the opportunity to submit a competitive tender on this project.\n\n` +
+      `Could you please let us know if project drawings and specifications are available for review?\n\n` +
+      `Best regards,\n[Your Name / Company Contact]`
     );
 
     const mailtoUrl = emailToDisplay

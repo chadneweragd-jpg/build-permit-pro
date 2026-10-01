@@ -21,8 +21,10 @@ import {
   Clock,
   Filter,
   X,
-  Sliders
+  Sliders,
+  ShieldCheck
 } from 'lucide-react';
+import { CRALogbookModal } from '@/components/cra/CRALogbookModal';
 
 const PURPOSE_TAGS: PurposeTag[] = [
   'Sales Call',
@@ -47,6 +49,9 @@ export default function MileagePage() {
     mode: rateMode,
     customRate: customRate
   }), [rateMode, customRate]);
+
+  // Official CRA Logbook Modal State
+  const [isLogbookModalOpen, setIsLogbookModalOpen] = useState<boolean>(false);
 
   // Manual Trip Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -170,6 +175,16 @@ export default function MileagePage() {
           </button>
 
           <button
+            type="button"
+            onClick={() => setIsLogbookModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-700 font-bold text-xs flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+            title="Open printable official CRA audit-ready logbook"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Export Official CRA Logbook</span>
+          </button>
+
+          <button
             onClick={handleExportCSV}
             className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
@@ -181,6 +196,90 @@ export default function MileagePage() {
 
       {/* Main Content Area */}
       <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
+        {/* CRA 5,000 KM Annual Progress Ring & Deduction Tracker */}
+        {(() => {
+          const loggedBizKm = stats.totalBusinessKm || 0;
+          const target5k = 5000;
+          const percent5k = Math.min(100, Math.round((loggedBizKm / target5k) * 100));
+          const remainingKm = Math.max(0, target5k - loggedBizKm);
+          const radius = 38;
+          const circumference = 2 * Math.PI * radius; // ~238.76
+          const strokeDashoffset = circumference - (circumference * percent5k) / 100;
+
+          return (
+            <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 p-6 rounded-2xl border border-slate-800 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center space-x-6">
+                {/* SVG Circular Progress Ring */}
+                <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
+                  <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
+                    {/* Background Track */}
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r={radius}
+                      className="stroke-slate-800"
+                      strokeWidth="8"
+                      fill="transparent"
+                    />
+                    {/* Progress Indicator */}
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r={radius}
+                      className="stroke-blue-500 transition-all duration-1000 ease-out"
+                      strokeWidth="8"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      fill="transparent"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="font-mono font-black text-sm text-white">{percent5k}%</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">5k Cap</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-full border border-blue-800/60">
+                      2026 CRA Threshold Tracking
+                    </span>
+                    <span className="text-xs text-emerald-400 font-bold">
+                      ${stats.totalDeductibleCad.toLocaleString('en-CA', { minimumFractionDigits: 2 })} Total Reimbursement
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black text-white mt-1">
+                    {loggedBizKm.toLocaleString()} / 5,000 KM logged at $0.70/km
+                  </h2>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {remainingKm > 0 ? (
+                      <span>
+                        <strong className="text-amber-400 font-mono">{remainingKm.toLocaleString()} KM</strong> remaining before the secondary <strong className="text-white">$0.64/km</strong> rate applies.
+                      </span>
+                    ) : (
+                      <span className="text-emerald-400 font-bold">
+                        5,000 KM Tier 1 reached! All additional business travel is calculated at $0.64/km.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsLogbookModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>View Official CRA Logbook</span>
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Rate Selector Banner (CRA Prescribed Tier vs Custom Company Rate) */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
@@ -602,6 +701,16 @@ export default function MileagePage() {
           </div>
         </div>
       )}
+
+      {/* Official Printable CRA Audit Logbook Modal */}
+      <CRALogbookModal
+        isOpen={isLogbookModalOpen}
+        onClose={() => setIsLogbookModalOpen(false)}
+        legs={filteredLegs}
+        rateConfig={rateConfig}
+        totalBusinessKm={stats.totalBusinessKm}
+        totalAllowanceCad={stats.totalDeductibleCad}
+      />
     </div>
   );
 }

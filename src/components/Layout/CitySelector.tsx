@@ -103,13 +103,10 @@ export const CitySelector: React.FC = () => {
                       <div className="flex items-center space-x-1.5">
                         <Lock className="w-3 h-3 text-amber-500 dark:text-amber-400 shrink-0" />
                         <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover/locked:text-amber-600 dark:group-hover/locked:text-amber-400">
-                          {city.name}, {city.province}
-                        </span>
-                        <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold px-1.5 py-0.2 rounded">
-                          Locked
+                          🔒 {city.name}, {city.province} (Locked)
                         </span>
                       </div>
-                      <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 pl-4">
                         {city.tagline}
                       </div>
                     </div>
@@ -130,11 +127,15 @@ export const CitySelector: React.FC = () => {
                   <div>
                     <div className="flex items-center space-x-1.5">
                       <span className="font-bold text-slate-900 dark:text-white">
-                        {city.label}
+                        {city.name}, {city.province}
                       </span>
-                      {city.id === 'calgary' && (
-                        <span className="text-[9px] bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-extrabold px-1.5 py-0.2 rounded-full border border-amber-300/40">
-                          NEW
+                      {isSelected ? (
+                        <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-extrabold px-1.5 py-0.2 rounded-full border border-emerald-300/60">
+                          ✓ Active
+                        </span>
+                      ) : (
+                        <span className="text-[9px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-1.5 py-0.2 rounded-full">
+                          Unlocked
                         </span>
                       )}
                     </div>
@@ -144,7 +145,7 @@ export const CitySelector: React.FC = () => {
                   </div>
 
                   {isSelected && (
-                    <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />
+                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" />
                   )}
                 </button>
               );
@@ -155,45 +156,45 @@ export const CitySelector: React.FC = () => {
 
       {/* Paywalled City Unlock Modal */}
       {unlockCity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 overflow-hidden">
             <button
               onClick={() => setUnlockCity(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Unlock {unlockCity.name}
+                <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                  Unlock {unlockCity.name} Metro Construction Intelligence
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {unlockCity.label} &bull; {unlockCity.tagline}
                 </p>
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3.5 mb-5 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-2">
-              <p className="font-semibold text-slate-900 dark:text-white">
-                Add this territory to your subscription for <span className="text-blue-600 dark:text-blue-400 font-bold">$129/mo</span> or upgrade to Regional Pro:
+            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 mb-5 border border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 space-y-3">
+              <p className="font-semibold text-slate-900 dark:text-white text-sm leading-snug">
+                Gain instant access to <span className="text-emerald-600 dark:text-emerald-400 font-black">$2.6B+</span> in active building permits, verified contractor dossiers, and route intelligence across {unlockCity.name}.
               </p>
-              <ul className="space-y-1.5 pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <ul className="space-y-2 pt-1 text-xs text-slate-600 dark:text-slate-400">
                 <li className="flex items-center space-x-2">
                   <span className="text-emerald-500 font-bold">&check;</span>
-                  <span>Live 2026 permit pipeline for {unlockCity.name}</span>
+                  <span>Live 2026 commercial & residential permit pipeline for {unlockCity.name}</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span className="text-emerald-500 font-bold">&check;</span>
-                  <span>Full contractor contact dossiers & subtrade intelligence</span>
+                  <span>Direct estimator phone, email, and principal contact dossiers</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span className="text-emerald-500 font-bold">&check;</span>
-                  <span>Optimized jobsite routes & CRA audit-ready mileage tracking</span>
+                  <span>GPS corridor jobsite routing & CRA audit logbook tracking</span>
                 </li>
               </ul>
             </div>
@@ -202,19 +203,31 @@ export const CitySelector: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  alert(`Territory expansion request for ${unlockCity.name} has been initiated! Our billing desk will activate your regional seat.`);
+                  alert(`Plan addition requested: ${unlockCity.name} Metro is being activated for your workspace ($129/mo).`);
                   setUnlockCity(null);
                 }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all text-center cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md shadow-blue-600/30 transition-all text-center cursor-pointer active:scale-95"
               >
-                Add Territory ($129/mo)
+                Add {unlockCity.name} to Plan ($129/mo)
               </button>
               <button
                 type="button"
-                onClick={() => setUnlockCity(null)}
-                className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors cursor-pointer"
+                onClick={() => {
+                  alert(`Upgrading to Provincial Enterprise ($499/mo). Unlocking all regional markets across Canada.`);
+                  setUnlockCity(null);
+                }}
+                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all text-center cursor-pointer active:scale-95"
               >
-                Cancel
+                Upgrade to Provincial Enterprise ($499/mo)
+              </button>
+            </div>
+            <div className="mt-3 text-center">
+              <button
+                type="button"
+                onClick={() => setUnlockCity(null)}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              >
+                No thanks, stay on current territory
               </button>
             </div>
           </div>
