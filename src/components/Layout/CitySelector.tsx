@@ -10,7 +10,40 @@ export const CitySelector: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile>(AuthService.getActiveUserSync());
   const [unlockCity, setUnlockCity] = useState<CityConfig | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState<'solo' | 'supplier' | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // AUDIT FIX (2026-10-02): these previously just called alert(...) and closed the modal --
+  // no plan was actually added, no Stripe session was created. This now calls the real
+  // /api/stripe/checkout route (src/app/api/stripe/checkout/route.ts), which creates a live
+  // Stripe Checkout session when STRIPE_SECRET_KEY is configured, or returns a clearly-labeled
+  // simulated session when it isn't (local dev / demo).
+  const startCheckout = async (tier: 'solo' | 'supplier', hub: CityConfig | null) => {
+    setIsCheckingOut(tier);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tier,
+          hubId: hub?.id,
+          userId: AuthService.getActiveUserId(),
+          returnUrl: window.location.href
+        })
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Checkout session did not return a URL:', data);
+      }
+    } catch (err) {
+      console.error('Failed to start checkout session:', err);
+    } finally {
+      setIsCheckingOut(null);
+      setUnlockCity(null);
+    }
+  };
 
   useEffect(() => {
     setCityId(getSelectedCityId());
@@ -202,23 +235,19 @@ export const CitySelector: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 type="button"
-                onClick={() => {
-                  alert(`Plan addition requested: ${unlockCity.name} Metro is being activated for your workspace ($129/mo).`);
-                  setUnlockCity(null);
-                }}
-                className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md shadow-blue-600/30 transition-all text-center cursor-pointer active:scale-95"
+                disabled={isCheckingOut !== null}
+                onClick={() => startCheckout('solo', unlockCity)}
+                className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md shadow-blue-600/30 transition-all text-center cursor-pointer active:scale-95 disabled:opacity-60 disabled:cursor-wait"
               >
-                Add {unlockCity.name} to Plan ($129/mo)
+                {isCheckingOut === 'solo' ? 'Starting Checkout…' : `Add ${unlockCity.name} to Plan ($129/mo)`}
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  alert(`Upgrading to Provincial Enterprise ($499/mo). Unlocking all regional markets across Canada.`);
-                  setUnlockCity(null);
-                }}
-                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all text-center cursor-pointer active:scale-95"
+                disabled={isCheckingOut !== null}
+                onClick={() => startCheckout('supplier', unlockCity)}
+                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all text-center cursor-pointer active:scale-95 disabled:opacity-60 disabled:cursor-wait"
               >
-                Upgrade to Provincial Enterprise ($499/mo)
+                {isCheckingOut === 'supplier' ? 'Starting Checkout…' : 'Upgrade to Provincial Enterprise ($499/mo)'}
               </button>
             </div>
             <div className="mt-3 text-center">
