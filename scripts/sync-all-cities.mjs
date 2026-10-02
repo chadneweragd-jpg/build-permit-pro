@@ -57,7 +57,13 @@ const MUNICIPALITY_METADATA = {
 // -------------------------------------------------------------------------------------------------
 // 3. VALUATION NORMALIZER
 // -------------------------------------------------------------------------------------------------
-function normalizePermitValue(rawVal, subType = '', desc = '', i = 1) {
+// AUDIT FIX (2026-10-02): this previously clamped values into per-category bands and, whenever
+// the real parsed value was zero/missing or fell outside the band, replaced it with a
+// deterministic pseudo-random number derived from the row index. That fabricated fictional
+// dollar amounts on top of real municipal permit records. It now only parses the real value and
+// corrects the one known cents-encoding bug -- it never invents a replacement number. Records
+// with no usable valuation return 0 and must be filtered/flagged by the caller, not papered over.
+function normalizePermitValue(rawVal, subType = '', desc = '') {
   let val = 0;
   if (typeof rawVal === 'number' && !isNaN(rawVal)) {
     val = rawVal;
@@ -66,102 +72,17 @@ function normalizePermitValue(rawVal, subType = '', desc = '', i = 1) {
     val = parseFloat(cleaned) || 0;
   }
 
+  if (val <= 0) return 0;
+
   const subLower = (subType || '').toLowerCase().trim();
   const descLower = (desc || '').toLowerCase().trim();
   const text = `${subLower} ${descLower}`;
-
   const isTower = /\b(high-rise|tower|multi-family|apartments|condo|transit|hospital|infrastructure|subdivision)\b/i.test(text);
 
-  // 1. Detect and fix integer values in cents
+  // Genuine encoding-bug correction only (cost-in-cents from some municipal exports).
   if (val >= 40000000 && !isTower && !text.includes('wwtp')) {
     val = val / 100;
   }
-
-  // 2. Signs: $5,000 to $45,000 CAD
-  const isSign =
-    /\b(sign|fascia|fascia sign|freestanding sign|free standing sign|billboard|awning|canopy|pylon)\b/i.test(subLower) ||
-    (/\b(sign|fascia sign|freestanding sign|billboard)\b/i.test(text) && !/building|renovation|dwelling|house/i.test(subLower));
-  if (isSign) {
-    if (val < 5000 || val > 45000) val = 6000 + ((i * 3800) % 36000);
-    return Math.round(Math.min(45000, Math.max(5000, val)));
-  }
-
-  // 3. Trade Permits: strictly under $50,000 CAD
-  const isTrade =
-    /^(plumbing|drain|mechanical|hvac|boiler|furnace|sewer|water service|pipe|piping|electrical|wiring|low voltage|gas|gas fitting|fire alarm|sprinkler)|\b(plumbing\(ps\)|mechanical\(ms\)|drain and site|plumbing permit|electrical permit|gas permit)\b/i.test(subLower) ||
-    ((/^(plumbing|mechanical|electrical|trade)/i.test(subLower) || /plumbing permit|mechanical permit|electrical permit|hvac permit/i.test(descLower)) && !/building|renovation|addition|dwelling|house|sfd/i.test(subLower));
-  if (isTrade) {
-    if (val < 5000 || val >= 50000) val = 12000 + ((i * 3400) % 36000);
-    return Math.round(Math.min(49500, Math.max(5000, val)));
-  }
-
-  // 4. Demolition: $20,000 to $140,000 CAD
-  const isDemolition = /\b(demolition|demo|deconstruction)\b/i.test(subLower);
-  if (isDemolition) {
-    if (val < 20000 || val > 140000) val = 28000 + ((i * 12500) % 110000);
-    return Math.round(Math.min(140000, Math.max(20000, val)));
-  }
-
-  // 5. Detached Garages / Sheds / Accessory Buildings: $15,000 to $90,000 CAD
-  const isAccessorySubType =
-    /\b(detached garage|carport|shed|deck|porch|fence|gazebo|pergola|patio|cabana|pool|hot tub|spa|swimming pool|retaining wall|accessory building|accessory structure|outbuilding|storage bldg|misc\.?\s*structure|other structure)\b/i.test(subLower) ||
-    (/garage/i.test(subLower) && !/sfd|single family|dwelling|condo|apartment|house/i.test(subLower));
-  const isAccessoryWork =
-    isAccessorySubType ||
-    (/\b(construct detached garage|build shed|detached garage|build deck|install pool|build carport)\b/i.test(descLower) && !/new house|new dwelling|single family dwelling|sfd/i.test(descLower));
-  if (isAccessoryWork) {
-    if (val < 15000 || val > 90000) val = 22000 + ((i * 6800) % 65000);
-    return Math.round(Math.min(90000, Math.max(15000, val)));
-  }
-
-  // 6. Residential Additions / Renovations: $25,000 to $150,000 CAD
-  const isResidentialContext =
-    /residential|housing|house|sfd|single family|duplex|semi-detached|townhouse|home|basement|dwelling/i.test(text) &&
-    !/commercial|office|retail|industrial|store|warehouse|tower|high-rise|multi-residential|apartments/i.test(subLower);
-  const isResAdditionOrReno =
-    isResidentialContext &&
-    (/\b(addition|alteration|alter|renovation|develop lower level|basement|interior alteration|exterior alteration|structural alteration|repair|retrofit|remodel|residential improvements|small residential projects|secondary suite|sdu)\b/i.test(subLower) ||
-     /\b(develop lower level|structural alteration|construct addition|alter exterior|alter interior|basement suite|secondary suite)\b/i.test(descLower)) &&
-    !/\b(construct new|new house|new dwelling|new single family)\b/i.test(text);
-  if (isResAdditionOrReno) {
-    if (val < 25000 || val > 150000) val = 35000 + ((i * 11500) % 110000);
-    return Math.round(Math.min(150000, Math.max(25000, val)));
-  }
-
-  // 7. Single-Family Dwellings (SFD): $350,000 to $1,250,000 CAD
-  const isSFD =
-    /\b(single family|sfd|single detached|detached dwelling|new house|new houses|new residential|dwelling unit|duplex|side by side|semi-detached|row house|row housing|townhouse|laneway)\b/i.test(text) &&
-    !isAccessoryWork && !isResAdditionOrReno && !isDemolition && !isTrade;
-  if (isSFD) {
-    if (val < 350000 || val > 1250000) val = 380000 + ((i * 85000) % 850000);
-    return Math.round(Math.min(1250000, Math.max(350000, val)));
-  }
-
-  // 8. Commercial Tenant Improvement / Renovation: $120,000 to $3,500,000 CAD
-  const isCommercialReno =
-    /\b(tenant improvement|ti|interior alteration|alteration|commercial alteration|renovation|remodel|fit-out|fitout|demising)\b/i.test(subLower) &&
-    !isTower && !isSFD;
-  if (isCommercialReno) {
-    if (val < 120000 || val > 3500000) val = 180000 + ((i * 68000) % 1550000);
-    return Math.round(Math.min(3500000, Math.max(120000, val)));
-  }
-
-  // 9. Towers / Major Developments
-  if (isTower) {
-    if (val < 5000000) val = 14000000 + ((i * 1250000) % 22000000);
-    return Math.round(val);
-  }
-
-  // 10. Light Industrial / Warehouse: $500k to $25M CAD
-  const isIndustrial = /\b(industrial|warehouse|distribution|manufacturing|plant|addition)\b/i.test(text);
-  if (isIndustrial) {
-    if (val < 500000 || val > 25000000) val = 2200000 + ((i * 380000) % 5500000);
-    return Math.round(val);
-  }
-
-  // 11. General Commercial Fallback: $350k to $2.5M CAD
-  if (val <= 0) val = 350000 + ((i * 180000) % 2150000);
-  if (val > 35000000) val = 14000000 + ((i * 1250000) % 20000000);
 
   return Math.round(val);
 }
@@ -185,11 +106,23 @@ async function upsertPermitsToSupabase(permits, cityName) {
     if (uniquePermits.length > 1000 && i > 0 && i % 1000 === 0) {
       console.log(`    ... upserted ${i}/${uniquePermits.length} records for ${cityName}`);
     }
-    const batch = uniquePermits.slice(i, i + BATCH_SIZE);
-    const rows = batch.map((p, idx) => {
+    const batch = uniquePermits
+      .slice(i, i + BATCH_SIZE)
+      // AUDIT FIX: never upsert a permit whose real valuation parsed to zero/invalid --
+      // previously normalizePermitValue silently replaced these with a fabricated number.
+      // Now we exclude the record instead of publishing a fictional dollar figure.
+      .filter((p) => {
+        const val = normalizePermitValue(p.estimated_value || p.value || 0, p.permit_type || p.sub_type, p.description);
+        if (val <= 0) {
+          console.warn(`    Skipping ${p.permit_number || '(no permit #)'}: no valid valuation > 0 (raw=${p.estimated_value ?? p.value}).`);
+          return false;
+        }
+        return true;
+      });
+    const rows = batch.map((p) => {
       const citySlug = (p.city_slug || cityName.toLowerCase()).replace(/\s+/g, '-');
       const meta = MUNICIPALITY_METADATA[citySlug] || { name: cityName, province: 'BC', id: null };
-      const val = normalizePermitValue(p.estimated_value || p.value || 0, p.permit_type || p.sub_type, p.description, i + idx + 1);
+      const val = normalizePermitValue(p.estimated_value || p.value || 0, p.permit_type || p.sub_type, p.description);
 
       return {
         // Only set municipality_id for Kelowna (which exists in municipalities table), null for others to avoid FK constraint
@@ -252,7 +185,15 @@ async function syncKelowna() {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        kelownaRecords = data.map((r, i) => ({
+        // AUDIT FIX: "Verify only approved permits are active" -- exclude anything whose status
+        // doesn't indicate the permit was actually approved/issued (draft, pending review,
+        // refused, cancelled, withdrawn, etc.) instead of defaulting every row to 'Issued'.
+        const NON_APPROVED_STATUS = /draft|pending|review|refus|cancel|withdraw|void|expired|rejected/i;
+        const liveApproved = data.filter((r) => {
+          const s = (r.status || r.permit_status || '').trim();
+          return !s || !NON_APPROVED_STATUS.test(s);
+        });
+        kelownaRecords = liveApproved.map((r, i) => ({
           permit_number: r.permit_number || `BP26-${String(1000 + i)}`,
           issue_date: (r.issue_date || '2026-09-25').split('T')[0],
           address: r.address || 'Kelowna, BC',
@@ -261,9 +202,12 @@ async function syncKelowna() {
           permit_type: r.permit_type || 'Single Family Dwelling Renovation',
           work_class: r.work_class || 'Residential',
           description: r.description || 'Approved building permit in Kelowna.',
-          estimated_value: parseFloat(r.estimated_value) || 75000,
+          // AUDIT FIX: do not fabricate a $75,000 placeholder when the live feed omits a value --
+          // leave it unset (0) so upsertPermitsToSupabase's valuation filter excludes the row
+          // instead of us publishing an invented number as if it were real municipal data.
+          estimated_value: parseFloat(r.estimated_value) || 0,
           contractor_name: r.contractor_name || 'Standard Permittee (Kelowna)',
-          status: 'Issued',
+          status: r.status || 'Issued',
           latitude: 49.888 + (Math.sin(i) * 0.03),
           longitude: -119.496 + (Math.cos(i) * 0.03)
         }));
@@ -291,7 +235,10 @@ async function syncCalgary() {
   console.log('[2/4] Syncing Calgary 2026 YTD issued permits from Socrata (target: ~6,286 records, $3.42B)...');
   try {
     const url = new URL('https://data.calgary.ca/resource/c2es-76ed.json');
-    url.searchParams.set('$where', "issueddate >= '2026-01-01'");
+    // AUDIT FIX: the brief requires filtering strictly for statuscurrent = 'Issued Permit' AND
+    // estprojectcost > 0 -- previously this only filtered by date, then fabricated a valuation
+    // for any record missing estprojectcost instead of excluding it.
+    url.searchParams.set('$where', "issueddate >= '2026-01-01' AND statuscurrent = 'Issued Permit' AND estprojectcost > 0");
     url.searchParams.set('$limit', '6286');
     url.searchParams.set('$order', 'issueddate DESC');
 
@@ -304,12 +251,17 @@ async function syncCalgary() {
     const data = await res.json();
     console.log(`  -> Calgary Socrata payload returned ${data.length} records.`);
 
-    const calgaryPermits = data.map((r, i) => {
+    const calgaryPermits = data
+      // Defensive re-check in case the upstream $where filter is ever relaxed/removed.
+      .filter((r) => r.statuscurrent === 'Issued Permit' && parseFloat(r.estprojectcost) > 0)
+      .map((r, i) => {
       const pNum = r.permitnum || `BP2026-CGY-${String(i + 1).padStart(5, '0')}`;
       const subType = r.permittype || r.permitclass || 'Commercial Building Permit';
       const desc = r.description || `${subType} in Calgary. Standard construction scope.`;
-      const rawVal = parseFloat(r.estprojectcost) || (350000 + ((i * 420000) % 15000000));
-      const val = normalizePermitValue(rawVal, subType, desc, i + 1);
+      // AUDIT FIX: no more fabricated fallback value when estprojectcost is missing/zero --
+      // the filter above already excludes those rows, so this is always a real parsed cost.
+      const rawVal = parseFloat(r.estprojectcost) || 0;
+      const val = normalizePermitValue(rawVal, subType, desc);
       const addr = r.originaladdress ? `${r.originaladdress}, Calgary, AB` : `${100 + i * 20} Centre St S, Calgary, AB`;
       const contr = r.contractorname || r.applicantname || 'Standard Permittee (Calgary)';
       const date = (r.issueddate || '2026-06-15').split('T')[0];
