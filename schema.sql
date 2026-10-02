@@ -80,6 +80,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     stripe_subscription_id TEXT,
     subscription_status TEXT DEFAULT 'trialing',
     subscription_tier TEXT DEFAULT 'pro_scout',
+    -- AUDIT FIX (2026-10-02): persisted regional entitlement, written by the Stripe webhook
+    -- on checkout.session.completed and read by src/lib/auth-service.ts#isCityAllowed.
+    allowed_regions TEXT[] NOT NULL DEFAULT ARRAY['kelowna'],
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -190,7 +193,12 @@ INSERT INTO municipalities (id, region_id, name, api_platform, api_endpoint_url)
 ('22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'City of Kelowna', 'arcgis', 'https://opendata.kelowna.ca/api')
 ON CONFLICT (id) DO NOTHING;
 
--- Enable Row Level Security (RLS) & Public Read Policies
+-- Enable Row Level Security (RLS)
+-- AUDIT FIX (2026-10-02): regions/municipalities/permits/subtrades/permit_subtrades are
+-- genuinely public reference/catalog data (every tenant should see all permits), so
+-- "Allow public read ... USING (true)" is correct for those. routes, route_stops, and
+-- user_favorites are PER-USER data and must NOT be USING (true) -- see the scoped policies
+-- below (auth.uid() = user_id), which match migrations/008_fix_tenant_isolation_rls.sql.
 ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE municipalities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE permits ENABLE ROW LEVEL SECURITY;
@@ -205,14 +213,41 @@ CREATE POLICY "Allow public read" ON municipalities FOR SELECT USING (true);
 CREATE POLICY "Allow public read" ON permits FOR SELECT USING (true);
 CREATE POLICY "Allow public read" ON subtrades FOR SELECT USING (true);
 CREATE POLICY "Allow public read" ON permit_subtrades FOR SELECT USING (true);
-CREATE POLICY "Allow public read" ON routes FOR SELECT USING (true);
-CREATE POLICY "Allow public read" ON route_stops FOR SELECT USING (true);
-CREATE POLICY "Allow public read" ON user_favorites FOR SELECT USING (true);
 
--- Allow insertions for demo routes & favorites
-CREATE POLICY "Allow insert routes" ON routes FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert route_stops" ON route_stops FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert user_favorites" ON user_favorites FOR INSERT WITH CHECK (true);
+-- routes: per-user data, scoped to the owning user only.
+CREATE POLICY "Users can read own routes" ON routes FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own routes" ON routes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own routes" ON routes FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own routes" ON routes FOR DELETE USING (auth.uid() = user_id);
+
+-- route_stops: ownership inherited from the parent route (no user_id column of its own).
+CREATE POLICY "Users can read own route_stops" ON route_stops FOR SELECT USING (
+  EXISTS (SELECT 1 FROM routes r WHERE r.id = route_stops.route_id AND r.user_id = auth.uid())
+);
+CREATE POLICY "Users can insert own route_stops" ON route_stops FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM routes r WHERE r.id = route_stops.route_id AND r.user_id = auth.uid())
+);
+CREATE POLICY "Users can update own route_stops" ON route_stops FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM routes r WHERE r.id = route_stops.route_id AND r.user_id = auth.uid())
+) WITH CHECK (
+  EXISTS (SELECT 1 FROM routes r WHERE r.id = route_stops.route_id AND r.user_id = auth.uid())
+);
+CREATE POLICY "Users can delete own route_stops" ON route_stops FOR DELETE USING (
+  EXISTS (SELECT 1 FROM routes r WHERE r.id = route_stops.route_id AND r.user_id = auth.uid())
+);
+
+-- user_favorites: per-user data, scoped to the owning user only.
+CREATE POLICY "Users can read own favorites" ON user_favorites FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own favorites" ON user_favorites FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own favorites" ON user_favorites FOR DELETE USING (auth.uid() = user_id);
+
+-- user_profiles: AUDIT FIX (2026-10-02) -- this table previously had RLS never enabled at all,
+-- meaning Postgres applied no row filtering and any client could read/write every user's
+-- billing fields (stripe_customer_id, subscription_status, allowed_regions). Subscription
+-- fields are only ever written by the service-role Stripe webhook, never by the user directly.
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can read own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- 7. Itemized Trip Legs & CRA Mileage Logbook
 CREATE TABLE IF NOT EXISTS trip_legs (
@@ -237,10 +272,13 @@ CREATE INDEX IF NOT EXISTS idx_trip_legs_user_date ON trip_legs(user_id, recorde
 CREATE INDEX IF NOT EXISTS idx_trip_legs_type ON trip_legs(trip_type);
 
 ALTER TABLE trip_legs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read trip_legs" ON trip_legs FOR SELECT USING (true);
-CREATE POLICY "Allow insert trip_legs" ON trip_legs FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update trip_legs" ON trip_legs FOR UPDATE USING (true);
-CREATE POLICY "Allow delete trip_legs" ON trip_legs FOR DELETE USING (true);
+-- AUDIT FIX (2026-10-02): CRA mileage logs are per-user tax/financial records -- scope strictly
+-- to the owning user (previously USING (true), which exposed every user's trip logs to every
+-- other authenticated/anon caller).
+CREATE POLICY "Users can read own trip_legs" ON trip_legs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own trip_legs" ON trip_legs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own trip_legs" ON trip_legs FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own trip_legs" ON trip_legs FOR DELETE USING (auth.uid() = user_id);
 
 -- 8. Lite CRM & Quotes Pipeline Deals
 CREATE TABLE IF NOT EXISTS crm_deals (
@@ -271,8 +309,11 @@ CREATE INDEX IF NOT EXISTS idx_crm_deals_updated ON crm_deals(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_crm_deals_permit ON crm_deals(permit_id);
 
 ALTER TABLE crm_deals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read crm_deals" ON crm_deals FOR SELECT USING (true);
-CREATE POLICY "Allow insert crm_deals" ON crm_deals FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update crm_deals" ON crm_deals FOR UPDATE USING (true);
-CREATE POLICY "Allow delete crm_deals" ON crm_deals FOR DELETE USING (true);
+-- AUDIT FIX (2026-10-02): CRM pipeline deals are per-user -- scope strictly to the owning user
+-- (previously USING (true), which exposed every user's deals/contacts/quotes to every other
+-- authenticated/anon caller).
+CREATE POLICY "Users can read own crm_deals" ON crm_deals FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own crm_deals" ON crm_deals FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own crm_deals" ON crm_deals FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own crm_deals" ON crm_deals FOR DELETE USING (auth.uid() = user_id);
 
