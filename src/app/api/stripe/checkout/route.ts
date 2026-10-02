@@ -5,9 +5,10 @@ import { SubscriptionTier } from '@/types';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { tier, hubId, returnUrl } = body as {
+    const { tier, hubId, userId, returnUrl } = body as {
       tier: SubscriptionTier;
       hubId?: string;
+      userId?: string;
       returnUrl?: string;
     };
 
@@ -34,6 +35,13 @@ export async function POST(req: Request) {
             }
           ],
           mode: 'subscription',
+          // AUDIT FIX (2026-10-02): tag the session with which user and which hub/territory this
+          // purchase unlocks, so the webhook (src/app/api/stripe/webhook/route.ts) can actually
+          // persist the entitlement to user_profiles.allowed_regions instead of only logging the
+          // event. Without this, there was no way to tell which Supabase user a completed
+          // checkout belonged to.
+          client_reference_id: userId,
+          metadata: { tier, hubId: hubId || '' },
           success_url: `${origin}/?session_id={CHECKOUT_SESSION_ID}&tier=${tier}&upgraded=true`,
           cancel_url: `${origin}/?canceled=true`
         });
