@@ -66,7 +66,30 @@ export class AuthService {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user && user.email) {
-          return this.formatUserProfile(user.id, user.email, user.user_metadata?.full_name);
+          const profile = this.formatUserProfile(user.id, user.email, user.user_metadata?.full_name);
+          // AUDIT FIX (2026-10-02): Section 3.2 requires reading allowed_regions from the
+          // authenticated profile. Previously this was ALWAYS the hardcoded partner list or a
+          // fixed ['kelowna'] -- a real purchase (see the webhook fix in
+          // src/app/api/stripe/webhook/route.ts) could never change what a logged-in user sees.
+          // Partners/admins keep their hardcoded ['all'] regardless of what's in the DB.
+          if (!profile.isPartner) {
+            try {
+              const { data: row } = await supabase
+                .from('user_profiles')
+                .select('allowed_regions, subscription_tier')
+                .eq('id', user.id)
+                .maybeSingle();
+              if (row?.allowed_regions?.length) {
+                profile.allowed_regions = row.allowed_regions;
+              }
+              if (row?.subscription_tier) {
+                profile.tierBadge = row.subscription_tier;
+              }
+            } catch (profileErr) {
+              console.warn('Failed to load user_profiles entitlements:', profileErr);
+            }
+          }
+          return profile;
         }
       } catch (e) {
         console.warn('Supabase auth check failed:', e);
