@@ -51,9 +51,15 @@ async function handleDailyCron(request: NextRequest) {
   const targetCity = searchParams.get('city')?.toLowerCase().trim();
   const dateParam = searchParams.get('date');
 
-  // Default to yesterday's date
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const sinceDate = dateParam || yesterday;
+  // AUDIT FIX (2026-10-03): this used to default to exactly "yesterday", which made working
+  // connectors look broken. Confirmed directly against Calgary's and Winnipeg's open-data
+  // portals: both are correctly reachable with the right field names, but neither has
+  // published anything more recent than Sept 29 (government portals commonly lag 3-7 days
+  // behind the current date before new permits appear). A 14-day rolling window tolerates
+  // that normal publishing lag while still being a "daily" sync in practice, since Supabase
+  // upserts on permit_number -- re-fetching the same recent permits every day is harmless.
+  const lookbackStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const sinceDate = dateParam || lookbackStart;
 
   // Determine connectors to run
   const connectorsToRun = targetCity
