@@ -89,6 +89,7 @@ async function handleDailyCron(request: NextRequest) {
     totalValue: number;
     status: 'synced' | 'no_live_data' | 'error';
     error?: string;
+    diagnostic?: unknown;
   }> = [];
 
   for (const connector of connectorsToRun) {
@@ -112,7 +113,8 @@ async function handleDailyCron(request: NextRequest) {
           skippedNoValuation: 0,
           tier1Count: 0,
           totalValue: 0,
-          status: 'no_live_data'
+          status: 'no_live_data',
+          diagnostic: connector.lastDiagnostic
         });
         continue;
       }
@@ -188,7 +190,8 @@ async function handleDailyCron(request: NextRequest) {
         skippedNoValuation,
         tier1Count,
         totalValue: totalVal,
-        status: 'synced'
+        status: 'synced',
+        diagnostic: connector.lastDiagnostic
       });
     } catch (err: any) {
       console.error(`[Daily Cron] Error processing ${connector.citySlug}:`, err);
@@ -201,7 +204,8 @@ async function handleDailyCron(request: NextRequest) {
         tier1Count: 0,
         totalValue: 0,
         status: 'error',
-        error: err.message || 'Unknown ingestion error'
+        error: err.message || 'Unknown ingestion error',
+        diagnostic: connector?.lastDiagnostic
       });
     }
   }
