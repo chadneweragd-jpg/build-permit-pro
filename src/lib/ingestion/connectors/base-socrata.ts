@@ -1,4 +1,4 @@
-import { CityConnector, ConnectorFetchOptions, UnifiedPermit } from './types';
+import { CityConnector, ConnectorDiagnostic, ConnectorFetchOptions, UnifiedPermit } from './types';
 import { classifyTradeOpportunities, generatePermitAiSummary } from './trade-classifier';
 import { normalizePermitValue } from './valuation-normalizer';
 
@@ -26,6 +26,7 @@ export class SocrataConnector implements CityConnector {
   public province: string;
   public platform = 'socrata' as const;
   public endpointUrl: string;
+  public lastDiagnostic?: ConnectorDiagnostic;
   private config: SocrataConfig;
 
   constructor(config: SocrataConfig) {
@@ -46,13 +47,15 @@ export class SocrataConnector implements CityConnector {
       let offset = options?.offset || 0;
       let allRawRecords: any[] = [];
       let hasMore = true;
+      let lastStatus: number | null = null;
+      let lastBodySnippet: string | undefined;
 
       while (hasMore) {
         const url = new URL(this.config.endpoint);
         url.searchParams.set('$limit', String(pageSize));
         url.searchParams.set('$offset', String(offset));
         url.searchParams.set('$order', `${this.config.dateField || 'issueddate'} DESC`);
-        
+
         if (sinceDate) {
           url.searchParams.set('$where', `${this.config.dateField || 'issueddate'} >= '${sinceDate}'`);
         }
@@ -62,10 +65,13 @@ export class SocrataConnector implements CityConnector {
           headers: { 'Accept': 'application/json' },
           next: { revalidate: 3600 }
         });
+        lastStatus = res.status;
 
         if (res.ok) {
-          data = await res.json();
+          const rawText = await res.text();
+          try { data = JSON.parse(rawText); } catch { lastBodySnippet = rawText.slice(0, 300); }
         } else {
+          lastBodySnippet = (await res.text().catch(() => '')).slice(0, 300);
           // Retry without $order if column not orderable
           const fallbackUrl = new URL(this.config.endpoint);
           fallbackUrl.searchParams.set('$limit', String(pageSize));
@@ -77,8 +83,12 @@ export class SocrataConnector implements CityConnector {
             headers: { 'Accept': 'application/json' },
             next: { revalidate: 3600 }
           });
+          lastStatus = retryRes.status;
           if (retryRes.ok) {
-            data = await retryRes.json();
+            const retryText = await retryRes.text();
+            try { data = JSON.parse(retryText); lastBodySnippet = undefined; } catch { lastBodySnippet = retryText.slice(0, 300); }
+          } else {
+            lastBodySnippet = (await retryRes.text().catch(() => '')).slice(0, 300);
           }
         }
 
@@ -93,10 +103,24 @@ export class SocrataConnector implements CityConnector {
         }
       }
 
+      this.lastDiagnostic = {
+        httpStatus: lastStatus,
+        ok: lastStatus === 200,
+        rawRecordCount: allRawRecords.length,
+        note: allRawRecords.length > 0 ? 'ok' : (lastBodySnippet ? 'non-JSON or error response body' : 'request succeeded but returned zero records'),
+        bodySnippet: lastBodySnippet
+      };
+
       if (allRawRecords.length > 0) {
         return this.transformRecords(allRawRecords);
       }
     } catch (err) {
+      this.lastDiagnostic = {
+        httpStatus: null,
+        ok: false,
+        rawRecordCount: 0,
+        note: `threw: ${err instanceof Error ? err.message : String(err)}`
+      };
       console.warn(`[SocrataConnector: ${this.cityName}] Live API notice:`, err);
     }
 
