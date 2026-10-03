@@ -1,4 +1,4 @@
-import { CityConnector, ConnectorFetchOptions, UnifiedPermit } from './types';
+import { CityConnector, ConnectorDiagnostic, ConnectorFetchOptions, UnifiedPermit } from './types';
 import { classifyTradeOpportunities, generatePermitAiSummary } from './trade-classifier';
 import { normalizePermitValue } from './valuation-normalizer';
 
@@ -24,6 +24,7 @@ export class ArcGISConnector implements CityConnector {
   public province: string;
   public platform = 'arcgis' as const;
   public endpointUrl: string;
+  public lastDiagnostic?: ConnectorDiagnostic;
   private config: ArcGISConfig;
 
   constructor(config: ArcGISConfig) {
@@ -44,6 +45,8 @@ export class ArcGISConnector implements CityConnector {
       let offset = options?.offset || 0;
       let allFeatures: any[] = [];
       let hasMore = true;
+      let lastStatus: number | null = null;
+      let lastBodySnippet: string | undefined;
 
       while (hasMore) {
         const url = new URL(this.config.endpoint);
@@ -67,10 +70,20 @@ export class ArcGISConnector implements CityConnector {
           headers: { 'Accept': 'application/json' },
           next: { revalidate: 3600 }
         });
+        lastStatus = res.status;
 
         if (res.ok) {
-          const data = await res.json();
+          const rawText = await res.text();
+          let data: any;
+          try {
+            data = JSON.parse(rawText);
+          } catch {
+            lastBodySnippet = rawText.slice(0, 300);
+            hasMore = false;
+            break;
+          }
           if (data?.error) {
+            lastBodySnippet = JSON.stringify(data.error).slice(0, 300);
             console.warn(`[ArcGISConnector: ${this.cityName}] Query returned error:`, data.error.message || data.error);
             hasMore = false;
             break;
@@ -86,14 +99,29 @@ export class ArcGISConnector implements CityConnector {
             hasMore = false;
           }
         } else {
+          lastBodySnippet = (await res.text().catch(() => '')).slice(0, 300);
           hasMore = false;
         }
       }
+
+      this.lastDiagnostic = {
+        httpStatus: lastStatus,
+        ok: lastStatus === 200 && !lastBodySnippet,
+        rawRecordCount: allFeatures.length,
+        note: allFeatures.length > 0 ? 'ok' : (lastBodySnippet ? 'ArcGIS error or non-JSON response' : 'request succeeded but returned zero features'),
+        bodySnippet: lastBodySnippet
+      };
 
       if (allFeatures.length > 0) {
         return this.transformFeatures(allFeatures);
       }
     } catch (err) {
+      this.lastDiagnostic = {
+        httpStatus: null,
+        ok: false,
+        rawRecordCount: 0,
+        note: `threw: ${err instanceof Error ? err.message : String(err)}`
+      };
       console.warn(`[ArcGISConnector: ${this.cityName}] Live endpoint notice:`, err);
     }
 
