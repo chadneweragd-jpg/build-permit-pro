@@ -1,4 +1,4 @@
-import { CityConnector, ConnectorFetchOptions, UnifiedPermit } from './types';
+import { CityConnector, ConnectorDiagnostic, ConnectorFetchOptions, UnifiedPermit } from './types';
 import { classifyTradeOpportunities, generatePermitAiSummary } from './trade-classifier';
 import { normalizePermitValue } from './valuation-normalizer';
 
@@ -26,6 +26,7 @@ export class CKANConnector implements CityConnector {
   public province: string;
   public platform = 'ckan' as const;
   public endpointUrl: string;
+  public lastDiagnostic?: ConnectorDiagnostic;
   private config: CKANConfig;
 
   constructor(config: CKANConfig) {
@@ -47,6 +48,8 @@ export class CKANConnector implements CityConnector {
       let offset = options?.offset || 0;
       let allRecords: any[] = [];
       let hasMore = true;
+      let lastStatus: number | null = null;
+      let lastBodySnippet: string | undefined;
 
       while (hasMore) {
         const url = new URL(this.config.endpoint);
@@ -69,9 +72,18 @@ export class CKANConnector implements CityConnector {
           headers: { 'Accept': 'application/json' },
           next: { revalidate: 3600 }
         });
+        lastStatus = res.status;
 
         if (res.ok) {
-          const data = await res.json();
+          const rawText = await res.text();
+          let data: any;
+          try {
+            data = JSON.parse(rawText);
+          } catch {
+            lastBodySnippet = rawText.slice(0, 300);
+            hasMore = false;
+            break;
+          }
           let pageRecords: any[] = [];
           if (data.records) pageRecords = data.records;
           else if (data.result && data.result.records) pageRecords = data.result.records;
@@ -86,14 +98,29 @@ export class CKANConnector implements CityConnector {
             hasMore = false;
           }
         } else {
+          lastBodySnippet = (await res.text().catch(() => '')).slice(0, 300);
           hasMore = false;
         }
       }
+
+      this.lastDiagnostic = {
+        httpStatus: lastStatus,
+        ok: lastStatus === 200,
+        rawRecordCount: allRecords.length,
+        note: allRecords.length > 0 ? 'ok' : (lastBodySnippet ? 'non-JSON or error response body' : 'request succeeded but returned zero records'),
+        bodySnippet: lastBodySnippet
+      };
 
       if (allRecords.length > 0) {
         return this.transformRecords(allRecords);
       }
     } catch (err) {
+      this.lastDiagnostic = {
+        httpStatus: null,
+        ok: false,
+        rawRecordCount: 0,
+        note: `threw: ${err instanceof Error ? err.message : String(err)}`
+      };
       console.warn(`[CKANConnector: ${this.cityName}] Live endpoint notice:`, err);
     }
 
