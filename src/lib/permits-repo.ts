@@ -62,7 +62,12 @@ export class PermitsRepository {
         }
       }
 
-      const { data, error } = await query.order('issue_date', { ascending: false });
+      // AUDIT FIX (2026-10-03): Supabase/PostgREST applies a default row limit (observed
+      // returning as few as ~588 rows for Toronto out of 11,000+ actually in the table) when
+      // no explicit range/limit is set. Without this, large cities silently show only a
+      // partial, oldest-cut-off slice of their real permits -- not fake data, just incomplete.
+      // .range() sends an explicit Range header that overrides the default cap.
+      const { data, error } = await query.order('issue_date', { ascending: false }).range(0, 4999);
 
       if (error || !data || data.length === 0) {
         return this.getPermitsByCity(citySlug);
