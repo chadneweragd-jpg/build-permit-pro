@@ -23,6 +23,18 @@ export class PermitsRepository {
    * Asynchronously fetches all permits from live Supabase if available
    */
   public static async fetchPermitsFromSupabase(dateRange?: string, citySlug?: string): Promise<Permit[]> {
+    // DIAGNOSTIC (2026-10-03): the live dashboard was still returning the exact same count as
+    // the static bundled fallback file (src/data/permits.json) after the Supabase env var
+    // fixes, which should be impossible if this were genuinely reading from the live DB. This
+    // logs only booleans / error messages (never secret values) so we can see from the Vercel
+    // function logs whether isSupabaseConfigured is false here, or whether the query itself is
+    // erroring and silently falling back. Safe to remove once the cause is confirmed and fixed.
+    console.warn('[Permits][read-diagnostic]', JSON.stringify({
+      isSupabaseConfigured,
+      hasSupabaseClient: Boolean(supabase),
+      citySlug: citySlug || null
+    }));
+
     if (!isSupabaseConfigured || !supabase) return this.getPermitsByCity(citySlug);
 
     try {
@@ -68,6 +80,12 @@ export class PermitsRepository {
       // partial, oldest-cut-off slice of their real permits -- not fake data, just incomplete.
       // .range() sends an explicit Range header that overrides the default cap.
       const { data, error } = await query.order('issue_date', { ascending: false }).range(0, 4999);
+
+      console.warn('[Permits][read-diagnostic] query result', JSON.stringify({
+        hasError: Boolean(error),
+        errorMessage: error ? String((error as any).message || error) : null,
+        dataLength: data ? data.length : null
+      }));
 
       if (error || !data || data.length === 0) {
         return this.getPermitsByCity(citySlug);
@@ -132,7 +150,10 @@ export class PermitsRepository {
       const enrichedMapped = mapped.map((p) => enrichPermitWithBuilder(p, liveBuilders));
       this.cachedPermits = enrichedMapped;
       return enrichedMapped;
-    } catch {
+    } catch (e) {
+      console.warn('[Permits][read-diagnostic] threw, falling back to static file', JSON.stringify({
+        errorMessage: e instanceof Error ? e.message : String(e)
+      }));
       return this.getPermitsByCity(citySlug);
     }
   }
