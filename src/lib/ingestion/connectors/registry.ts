@@ -82,11 +82,21 @@ const vancouverConnector = new CKANConnector({
 });
 
 // 2. SURREY, BC
-const surreyConnector = new CKANConnector({
+// AUDIT FIX (2026-10-03): Surrey fully migrated off CKAN to ArcGIS Hub -- the old
+// data.surrey.ca datastore_search endpoint is gone with no CKAN replacement. Confirmed live
+// against the real FeatureServer (1,898 records, most recent issue date 2026-09-24).
+const surreyConnector = new ArcGISConnector({
   citySlug: 'surrey',
   cityName: 'Surrey',
   province: 'BC',
-  endpoint: 'https://data.surrey.ca/api/3/action/datastore_search?resource_id=building-permits',
+  endpoint: 'https://services5.arcgis.com/YRpe0VKTJytZSSIB/arcgis/rest/services/IssuedBuildingPermits/FeatureServer/0/query',
+  dateField: 'IssuedDate',
+  permitNumField: 'PermitNumber',
+  addressField: 'ProjectAddress',
+  valueField: 'ValueOfConstruction',
+  contractorField: 'BuildingGeneralContractorOrganization',
+  applicantField: 'ApplicantOrganization',
+  subTypeField: 'WorkDescription',
   defaultCoords: [49.1913, -122.8490],
   fallbackRecords: makeSeedPermits('surrey', 'Surrey', 'BC', [49.1913, -122.8490], [
     { pNum: 'BP-SRY-2026-1140', addr: '10255 King George Blvd', contr: 'ITC Construction Group', app: 'Surrey City Centre Mall', subType: 'Commercial Addition', val: 32000000, date: '2026-09-24', desc: 'Commercial addition to transit-oriented high-rise podium.' },
@@ -97,6 +107,11 @@ const surreyConnector = new CKANConnector({
 });
 
 // 3. BURNABY, BC
+// NOT FIXED (2026-10-03): researched thoroughly -- Burnaby has no public API for building
+// permits at all anymore (checked their ArcGIS org and all 5 Enterprise OpenData map
+// services). Current data is published only as static PDF "tabulation reports". This
+// connector will keep reporting no_live_data until/unless the city publishes a real API, or
+// someone builds a PDF-scraping connector instead (a different kind of project).
 const burnabyConnector = new ArcGISConnector({
   citySlug: 'burnaby',
   cityName: 'Burnaby',
@@ -111,6 +126,9 @@ const burnabyConnector = new ArcGISConnector({
 });
 
 // 4. RICHMOND, BC
+// NOT FIXED (2026-10-03): researched thoroughly -- Richmond's CKAN portal is gone with no
+// replacement API (checked their GIS viewer and permit-status portal, both not open data).
+// Current data is published only as monthly PDF "Building Permit Reports" on richmond.ca.
 const richmondConnector = new CKANConnector({
   citySlug: 'richmond',
   cityName: 'Richmond',
@@ -124,6 +142,9 @@ const richmondConnector = new CKANConnector({
 });
 
 // 5. COQUITLAM, BC
+// NOT FIXED (2026-10-03): researched thoroughly -- no Building Permits service exists on
+// Coquitlam's ArcGIS org (~117 public layers checked) or their on-prem GIS server. Permit
+// data is published only as PDF documents in their document center.
 const coquitlamConnector = new ArcGISConnector({
   citySlug: 'coquitlam',
   cityName: 'Coquitlam',
@@ -207,11 +228,18 @@ const torontoConnector = new CKANConnector({
 });
 
 // 10. MISSISSAUGA, ON
+// AUDIT FIX (2026-10-03): old URL 404s -- moved to a new AGOL org. Confirmed live, most
+// recent ISSUE_DATE ~2026-09-28. No contractor/applicant field exists on this service.
 const mississaugaConnector = new ArcGISConnector({
   citySlug: 'mississauga',
   cityName: 'Mississauga',
   province: 'ON',
-  endpoint: 'https://data.mississauga.ca/arcgis/rest/services/OpenData/BuildingPermits/FeatureServer/0/query',
+  endpoint: 'https://services6.arcgis.com/hM5ymMLbxIyWTjn2/ArcGIS/rest/services/Issued_Building_Permits/FeatureServer/0/query',
+  dateField: 'ISSUE_DATE',
+  permitNumField: 'BP_NO',
+  addressField: 'ADDRESS',
+  valueField: 'EST_CON_VALUE',
+  subTypeField: 'FILE_TYPE',
   defaultCoords: [43.5890, -79.6441],
   fallbackRecords: makeSeedPermits('mississauga', 'Mississauga', 'ON', [43.5890, -79.6441], [
     { pNum: 'BP-MS-2026-06120', addr: '100 City Centre Dr', contr: 'Eastern Construction Co.', app: 'Square One Shopping Centre', subType: 'Commercial Renovation', val: 26000000, date: '2026-09-24', desc: 'Retail wing expansion, structural skylight framing, and commercial entrance doors.' },
@@ -239,6 +267,9 @@ const bramptonConnector = new ArcGISConnector({
 });
 
 // 12. MARKHAM, ON
+// NOT FIXED (2026-10-03): researched thoroughly -- Markham's open data hub has dozens of
+// layers (addresses, zoning, parks, etc.) but no Building Permits dataset at all. Their only
+// permit-adjacent tool is a development-application status dashboard, not an open API.
 const markhamConnector = new ArcGISConnector({
   citySlug: 'markham',
   cityName: 'Markham',
@@ -252,6 +283,9 @@ const markhamConnector = new ArcGISConnector({
 });
 
 // 13. VAUGHAN, ON
+// NOT FIXED (2026-10-03): researched thoroughly -- Vaughan has no ArcGIS Hub, CKAN, or
+// Socrata presence at all (an ArcGIS org search for "vaughan" returns zero results). Permit
+// data is published only as monthly PDF "Building Permit Reports".
 const vaughanConnector = new ArcGISConnector({
   citySlug: 'vaughan',
   cityName: 'Vaughan',
@@ -265,11 +299,20 @@ const vaughanConnector = new ArcGISConnector({
 });
 
 // 14. HAMILTON, ON
+// AUDIT FIX (2026-10-03): old URL 404s. This is the correct current service, but a heads up:
+// its underlying data stopped updating in Dec 2023 (confirmed) despite the service being
+// live and named "...2017_to_Present" -- so this will correctly report "no live data" under
+// any recent date filter until/unless the city resumes publishing. Wiring the right URL here
+// is still worth it (honest diagnostics instead of a 404, and it self-heals if they resume).
 const hamiltonConnector = new ArcGISConnector({
   citySlug: 'hamilton',
   cityName: 'Hamilton',
   province: 'ON',
-  endpoint: 'https://open.hamilton.ca/arcgis/rest/services/OpenData/BuildingPermits/FeatureServer/0/query',
+  endpoint: 'https://services.arcgis.com/rYz782eMbySr2srL/ArcGIS/rest/services/Building_and_Demolition_Permits_2017_to_Present/FeatureServer/6/query',
+  dateField: 'ISSUEDDATE',
+  permitNumField: 'PERMITNUMBER',
+  addressField: 'ORIGINALADDRESS1',
+  subTypeField: 'PERMITCLASS',
   defaultCoords: [43.2557, -79.8711],
   fallbackRecords: makeSeedPermits('hamilton', 'Hamilton', 'ON', [43.2557, -79.8711], [
     { pNum: 'BP-HAM-2026-02940', addr: '100 King St W', contr: 'Alberici Constructors', app: 'Stelco Tower Group', subType: 'Commercial Renovation', val: 18500000, date: '2026-09-24', desc: 'Core infrastructure renovation, chilled beam HVAC upgrade, and elevator modernizations.' },
@@ -278,6 +321,10 @@ const hamiltonConnector = new ArcGISConnector({
 });
 
 // 15. OTTAWA, ON
+// NOT FIXED (2026-10-03): researched thoroughly -- Ottawa's only building-permit dataset
+// ("Construction, demolition, and pool enclosure permits monthly") is published as a
+// downloadable Excel file per month, not a queryable API. Their ArcGIS org has no permits
+// FeatureServer (only wards/population layers).
 const ottawaConnector = new ArcGISConnector({
   citySlug: 'ottawa',
   cityName: 'Ottawa',
@@ -292,11 +339,20 @@ const ottawaConnector = new ArcGISConnector({
 });
 
 // 16. KITCHENER-WATERLOO, ON
+// AUDIT FIX (2026-10-03): old domain is dead -- moved to Kitchener's ArcGIS Hub (GeoHub).
+// Confirmed live, updated daily.
 const kitchenerConnector = new ArcGISConnector({
   citySlug: 'kitchener-waterloo',
   cityName: 'Kitchener-Waterloo',
   province: 'ON',
-  endpoint: 'https://data.kitchener.ca/arcgis/rest/services/OpenData/BuildingPermits/FeatureServer/0/query',
+  endpoint: 'https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Building_Permits/FeatureServer/0/query',
+  dateField: 'ISSUE_DATE',
+  permitNumField: 'PERMITNO',
+  addressField: 'FOLDERNAME',
+  valueField: 'CONSTRUCTION_VALUE',
+  contractorField: 'CONTRACTOR',
+  applicantField: 'APPLICANT',
+  subTypeField: 'PERMIT_TYPE',
   defaultCoords: [43.4516, -80.4925],
   fallbackRecords: makeSeedPermits('kitchener-waterloo', 'Kitchener-Waterloo', 'ON', [43.4516, -80.4925], [
     { pNum: 'BP-KW-2026-02450', addr: '100 King St S', contr: 'Melloul-Blamey Construction', app: 'Innovation District Waterloo', subType: 'Commercial High-Rise', val: 38000000, date: '2026-09-24', desc: '16-storey tech commercial tower with post-tensioned slabs and high-efficiency HVAC.' },
