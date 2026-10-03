@@ -100,6 +100,8 @@ export class SocrataConnector implements CityConnector {
       console.warn(`[SocrataConnector: ${this.cityName}] Live API notice:`, err);
     }
 
+    if (options?.allowFallback === false) return [];
+
     // Use authentic fallback records
     let list = this.config.fallbackRecords;
     if (sinceDate) {

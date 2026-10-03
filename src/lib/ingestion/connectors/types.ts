@@ -37,6 +37,15 @@ export interface ConnectorFetchOptions {
   limit?: number;
   offset?: number;
   fetchAll?: boolean;
+  /**
+   * AUDIT FIX (2026-10-03): when the live government endpoint can't be reached or returns
+   * nothing, connectors used to silently return their hardcoded `fallbackRecords` sample
+   * data, which then got written to the database as if it were real -- this is how 6,000+
+   * fabricated permits ended up in production. Pass `allowFallback: false` (the daily cron
+   * does) to get an empty array instead in that situation, so nothing fake is ever written.
+   * Defaults to true so other callers (e.g. local dev/demo rendering) are unaffected.
+   */
+  allowFallback?: boolean;
 }
 
 export interface CityConnector {

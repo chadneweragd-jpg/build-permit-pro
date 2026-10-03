@@ -97,6 +97,8 @@ export class CKANConnector implements CityConnector {
       console.warn(`[CKANConnector: ${this.cityName}] Live endpoint notice:`, err);
     }
 
+    if (options?.allowFallback === false) return [];
+
     let list = this.config.fallbackRecords;
     if (sinceDate) {
       list = list.filter(r => (r.approval_date || r.issue_date || '') >= sinceDate);

@@ -9,6 +9,13 @@ export class KelownaConnector implements CityConnector {
   public endpointUrl = 'https://www.kelowna.ca/homes-building/building-permits-inspections/approved-building-permits';
 
   public async fetchPermits(options?: ConnectorFetchOptions): Promise<UnifiedPermit[]> {
+    // AUDIT NOTE (2026-10-03): unlike the other 16 cities, Kelowna has no live-fetch code
+    // path at all right now -- this always returns the bundled sample set. When the cron
+    // asks for allowFallback: false (its honest-data-only mode), be upfront about that
+    // instead of silently handing back sample data, so the city is correctly reported as
+    // having no live source rather than looking like a successful real sync.
+    if (options?.allowFallback === false) return [];
+
     const raw = getFallbackKelownaPermits({
       sinceDate: options?.sinceDate,
       limit: options?.limit
