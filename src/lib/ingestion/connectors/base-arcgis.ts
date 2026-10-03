@@ -173,7 +173,17 @@ export class ArcGISConnector implements CityConnector {
       if (typeof rawDateVal === 'number') {
         rawDate = new Date(rawDateVal).toISOString().split('T')[0];
       } else if (typeof rawDateVal === 'string') {
-        rawDate = rawDateVal.split('T')[0];
+        // AUDIT FIX (2026-10-03): Surrey's IssuedDate comes back as a plain "YYYYMMDD" string
+        // (e.g. "20260924"), not ISO "YYYY-MM-DD" -- every other city in this connector uses
+        // dashed ISO dates, and every date comparison elsewhere (sinceDate filtering, the
+        // 2026-01-01 floor below) assumes that format, so an un-dashed date silently sorts and
+        // compares wrong. Normalize it here once, generically, in case other ArcGIS cities
+        // have the same quirk.
+        if (/^\d{8}$/.test(rawDateVal)) {
+          rawDate = `${rawDateVal.slice(0, 4)}-${rawDateVal.slice(4, 6)}-${rawDateVal.slice(6, 8)}`;
+        } else {
+          rawDate = rawDateVal.split('T')[0];
+        }
       }
       if (rawDate < '2026-01-01') {
         rawDate = '2026-05-15';
