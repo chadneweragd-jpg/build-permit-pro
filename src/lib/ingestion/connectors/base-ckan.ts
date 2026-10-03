@@ -54,12 +54,17 @@ export class CKANConnector implements CityConnector {
       while (hasMore) {
         const url = new URL(this.config.endpoint);
         if (isODS) {
+          // AUDIT FIX (2026-10-03): the `field:[date TO *]` Lucene-style range query this used
+          // to send gets rejected by Vancouver's OpenDataSoft API with a "Wrong date format"
+          // 400 error regardless of date formatting tried (plain date, full ISO datetime) --
+          // this API version's date-range syntax is its own `refine`/`rangefilter` mechanism,
+          // not a `q=` Lucene range. Simpler and more robust: just sort newest-first and take
+          // the most recent page; the daily cron's permit_number upsert is idempotent, so
+          // re-fetching recent records on every run is harmless, and this never breaks again
+          // if the exact query syntax changes on their end.
           url.searchParams.set('rows', String(pageSize));
           url.searchParams.set('start', String(offset));
           url.searchParams.set('sort', `-${this.config.dateField || 'issue_date'}`);
-          if (sinceDate) {
-            url.searchParams.set('q', `${this.config.dateField || 'issue_date'}:[${sinceDate} TO *]`);
-          }
         } else {
           url.searchParams.set('limit', String(pageSize));
           url.searchParams.set('offset', String(offset));
@@ -112,7 +117,11 @@ export class CKANConnector implements CityConnector {
       };
 
       if (allRecords.length > 0) {
-        return this.transformRecords(allRecords);
+        const transformed = this.transformRecords(allRecords);
+        // Since records are sorted newest-first with no server-side date filter (see the ODS
+        // note above), apply the sinceDate cutoff here instead so we don't write a city's
+        // entire history to the database on every run.
+        return sinceDate ? transformed.filter((p) => (p.approval_date || p.issue_date || '') >= sinceDate) : transformed;
       }
     } catch (err) {
       this.lastDiagnostic = {
