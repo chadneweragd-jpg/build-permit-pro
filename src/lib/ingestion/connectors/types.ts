@@ -48,11 +48,26 @@ export interface ConnectorFetchOptions {
   allowFallback?: boolean;
 }
 
+// AUDIT FIX (2026-10-03): 15 of 17 city connectors were silently returning zero live
+// records with no visible reason -- a DNS failure, a 404, an ArcGIS query error, and
+// "genuinely no new permits today" all looked identical from the cron's output. This
+// records what actually happened on the last fetchPermits() call so the daily-ingest
+// route can report it per city instead of just a blank "no_live_data".
+export interface ConnectorDiagnostic {
+  httpStatus: number | null;
+  ok: boolean;
+  rawRecordCount: number;
+  note: string;
+  /** First ~300 chars of a non-JSON or unexpected response body, to spot HTML error pages etc. */
+  bodySnippet?: string;
+}
+
 export interface CityConnector {
   citySlug: string;
   cityName: string;
   province: string;
   platform: 'socrata' | 'ckan' | 'arcgis' | 'portal';
   endpointUrl?: string;
+  lastDiagnostic?: ConnectorDiagnostic;
   fetchPermits(options?: ConnectorFetchOptions): Promise<UnifiedPermit[]>;
 }
