@@ -1,4 +1,5 @@
 import { Permit, VerifiedBuilder } from '@/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   VERIFIED_BUILDERS,
   STOPWORDS,
@@ -13,6 +14,54 @@ import {
   matchPermitToBuilder,
   enrichPermitWithBuilder
 } from '@/lib/enrichment/matcher';
+
+/**
+ * AUDIT FIX (2026-10-03): the builder match list used to be ONLY the static JSON bundled
+ * into the app at build time (VERIFIED_BUILDERS) -- adding a newly-verified builder meant
+ * editing a file and redeploying the whole site. There is now a live `builders_directory`
+ * table in Supabase (see supabase/migrations/20261003_builders_directory_live.sql) that can
+ * be added to at any time with no redeploy. This fetches that live table and uses it as the
+ * match list whenever it's reachable, so every dashboard load and every cron ingestion run
+ * checks the CURRENT state of the builder directory -- enrichment quality improves
+ * immediately as the directory grows.
+ *
+ * Falls back to the static bundled list (VERIFIED_BUILDERS) only if Supabase is not
+ * configured or the query fails, so matching never breaks entirely if the database is
+ * briefly unreachable.
+ */
+export async function getLiveBuilders(citySlug?: string): Promise<VerifiedBuilder[]> {
+  if (!isSupabaseConfigured || !supabase) return VERIFIED_BUILDERS;
+
+  try {
+    let query = supabase
+      .from('builders_directory')
+      .select('id, company_name, normalized_name, category, association, city, province, primary_phone, email, website, physical_address, key_principal');
+
+    if (citySlug) {
+      query = query.ilike('city', citySlug);
+    }
+
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) return VERIFIED_BUILDERS;
+
+    return data.map((row: any) => ({
+      id: row.id,
+      company_name: row.company_name,
+      normalized_name: row.normalized_name,
+      category: row.category || undefined,
+      association: row.association || undefined,
+      city: row.city || undefined,
+      province: row.province || undefined,
+      primary_phone: row.primary_phone || undefined,
+      email: row.email || undefined,
+      website: row.website || undefined,
+      physical_address: row.physical_address || undefined,
+      key_principal: row.key_principal || undefined
+    })) as VerifiedBuilder[];
+  } catch {
+    return VERIFIED_BUILDERS;
+  }
+}
 
 export {
   VERIFIED_BUILDERS,

@@ -2,7 +2,7 @@ import rawPermits from '@/data/permits.json';
 import { CRMStatus, Permit, SavedSearch, SubscriptionTier, SubtradeKey, UserPermitStatus, WorkClass } from '@/types';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { isValidPhoneNumber, isValidEmail } from '@/lib/contact-utils';
-import { enrichPermitWithBuilder } from '@/lib/builders-service';
+import { enrichPermitWithBuilder, getLiveBuilders } from '@/lib/builders-service';
 import { getFallbackCalgaryPermits } from '@/lib/ingestion/calgary';
 
 const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
@@ -120,7 +120,11 @@ export class PermitsRepository {
         };
       });
 
-      const enrichedMapped = mapped.map((p) => enrichPermitWithBuilder(p));
+      // AUDIT FIX (2026-10-03): re-match against the LIVE builders_directory table on every
+      // fetch, not just the static bundled list -- this is what makes enrichment improve as
+      // the builder database grows, with no redeploy needed.
+      const liveBuilders = await getLiveBuilders();
+      const enrichedMapped = mapped.map((p) => enrichPermitWithBuilder(p, liveBuilders));
       this.cachedPermits = enrichedMapped;
       return enrichedMapped;
     } catch {
