@@ -197,8 +197,58 @@ export const SUPPORTED_CITIES: Record<string, CityConfig> = {
     zoom: 11,
     label: 'Winnipeg, MB',
     tagline: 'Portage & Main Commercial Hub'
+  },
+  // ADDED (2026-10-04): these three were already wired up as live data connectors
+  // (src/lib/ingestion/connectors/registry.ts) but were missing from this UI-facing list, so
+  // they could never appear in the city switcher even once their feeds started producing real
+  // permits. CitySelector now only renders a city here if it also has live permits in Supabase
+  // (see getLiveActiveCitySlugs below), so adding metadata for a city is safe to do ahead of
+  // time -- it simply won't show up in the dropdown until real data for it actually exists.
+  halifax: {
+    id: 'halifax',
+    name: 'Halifax',
+    province: 'NS',
+    region: 'Halifax Regional Municipality',
+    hub: 'HRM Planning & Development (PPL&C)',
+    center: [-63.5752, 44.6488],
+    zoom: 11,
+    label: 'Halifax, NS',
+    tagline: 'Halifax Peninsula & Regional Growth Centres'
+  },
+  barrie: {
+    id: 'barrie',
+    name: 'Barrie',
+    province: 'ON',
+    region: 'Simcoe County',
+    hub: 'City of Barrie Open Data',
+    center: [-79.6903, 44.3894],
+    zoom: 12,
+    label: 'Barrie, ON',
+    tagline: 'South Barrie Waterfront & Growth Corridor'
+  },
+  delta: {
+    id: 'delta',
+    name: 'Delta',
+    province: 'BC',
+    region: 'Metro Vancouver',
+    hub: 'City of Delta Open Data',
+    center: [-123.0586, 49.0847],
+    zoom: 11,
+    label: 'Delta, BC',
+    tagline: 'Tilbury Industrial & Ladner Village'
   }
 };
+
+// ADDED (2026-10-04): the connector registry (src/lib/ingestion/connectors/registry.ts) also
+// ingests ~20 US cities, which share the same `permits` table as the Canadian ones this
+// product is actually branded and sold around ("Pan-Canadian Commercial Intelligence Hub").
+// Used to keep Canadian-facing aggregation (city dropdowns, dashboard totals) from silently
+// counting US cities/dollars as part of a "Canadian" figure.
+export const CANADIAN_PROVINCES = ['BC', 'AB', 'SK', 'MB', 'ON', 'QC', 'NB', 'NS', 'PE', 'NL', 'YT', 'NT', 'NU'];
+
+export function isCanadianProvince(province?: string | null): boolean {
+  return !!province && CANADIAN_PROVINCES.includes(province.toUpperCase().trim());
+}
 
 export const DEFAULT_CITY_ID: string = 'kelowna';
 
