@@ -20,8 +20,25 @@ export interface ArcGISConfig {
   applicantField?: string;
   subTypeField?: string;
   valueField?: string;
+  /**
+   * EXPANSION FIX (2026-10-04): Barrie's Date_Status and Sacramento's Status_Date looked
+   * like normal date fields but are actually plain STRING columns ("2026.09.27" and
+   * "09/27/2026" respectively) -- the `>= date '...'` SQL literal this connector normally
+   * builds is invalid against a string column (Barrie: ArcGIS 400 "Failed to execute
+   * query"; Sacramento: silently matched zero rows even though the city's data is current
+   * as of a few days ago). Set this to build a plain string comparison in that format
+   * instead. Note: lexicographic string comparison on MM/DD/YYYY only sorts correctly
+   * within the same calendar year -- fine for this connector's normal 14-day lookback, but
+   * worth revisiting if it's ever asked to look back across a Dec/Jan boundary.
+   */
+  dateFieldStringFormat?: 'dot' | 'slash';
   defaultCoords: [number, number]; // [lat, lng]
   fallbackRecords: any[];
+}
+
+function formatDateForStringField(iso: string, format: 'dot' | 'slash'): string {
+  const [y, m, d] = iso.split('-');
+  return format === 'dot' ? `${y}.${m}.${d}` : `${m}/${d}/${y}`;
 }
 
 export class ArcGISConnector implements CityConnector {
@@ -66,6 +83,10 @@ export class ArcGISConnector implements CityConnector {
         const targetDate = sinceDate || '2026-01-01';
         if (this.citySlug === 'brampton') {
           url.searchParams.set('where', `${dField} >= date '${targetDate}' OR PERMITNUMBER LIKE '26-%'`);
+        } else if (this.config.dateFieldStringFormat && sinceDate) {
+          url.searchParams.set('where', `${dField} >= '${formatDateForStringField(sinceDate, this.config.dateFieldStringFormat)}'`);
+        } else if (this.config.dateFieldStringFormat) {
+          url.searchParams.set('where', '1=1');
         } else if (sinceDate) {
           url.searchParams.set('where', `${dField} >= date '${sinceDate}'`);
         } else {
@@ -193,6 +214,13 @@ export class ArcGISConnector implements CityConnector {
         // have the same quirk.
         if (/^\d{8}$/.test(rawDateVal)) {
           rawDate = `${rawDateVal.slice(0, 4)}-${rawDateVal.slice(4, 6)}-${rawDateVal.slice(6, 8)}`;
+        } else if (/^\d{4}\.\d{2}\.\d{2}$/.test(rawDateVal)) {
+          // Barrie: "YYYY.MM.DD"
+          rawDate = rawDateVal.replace(/\./g, '-');
+        } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDateVal)) {
+          // Sacramento: "MM/DD/YYYY"
+          const [mm, dd, yyyy] = rawDateVal.split('/');
+          rawDate = `${yyyy}-${mm}-${dd}`;
         } else {
           rawDate = rawDateVal.split('T')[0];
         }
