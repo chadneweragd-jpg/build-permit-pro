@@ -1,6 +1,7 @@
 import { CityConnector, ConnectorDiagnostic, ConnectorFetchOptions, UnifiedPermit } from './types';
 import { classifyTradeOpportunities, generatePermitAiSummary } from './trade-classifier';
 import { normalizePermitValue } from './valuation-normalizer';
+import { fetchThroughProxy } from './proxy-fetch';
 
 // BUG FIX (2026-10-04): the ArcGIS FeatureServer previously used for Kelowna
 // (Building_Permits_and_Capital_Projects) turned out to be a stale, infrequently-refreshed
@@ -42,38 +43,19 @@ export class KelownaPortalConnector implements CityConnector {
 
         // BUG FIX (2026-10-04): v1 of this connector identified itself as
         // "BuildPermitProBot/1.0" and got a flat 403 from kelowna.ca (confirmed via the
-        // cron's diagnostic output) -- it only ever worked in testing because that testing
-        // went through a real browser, not this server-side fetch.
+        // cron's diagnostic output). v2 switched to a normal desktop-browser User-Agent --
+        // still 403. v3 added the fuller set of headers a real Chrome browser sends
+        // (Sec-Fetch-*, sec-ch-ua, Referer) -- still 403, and that attempt's longer error
+        // capture finally revealed why: it's Cloudflare's "Attention Required" bot-challenge
+        // page, which requires actually running JavaScript to solve. No header, however
+        // convincing, gets a plain fetch() past that -- it needs a real browser engine.
         //
-        // v2 (2026-10-04, same day): switched to a normal desktop-browser User-Agent. Still
-        // got a 403, even deployed and confirmed live -- so a fake UA alone isn't enough.
-        // Whatever's in front of kelowna.ca is most likely blocking by source IP (Vercel's
-        // serverless functions run from well-known cloud datacenter ranges, which bot
-        // protection services commonly block outright regardless of headers), not just by
-        // what the request claims to be. v3 adds the fuller set of headers a real Chrome
-        // browser sends (Sec-Fetch-*, sec-ch-ua, Referer) on the chance this is a lighter
-        // header-based check rather than a hard IP block -- but if this still 403s, the
-        // honest conclusion is that this specific approach (fetching kelowna.ca directly
-        // from Vercel) may not be viable at all, and a different strategy is needed rather
-        // than more header guessing.
-        const res = await fetch(url, {
-          headers: {
-            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-            'sec-ch-ua': '"Chromium";v="129", "Not=A?Brand";v="8", "Google Chrome";v="129"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
-            Referer: 'https://www.kelowna.ca/'
-          },
-          next: { revalidate: 3600 }
-        });
+        // v4 (2026-10-04, same day): routes the request through fetchThroughProxy
+        // (proxy-fetch.ts), which uses the ZenRows scraping-proxy service to run a real
+        // headless browser that can solve the Cloudflare challenge. Waits for the permit
+        // table itself to appear before returning the page, so this gets the real content
+        // rather than an intermediate loading/challenge state.
+        const res = await fetchThroughProxy(url, { waitForSelector: 'table' });
         lastStatus = res.status;
 
         if (!res.ok) {
