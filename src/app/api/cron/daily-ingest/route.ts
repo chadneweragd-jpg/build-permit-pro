@@ -91,6 +91,8 @@ async function handleDailyCron(request: NextRequest) {
     liveRecordsFetched: number;
     upsertedCount: number;
     skippedNoValuation: number;
+    duplicatesSkipped?: number;
+    upsertErrors?: string[];
     tier1Count: number;
     totalValue: number;
     status: 'synced' | 'no_live_data' | 'error';
@@ -132,16 +134,37 @@ async function handleDailyCron(request: NextRequest) {
 
       let upsertedCount = 0;
       let skippedNoValuation = 0;
+      let duplicatesSkipped = 0;
+      const upsertErrors: string[] = [];
 
       if (adminSupabase) {
         // Never publish a permit with no real, usable valuation (matches the audit policy
         // already applied elsewhere in this codebase -- skip the row rather than inventing
         // a placeholder dollar figure).
-        const publishable = enriched.filter((p) => {
+        const publishableRaw = enriched.filter((p) => {
           const val = normalizePermitValue(p.value ?? p.estimated_value ?? 0, p.sub_type, p.description);
           return val > 0;
         });
-        skippedNoValuation = enriched.length - publishable.length;
+        skippedNoValuation = enriched.length - publishableRaw.length;
+
+        // BUG FIX (2026-10-04): New York and San Francisco were fetching hundreds of
+        // publishable permits but upserting zero of them, with the real reason hidden --
+        // `error` below was only ever console.error'd, never surfaced to this route's JSON
+        // response, so there was no way to see what actually failed. The onConflict target
+        // is `permit_number`, which is globally unique on the table, but NYC's
+        // job_filing_number (mapped to permit_number) and SF's permit_number can both repeat
+        // within a single connector fetch -- e.g. one NYC job filing issuing several permit
+        // sub-records. Supabase/Postgres's multi-row upsert throws "ON CONFLICT DO UPDATE
+        // command cannot affect row a second time" when the same conflict key appears twice
+        // in one batch, which silently zeroed out the whole batch's upsert count. De-duping
+        // by permit_number (keeping the last/most-complete occurrence) before batching fixes
+        // this for any city, not just NYC/SF.
+        const dedupeMap = new Map<string, UnifiedPermit>();
+        for (const p of publishableRaw) {
+          dedupeMap.set(p.permit_number, p);
+        }
+        const publishable = Array.from(dedupeMap.values());
+        duplicatesSkipped = publishableRaw.length - publishable.length;
 
         for (let i = 0; i < publishable.length; i += PERMITS_UPSERT_BATCH_SIZE) {
           const batch = publishable.slice(i, i + PERMITS_UPSERT_BATCH_SIZE);
@@ -179,6 +202,7 @@ async function handleDailyCron(request: NextRequest) {
 
           if (error) {
             console.error(`[Daily Cron] Upsert error for ${connector.citySlug}:`, error.message);
+            upsertErrors.push(error.message);
           } else if (data) {
             upsertedCount += data.length;
           }
@@ -194,6 +218,8 @@ async function handleDailyCron(request: NextRequest) {
         liveRecordsFetched: enriched.length,
         upsertedCount,
         skippedNoValuation,
+        duplicatesSkipped,
+        upsertErrors: upsertErrors.length > 0 ? upsertErrors : undefined,
         tier1Count,
         totalValue: totalVal,
         status: 'synced',
