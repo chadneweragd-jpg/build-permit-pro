@@ -40,10 +40,18 @@ export class KelownaPortalConnector implements CityConnector {
       for (let page = 0; page < this.maxPages; page++) {
         const url = page === 0 ? this.endpointUrl : `${this.endpointUrl}?page=${page}`;
 
+        // BUG FIX (2026-10-04): the first version of this connector identified itself as
+        // "BuildPermitProBot/1.0" and got a flat 403 from kelowna.ca when actually deployed
+        // (confirmed via the cron's diagnostic output) -- it only ever worked in testing
+        // because that testing went through a real browser, not this server-side fetch.
+        // Whatever's in front of kelowna.ca (WAF/CDN) is evidently blocking anything that
+        // self-identifies as a bot. Using a normal desktop-browser User-Agent instead.
         const res = await fetch(url, {
           headers: {
-            Accept: 'text/html',
-            'User-Agent': 'Mozilla/5.0 (compatible; BuildPermitProBot/1.0)'
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
           },
           next: { revalidate: 3600 }
         });
