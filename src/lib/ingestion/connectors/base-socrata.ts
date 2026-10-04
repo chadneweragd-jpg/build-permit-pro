@@ -10,6 +10,12 @@ export interface SocrataConfig {
   dateField?: string;
   permitNumField?: string;
   addressField?: string;
+  /**
+   * EXPANSION (2026-10-04): some cities (e.g. New York's house_no/street_name) split the
+   * address across separate columns instead of one combined field. When set, these are
+   * joined (space-separated, blanks dropped) instead of using `addressField`.
+   */
+  addressFields?: string[];
   contractorField?: string;
   applicantField?: string;
   subTypeField?: string;
@@ -146,9 +152,13 @@ export class SocrataConnector implements CityConnector {
     return rawRows.map((row, idx) => {
       const pNum = row[pField] || row.permit_number || row.permitnum || row.row_id || `BP-${this.citySlug.toUpperCase()}-${idx + 1}`;
       
-      let addr = row[aField] || row.address || row.originaladdress;
+      let addr: string = '';
+      if (this.config.addressFields && this.config.addressFields.length > 0) {
+        addr = this.config.addressFields.map((f) => row[f]).filter(Boolean).join(' ').trim();
+      }
+      if (!addr) addr = row[aField] || row.address || row.originaladdress;
       if (!addr && (row.street_number || row.street_name)) {
-        addr = `${row.street_number || ''} ${row.street_name || ''} ${row.street_type || ''}`.trim();
+        addr = `${row.street_number || ''} ${row.street_name || ''} ${row.street_type || row.street_direction || ''}`.trim();
       }
       if (!addr) addr = `${this.cityName}, ${this.province}`;
 
