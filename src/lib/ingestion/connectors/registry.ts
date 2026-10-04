@@ -62,7 +62,13 @@ const vancouverConnector = new CKANConnector({
   citySlug: 'vancouver',
   cityName: 'Vancouver',
   province: 'BC',
-  endpoint: 'https://opendata.vancouver.ca/api/records/1.0/search/?dataset=issued-building-permits',
+  // AUDIT FIX (2026-10-03 pt2): switched from the v1 Search API to the v2 Explore API --
+  // v1's `sort=-issuedate` was being silently ignored (the field isn't marked "sortable" in
+  // this dataset's metadata), so every fetch was returning the OLDEST ~1000 records in the
+  // 52,000+ row dataset instead of the newest. v2 supports real where=/order_by= ODSQL on
+  // any field; confirmed live that `issuedate>=date'2026-09-19'` + `order_by=issuedate desc`
+  // correctly returns October 2026 permits.
+  endpoint: 'https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/issued-building-permits/records',
   format: 'opendatasoft',
   dateField: 'issuedate',
   permitNumField: 'permitnumber',
