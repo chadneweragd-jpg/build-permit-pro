@@ -2,7 +2,6 @@ import { CityConnector, UnifiedPermit } from './types';
 import { SocrataConnector } from './base-socrata';
 import { ArcGISConnector } from './base-arcgis';
 import { CKANConnector } from './base-ckan';
-import { KelownaConnector } from './kelowna';
 
 // Helper to generate authentic historical permits for any city
 function makeSeedPermits(
@@ -164,7 +163,25 @@ const coquitlamConnector = new ArcGISConnector({
 });
 
 // 6. KELOWNA, BC
-const kelownaConnector = new KelownaConnector();
+// AUDIT FIX (2026-10-04): Kelowna never had a real live-fetch connector at all -- the old
+// KelownaConnector always just returned bundled sample data regardless of what the live city
+// site had, labeled as a "portal" source. Found the real one: Kelowna publishes building
+// permits through a live ArcGIS FeatureServer on its Open Kelowna hub. Confirmed live --
+// recent permit numbers like BP26-000769 with 2026 approve dates. No contractor/applicant
+// field exists on this service.
+const kelownaConnector = new ArcGISConnector({
+  citySlug: 'kelowna',
+  cityName: 'Kelowna',
+  province: 'BC',
+  endpoint: 'https://services3.arcgis.com/FLJGTfiaM25hLKwC/arcgis/rest/services/Building_Permits_and_Capital_Projects/FeatureServer/0/query',
+  dateField: 'APPROVE_DATE',
+  permitNumField: 'PERMIT_NUMBER',
+  addressField: 'PRINT_ADDRESS',
+  valueField: 'VALUE',
+  subTypeField: 'PERMIT_TYPE',
+  defaultCoords: [49.8880, -119.4960],
+  fallbackRecords: []
+});
 
 // 7. CALGARY, AB
 const calgaryConnector = new SocrataConnector({
@@ -386,7 +403,345 @@ const winnipegConnector = new SocrataConnector({
   ])
 });
 
-// Registry of all 17 Major Canadian Municipal Connectors
+// ADDED (2026-10-04): expansion cities researched and confirmed live this session. All use
+// fallbackRecords: [] rather than invented sample permits -- per the no-fabricated-data
+// policy, a city with no reachable live source should return nothing, not fiction, even in
+// a context where allowFallback isn't forced to false.
+
+// 18. HALIFAX, NS
+const halifaxConnector = new ArcGISConnector({
+  citySlug: 'halifax',
+  cityName: 'Halifax',
+  province: 'NS',
+  endpoint: 'https://services2.arcgis.com/11XBiaBYA9Ep0yNJ/ArcGIS/rest/services/BuildingPermits/FeatureServer/0/query',
+  dateField: 'DATE_OF_PERMIT_ISSUANCE',
+  permitNumField: 'PERMIT_NUMBER',
+  addressFields: ['CIVIC_NUMBER', 'STREET_NAME', 'STREET_TYPE', 'COMMUNITY'],
+  valueField: 'ESTIMATED_VALUE_OF_PROJECT',
+  defaultCoords: [44.6488, -63.5752],
+  fallbackRecords: []
+});
+
+// 19. BARRIE, ON
+// No construction-value or contractor field exists on this service -- permits will sync but
+// most will show no dollar value.
+const barrieConnector = new ArcGISConnector({
+  citySlug: 'barrie',
+  cityName: 'Barrie',
+  province: 'ON',
+  endpoint: 'https://gispublic.barrie.ca/arcgis/rest/services/Open_Data/APLI/MapServer/1/query',
+  dateField: 'Date_Status',
+  permitNumField: 'RECORD_ID',
+  addressField: 'Full_Address',
+  defaultCoords: [44.3894, -79.6903],
+  fallbackRecords: []
+});
+
+// 20. DELTA, BC
+// Layer mixes building, plumbing and mechanical permits together; no value or contractor field.
+const deltaConnector = new ArcGISConnector({
+  citySlug: 'delta',
+  cityName: 'Delta',
+  province: 'BC',
+  endpoint: 'https://mw1.delta.ca/arcgis/rest/services/DeltaMap/Permits/MapServer/0/query',
+  dateField: 'COMPLETED_DATE',
+  permitNumField: 'PERMITNUMBER',
+  addressField: 'CIVIC_ADDRESS',
+  defaultCoords: [49.0847, -123.0587],
+  fallbackRecords: []
+});
+
+// 21. NEW YORK, NY
+const newyorkConnector = new SocrataConnector({
+  citySlug: 'new-york',
+  cityName: 'New York',
+  province: 'NY',
+  endpoint: 'https://data.cityofnewyork.us/resource/rbx6-tga4.json',
+  dateField: 'approved_date',
+  permitNumField: 'job_filing_number',
+  addressFields: ['house_no', 'street_name'],
+  valueField: 'estimated_job_costs',
+  contractorField: 'applicant_business_name',
+  applicantField: 'applicant_business_name',
+  defaultCoords: [40.7128, -74.0060],
+  fallbackRecords: []
+});
+
+// 22. LOS ANGELES, CA
+const losangelesConnector = new SocrataConnector({
+  citySlug: 'los-angeles',
+  cityName: 'Los Angeles',
+  province: 'CA',
+  endpoint: 'https://data.lacity.org/resource/pi9x-tg5x.json',
+  dateField: 'issue_date',
+  permitNumField: 'permit_nbr',
+  addressField: 'primary_address',
+  valueField: 'valuation',
+  defaultCoords: [34.0522, -118.2437],
+  fallbackRecords: []
+});
+
+// 23. CHICAGO, IL
+const chicagoConnector = new SocrataConnector({
+  citySlug: 'chicago',
+  cityName: 'Chicago',
+  province: 'IL',
+  endpoint: 'https://data.cityofchicago.org/resource/ydr8-5enu.json',
+  dateField: 'issue_date',
+  permitNumField: 'permit_',
+  addressFields: ['street_number', 'street_direction', 'street_name'],
+  valueField: 'reported_cost',
+  contractorField: 'contact_4_name',
+  defaultCoords: [41.8781, -87.6298],
+  fallbackRecords: []
+});
+
+// 24. SAN FRANCISCO, CA
+const sanfranciscoConnector = new SocrataConnector({
+  citySlug: 'san-francisco',
+  cityName: 'San Francisco',
+  province: 'CA',
+  endpoint: 'https://data.sf.gov/resource/i98e-djp9.json',
+  dateField: 'permit_creation_date',
+  permitNumField: 'permit_number',
+  addressFields: ['street_number', 'street_name'],
+  valueField: 'estimated_cost',
+  defaultCoords: [37.7749, -122.4194],
+  fallbackRecords: []
+});
+
+// 25. AUSTIN, TX
+// Valuation is split across several permit-type-specific columns on this dataset (no single
+// consistent value field) -- most permits will show no dollar value until that's mapped more
+// precisely.
+const austinConnector = new SocrataConnector({
+  citySlug: 'austin',
+  cityName: 'Austin',
+  province: 'TX',
+  endpoint: 'https://data.austintexas.gov/resource/3syk-w9eu.json',
+  dateField: 'issue_date',
+  permitNumField: 'permit_number',
+  addressField: 'original_address1',
+  contractorField: 'contractor_company_name',
+  defaultCoords: [30.2672, -97.7431],
+  fallbackRecords: []
+});
+
+// 26. NEW ORLEANS, LA
+const neworleansConnector = new SocrataConnector({
+  citySlug: 'new-orleans',
+  cityName: 'New Orleans',
+  province: 'LA',
+  endpoint: 'https://data.nola.gov/resource/72f9-bi28.json',
+  dateField: 'issuedate',
+  permitNumField: 'permitnum',
+  addressField: 'originaladdress1',
+  valueField: 'estprojectcost',
+  contractorField: 'contractorcompanyname',
+  defaultCoords: [29.9511, -90.0715],
+  fallbackRecords: []
+});
+
+// 27. FORT WORTH, TX
+const fortworthConnector = new ArcGISConnector({
+  citySlug: 'fort-worth',
+  cityName: 'Fort Worth',
+  province: 'TX',
+  endpoint: 'https://testmapit.fortworthtexas.gov/ags/rest/services/Planning_Development/BuildingPermitView/MapServer/0/query',
+  dateField: 'IssueDate',
+  permitNumField: 'Permit',
+  addressField: 'Address',
+  valueField: 'JobValue',
+  applicantField: 'CustomerName',
+  defaultCoords: [32.7555, -97.3308],
+  fallbackRecords: []
+});
+
+// 28. COLUMBUS, OH
+const columbusConnector = new ArcGISConnector({
+  citySlug: 'columbus',
+  cityName: 'Columbus',
+  province: 'OH',
+  endpoint: 'https://gis.columbus.gov/arcgis/rest/services/Schemas/BuildingZoning/MapServer/5/query',
+  dateField: 'ISSUED_DT',
+  permitNumField: 'B1_ALT_ID',
+  addressField: 'SITE_ADDRESS',
+  valueField: 'G3_VALUE_TTL',
+  applicantField: 'APPLICANT_BUS_NAME',
+  defaultCoords: [39.9612, -82.9988],
+  fallbackRecords: []
+});
+
+// 29. CHARLOTTE, NC
+const charlotteConnector = new ArcGISConnector({
+  citySlug: 'charlotte',
+  cityName: 'Charlotte',
+  province: 'NC',
+  endpoint: 'https://meckgis.mecklenburgcountync.gov/server/rest/services/BuildingPermits/MapServer/0/query',
+  dateField: 'issuedate',
+  permitNumField: 'permitnum',
+  addressField: 'projadd',
+  valueField: 'bldgcost',
+  applicantField: 'ownname',
+  defaultCoords: [35.2271, -80.8431],
+  fallbackRecords: []
+});
+
+// 30. SEATTLE, WA
+// Residential permits only -- no citywide commercial layer found. No contractor field.
+const seattleConnector = new ArcGISConnector({
+  citySlug: 'seattle',
+  cityName: 'Seattle',
+  province: 'WA',
+  endpoint: 'https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services/Residential_Building_Permits_Issued_and_Final/FeatureServer/0/query',
+  dateField: 'ISS_DATE',
+  permitNumField: 'PRMT_NR',
+  addressField: 'ADDRESS',
+  valueField: 'VALUE',
+  defaultCoords: [47.6062, -122.3321],
+  fallbackRecords: []
+});
+
+// 31. DENVER, CO
+// Residential permits only on this layer -- ODC_DEV_COMMERCIALCONSTPERMIT_P on the same
+// ArcGIS org covers commercial and could be added as a second connector later.
+const denverConnector = new ArcGISConnector({
+  citySlug: 'denver',
+  cityName: 'Denver',
+  province: 'CO',
+  endpoint: 'https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/ArcGIS/rest/services/ODC_DEV_RESIDENTIALCONSTPERMIT_P/FeatureServer/316/query',
+  dateField: 'DATE_ISSUED',
+  permitNumField: 'PERMIT_NUM',
+  addressField: 'ADDRESS',
+  valueField: 'VALUATION',
+  contractorField: 'CONTRACTOR_NAME',
+  defaultCoords: [39.7392, -104.9903],
+  fallbackRecords: []
+});
+
+// 32. WASHINGTON, DC
+// No construction-value field on this service (only fees paid).
+const washingtondcConnector = new ArcGISConnector({
+  citySlug: 'washington-dc',
+  cityName: 'Washington',
+  province: 'DC',
+  endpoint: 'https://maps2.dcgis.dc.gov/dcgis/rest/services/FEEDS/DCRA/FeatureServer/17/query',
+  dateField: 'ISSUE_DATE',
+  permitNumField: 'PERMIT_ID',
+  addressField: 'FULL_ADDRESS',
+  applicantField: 'PERMIT_APPLICANT',
+  defaultCoords: [38.9072, -77.0369],
+  fallbackRecords: []
+});
+
+// 33. SACRAMENTO, CA
+const sacramentoConnector = new ArcGISConnector({
+  citySlug: 'sacramento',
+  cityName: 'Sacramento',
+  province: 'CA',
+  endpoint: 'https://services5.arcgis.com/54falWtcpty3V47Z/ArcGIS/rest/services/BldgPermitIssued_CurrentYear/FeatureServer/0/query',
+  dateField: 'Status_Date',
+  permitNumField: 'Application',
+  addressField: 'Address',
+  valueField: 'Valuation',
+  contractorField: 'Contractor',
+  defaultCoords: [38.5816, -121.4944],
+  fallbackRecords: []
+});
+
+// 34. LOUISVILLE, KY
+const louisvilleConnector = new ArcGISConnector({
+  citySlug: 'louisville',
+  cityName: 'Louisville',
+  province: 'KY',
+  endpoint: 'https://services1.arcgis.com/79kfd2K6fskCAkyg/arcgis/rest/services/Louisville_Metro_KY_Active_Permits/FeatureServer/0/query',
+  dateField: 'ISSUEDATE',
+  permitNumField: 'PERMITNUMBER',
+  addressField: 'ADDRESS',
+  valueField: 'PROJECTCOSTS',
+  contractorField: 'CONTRACTOR',
+  defaultCoords: [38.2527, -85.7585],
+  fallbackRecords: []
+});
+
+// 35. ALBUQUERQUE, NM
+const albuquerqueConnector = new ArcGISConnector({
+  citySlug: 'albuquerque',
+  cityName: 'Albuquerque',
+  province: 'NM',
+  endpoint: 'https://coageo.cabq.gov/cabqgeo/rest/services/agis/City_Building_Permits/FeatureServer/0/query',
+  dateField: 'DateIssued',
+  permitNumField: 'PermitNumber',
+  addressField: 'CalculatedAddress',
+  valueField: 'Valuation',
+  contractorField: 'Contractor',
+  applicantField: 'Owner',
+  defaultCoords: [35.0844, -106.6504],
+  fallbackRecords: []
+});
+
+// 36. MINNEAPOLIS, MN
+const minneapolisConnector = new ArcGISConnector({
+  citySlug: 'minneapolis',
+  cityName: 'Minneapolis',
+  province: 'MN',
+  endpoint: 'https://services.arcgis.com/afSMGVsC7QlRK1kZ/ArcGIS/rest/services/CCS_Permits/FeatureServer/0/query',
+  dateField: 'issueDate',
+  permitNumField: 'permitNumber',
+  addressField: 'Display',
+  valueField: 'value',
+  applicantField: 'applicantName',
+  defaultCoords: [44.9778, -93.2650],
+  fallbackRecords: []
+});
+
+// 37. RALEIGH, NC
+const raleighConnector = new ArcGISConnector({
+  citySlug: 'raleigh',
+  cityName: 'Raleigh',
+  province: 'NC',
+  endpoint: 'https://services.arcgis.com/v400IkDOw1ad7Yad/ArcGIS/rest/services/Building_Permits/FeatureServer/0/query',
+  dateField: 'issueddate',
+  permitNumField: 'permitnum',
+  addressField: 'address',
+  valueField: 'estprojectcost',
+  contractorField: 'contractorcompanyname',
+  defaultCoords: [35.7796, -78.6382],
+  fallbackRecords: []
+});
+
+// 38. MIAMI, FL
+// Use this layer, not the sibling AllCityPermits service (mostly zoning/entitlements). No
+// value or contractor field on this one.
+const miamiConnector = new ArcGISConnector({
+  citySlug: 'miami',
+  cityName: 'Miami',
+  province: 'FL',
+  endpoint: 'https://gis.miami.gov/gis/rest/services/Maps/iBuildPermits/MapServer/0/query',
+  dateField: 'PermitIssuedDate',
+  permitNumField: 'PermitNumber',
+  addressField: 'FULLADDR',
+  defaultCoords: [25.7617, -80.1918],
+  fallbackRecords: []
+});
+
+// 39. PHOENIX, AZ
+// No valuation field in this service's schema.
+const phoenixConnector = new ArcGISConnector({
+  citySlug: 'phoenix',
+  cityName: 'Phoenix',
+  province: 'AZ',
+  endpoint: 'https://mapportal.phoenix.gov/pds/rest/services/ShapePHX/ShapePHXPermitsPoints/MapServer/0/query',
+  dateField: 'PERMIT_ISSUE_DATE',
+  permitNumField: 'PERMIT_NUMBER',
+  addressField: 'ADDRESS',
+  applicantField: 'OWNER_NAME',
+  defaultCoords: [33.4484, -112.0740],
+  fallbackRecords: []
+});
+
+// Registry of all Canadian + US municipal connectors (named CANADIAN_CITY_CONNECTORS for
+// historical reasons -- it now also holds the US expansion cities added 2026-10-04).
 export const CANADIAN_CITY_CONNECTORS: Record<string, CityConnector> = {
   'vancouver': vancouverConnector,
   'surrey': surreyConnector,
@@ -404,7 +759,29 @@ export const CANADIAN_CITY_CONNECTORS: Record<string, CityConnector> = {
   'hamilton': hamiltonConnector,
   'ottawa': ottawaConnector,
   'kitchener-waterloo': kitchenerConnector,
-  'winnipeg': winnipegConnector
+  'winnipeg': winnipegConnector,
+  'halifax': halifaxConnector,
+  'barrie': barrieConnector,
+  'delta': deltaConnector,
+  'new-york': newyorkConnector,
+  'los-angeles': losangelesConnector,
+  'chicago': chicagoConnector,
+  'san-francisco': sanfranciscoConnector,
+  'austin': austinConnector,
+  'new-orleans': neworleansConnector,
+  'fort-worth': fortworthConnector,
+  'columbus': columbusConnector,
+  'charlotte': charlotteConnector,
+  'seattle': seattleConnector,
+  'denver': denverConnector,
+  'washington-dc': washingtondcConnector,
+  'sacramento': sacramentoConnector,
+  'louisville': louisvilleConnector,
+  'albuquerque': albuquerqueConnector,
+  'minneapolis': minneapolisConnector,
+  'raleigh': raleighConnector,
+  'miami': miamiConnector,
+  'phoenix': phoenixConnector
 };
 
 export function getConnector(citySlug: string): CityConnector | undefined {
