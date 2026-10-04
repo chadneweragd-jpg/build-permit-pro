@@ -2,6 +2,7 @@ import { CityConnector, UnifiedPermit } from './types';
 import { SocrataConnector } from './base-socrata';
 import { ArcGISConnector } from './base-arcgis';
 import { CKANConnector } from './base-ckan';
+import { KelownaPortalConnector } from './kelowna-portal';
 
 // Helper to generate authentic historical permits for any city
 function makeSeedPermits(
@@ -165,27 +166,19 @@ const coquitlamConnector = new ArcGISConnector({
 // 6. KELOWNA, BC
 // AUDIT FIX (2026-10-04): Kelowna never had a real live-fetch connector at all -- the old
 // KelownaConnector always just returned bundled sample data regardless of what the live city
-// site had, labeled as a "portal" source. Found the real one: Kelowna publishes building
-// permits through a live ArcGIS FeatureServer on its Open Kelowna hub. Confirmed live --
-// recent permit numbers like BP26-000769 with 2026 approve dates. No contractor/applicant
-// field exists on this service.
-// NOTE (2026-10-04): this feed updates on a lag -- a direct unfiltered query sorted by
-// APPROVE_DATE descending showed the newest record dated mid-May 2026, so the cron's 14-day
-// window currently reports zero records. Correctly configured, just an infrequently-updated
-// source; re-check periodically rather than treating this as a connector bug.
-const kelownaConnector = new ArcGISConnector({
-  citySlug: 'kelowna',
-  cityName: 'Kelowna',
-  province: 'BC',
-  endpoint: 'https://services3.arcgis.com/FLJGTfiaM25hLKwC/arcgis/rest/services/Building_Permits_and_Capital_Projects/FeatureServer/0/query',
-  dateField: 'APPROVE_DATE',
-  permitNumField: 'PERMIT_NUMBER',
-  addressField: 'PRINT_ADDRESS',
-  valueField: 'VALUE',
-  subTypeField: 'PERMIT_TYPE',
-  defaultCoords: [49.8880, -119.4960],
-  fallbackRecords: []
-});
+// site had, labeled as a "portal" source. First replacement attempt used Kelowna's ArcGIS
+// FeatureServer (Building_Permits_and_Capital_Projects), which looked live but turned out to
+// be a stale, infrequently-refreshed export -- confirmed its newest APPROVE_DATE values lag
+// the real city system by 4-5 months (topped out around permit BP26-000769, ~May 2026).
+//
+// SECOND FIX (2026-10-04): the user caught this directly -- Kelowna's own "Approved building
+// permits" webpage was already showing permits like BP26-001716 approved September 29, 2026,
+// proving real current data exists even though our feed didn't have it. That webpage has no
+// separate JSON API behind it (checked its network requests; the table is rendered directly
+// into the page's server-rendered HTML), so KelownaPortalConnector (kelowna-portal.ts) fetches
+// and parses that HTML table directly instead of the ArcGIS feed. Confirmed live: the table is
+// already sorted newest-first and each row carries a machine-readable ISO date.
+const kelownaConnector = new KelownaPortalConnector();
 
 // 7. CALGARY, AB
 const calgaryConnector = new SocrataConnector({
