@@ -169,6 +169,10 @@ const coquitlamConnector = new ArcGISConnector({
 // permits through a live ArcGIS FeatureServer on its Open Kelowna hub. Confirmed live --
 // recent permit numbers like BP26-000769 with 2026 approve dates. No contractor/applicant
 // field exists on this service.
+// NOTE (2026-10-04): this feed updates on a lag -- a direct unfiltered query sorted by
+// APPROVE_DATE descending showed the newest record dated mid-May 2026, so the cron's 14-day
+// window currently reports zero records. Correctly configured, just an infrequently-updated
+// source; re-check periodically rather than treating this as a connector bug.
 const kelownaConnector = new ArcGISConnector({
   citySlug: 'kelowna',
   cityName: 'Kelowna',
@@ -409,6 +413,11 @@ const winnipegConnector = new SocrataConnector({
 // a context where allowFallback isn't forced to false.
 
 // 18. HALIFAX, NS
+// NOTE (2026-10-04): this service is reachable and well-formed, but a direct unfiltered
+// query sorted by DATE_OF_PERMIT_ISSUANCE descending showed the newest record dated March
+// 2023 -- this feed looks abandoned/unmaintained on the city's end, not a connector bug.
+// Treat like Hamilton: correctly wired up, just waiting on the source to resume publishing
+// (or for a replacement feed to be found).
 const halifaxConnector = new ArcGISConnector({
   citySlug: 'halifax',
   cityName: 'Halifax',
@@ -425,12 +434,17 @@ const halifaxConnector = new ArcGISConnector({
 // 19. BARRIE, ON
 // No construction-value or contractor field exists on this service -- permits will sync but
 // most will show no dollar value.
+// BUG FIX (2026-10-04): Date_Status looked like a date field but is a plain STRING column
+// formatted "YYYY.MM.DD" -- the connector's normal `>= date '...'` SQL literal was invalid
+// against it, causing a 400 "Failed to execute query" error on every fetch. Confirmed via a
+// direct field-schema query (type: esriFieldTypeString). Fixed with dateFieldStringFormat.
 const barrieConnector = new ArcGISConnector({
   citySlug: 'barrie',
   cityName: 'Barrie',
   province: 'ON',
   endpoint: 'https://gispublic.barrie.ca/arcgis/rest/services/Open_Data/APLI/MapServer/1/query',
   dateField: 'Date_Status',
+  dateFieldStringFormat: 'dot',
   permitNumField: 'RECORD_ID',
   addressField: 'Full_Address',
   defaultCoords: [44.3894, -79.6903],
@@ -589,6 +603,9 @@ const charlotteConnector = new ArcGISConnector({
 
 // 30. SEATTLE, WA
 // Residential permits only -- no citywide commercial layer found. No contractor field.
+// NOTE (2026-10-04): a direct unfiltered query sorted by ISS_DATE descending showed the
+// newest record dated June 30, 2026 (~3 months behind today), so the cron's 14-day window
+// currently reports zero records. Correctly configured; this feed just updates on a lag.
 const seattleConnector = new ArcGISConnector({
   citySlug: 'seattle',
   cityName: 'Seattle',
@@ -621,6 +638,10 @@ const denverConnector = new ArcGISConnector({
 
 // 32. WASHINGTON, DC
 // No construction-value field on this service (only fees paid).
+// NOTE (2026-10-04): a direct unfiltered query sorted by ISSUE_DATE descending showed the
+// newest record dated right around Jan 1, 2026 (~9 months behind today), so the cron's
+// 14-day window currently reports zero records. Correctly configured; this feed updates on
+// a significant lag.
 const washingtondcConnector = new ArcGISConnector({
   citySlug: 'washington-dc',
   cityName: 'Washington',
@@ -635,12 +656,19 @@ const washingtondcConnector = new ArcGISConnector({
 });
 
 // 33. SACRAMENTO, CA
+// BUG FIX (2026-10-04): Status_Date looked like a date field but is a plain STRING column
+// formatted "MM/DD/YYYY" -- the connector's normal `>= date '...'` SQL literal silently
+// matched zero rows against it, even though this feed's data is current (most recent record
+// was only a week old when checked). Confirmed via a direct field-schema query (type:
+// esriFieldTypeString). Fixed with dateFieldStringFormat -- this was the single highest-value
+// fix among the zero-record cities, since Sacramento's data is genuinely live and current.
 const sacramentoConnector = new ArcGISConnector({
   citySlug: 'sacramento',
   cityName: 'Sacramento',
   province: 'CA',
   endpoint: 'https://services5.arcgis.com/54falWtcpty3V47Z/ArcGIS/rest/services/BldgPermitIssued_CurrentYear/FeatureServer/0/query',
   dateField: 'Status_Date',
+  dateFieldStringFormat: 'slash',
   permitNumField: 'Application',
   addressField: 'Address',
   valueField: 'Valuation',
@@ -650,6 +678,13 @@ const sacramentoConnector = new ArcGISConnector({
 });
 
 // 34. LOUISVILLE, KY
+// NOTE (2026-10-04): a direct unfiltered query showed the newest ISSUEDATE value is from
+// February 2019 -- "Active_Permits" appears to mean currently-open/unclosed permits (which
+// skew very old, e.g. old electrical permits that never got closed out) rather than
+// recently-issued ones. ISSUEDATE is also a plain string column, not a real date field.
+// This looks like the wrong dataset for "recent permits issued" rather than a quick fix;
+// worth treating like the "needs a different endpoint" cities until a better Louisville
+// feed turns up.
 const louisvilleConnector = new ArcGISConnector({
   citySlug: 'louisville',
   cityName: 'Louisville',
@@ -665,6 +700,10 @@ const louisvilleConnector = new ArcGISConnector({
 });
 
 // 35. ALBUQUERQUE, NM
+// NOTE (2026-10-04): a direct unfiltered query sorted by DateIssued descending showed the
+// newest record dated mid-January 2025 (~1.75 years behind today), so the cron's 14-day
+// window currently reports zero records. Correctly configured; this feed looks stale on
+// the city's end.
 const albuquerqueConnector = new ArcGISConnector({
   citySlug: 'albuquerque',
   cityName: 'Albuquerque',
@@ -727,6 +766,10 @@ const miamiConnector = new ArcGISConnector({
 
 // 39. PHOENIX, AZ
 // No valuation field in this service's schema.
+// NOTE (2026-10-04): a direct unfiltered query sorted by PERMIT_ISSUE_DATE descending
+// showed the newest record dated June 2022 -- this "ShapePHXPermitsPoints" layer looks
+// dead/archival (over 4 years stale), not a connector bug. Likely needs a replacement
+// endpoint rather than a date-filter fix; worth revisiting as a research task.
 const phoenixConnector = new ArcGISConnector({
   citySlug: 'phoenix',
   cityName: 'Phoenix',
