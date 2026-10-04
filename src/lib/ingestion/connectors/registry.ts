@@ -406,20 +406,26 @@ const winnipegConnector = new SocrataConnector({
 // a context where allowFallback isn't forced to false.
 
 // 18. HALIFAX, NS
-// NOTE (2026-10-04): this service is reachable and well-formed, but a direct unfiltered
-// query sorted by DATE_OF_PERMIT_ISSUANCE descending showed the newest record dated March
-// 2023 -- this feed looks abandoned/unmaintained on the city's end, not a connector bug.
-// Treat like Hamilton: correctly wired up, just waiting on the source to resume publishing
-// (or for a replacement feed to be found).
+// BUG FIX (2026-10-04): the old 'BuildingPermits' service this connector pointed at is
+// abandoned on HRM's end (newest record was dated March 2023, confirmed via a direct
+// unfiltered query sorted by DATE_OF_PERMIT_ISSUANCE descending). Found its replacement:
+// HRM has since moved to a new permit/licensing system called "PPL&C", exposed as
+// PPLC_Issued_Building_Permits on the same ArcGIS org -- confirmed live and current (newest
+// records dated 2026-09-29 as of this fix). It's registered as an ArcGIS *table* rather than
+// a feature layer (no geometry/points), which is fine -- this connector's query/transform
+// logic doesn't require geometry and already falls back to defaultCoords when it's absent.
+// Field names changed too (e.g. no more STREET_TYPE -- address is just civic number, street
+// name, and community).
 const halifaxConnector = new ArcGISConnector({
   citySlug: 'halifax',
   cityName: 'Halifax',
   province: 'NS',
-  endpoint: 'https://services2.arcgis.com/11XBiaBYA9Ep0yNJ/ArcGIS/rest/services/BuildingPermits/FeatureServer/0/query',
-  dateField: 'DATE_OF_PERMIT_ISSUANCE',
-  permitNumField: 'PERMIT_NUMBER',
-  addressFields: ['CIVIC_NUMBER', 'STREET_NAME', 'STREET_TYPE', 'COMMUNITY'],
-  valueField: 'ESTIMATED_VALUE_OF_PROJECT',
+  endpoint: 'https://services2.arcgis.com/11XBiaBYA9Ep0yNJ/ArcGIS/rest/services/PPLC_Issued_Building_Permits/FeatureServer/0/query',
+  dateField: 'Date_of_Permit_Issuance',
+  permitNumField: 'Permit_Number',
+  addressFields: ['Civic_Number', 'Street_Name', 'Community'],
+  subTypeField: 'Work_Type',
+  valueField: 'Estimated_Project_Value',
   defaultCoords: [44.6488, -63.5752],
   fallbackRecords: []
 });
