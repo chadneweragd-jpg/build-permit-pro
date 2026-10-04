@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { isValidPhoneNumber, isValidEmail } from '@/lib/contact-utils';
 import { enrichPermitWithBuilder, getLiveBuilders } from '@/lib/builders-service';
 import { getFallbackCalgaryPermits } from '@/lib/ingestion/calgary';
+import { isCanadianProvince } from '@/lib/cities';
 
 const CRM_STORAGE_KEY = 'bpp_crm_statuses_v1';
 const SAVED_SEARCHES_KEY = 'bpp_saved_searches_v1';
@@ -23,18 +24,6 @@ export class PermitsRepository {
    * Asynchronously fetches all permits from live Supabase if available
    */
   public static async fetchPermitsFromSupabase(dateRange?: string, citySlug?: string): Promise<Permit[]> {
-    // DIAGNOSTIC (2026-10-03): the live dashboard was still returning the exact same count as
-    // the static bundled fallback file (src/data/permits.json) after the Supabase env var
-    // fixes, which should be impossible if this were genuinely reading from the live DB. This
-    // logs only booleans / error messages (never secret values) so we can see from the Vercel
-    // function logs whether isSupabaseConfigured is false here, or whether the query itself is
-    // erroring and silently falling back. Safe to remove once the cause is confirmed and fixed.
-    console.warn('[Permits][read-diagnostic]', JSON.stringify({
-      isSupabaseConfigured,
-      hasSupabaseClient: Boolean(supabase),
-      citySlug: citySlug || null
-    }));
-
     if (!isSupabaseConfigured || !supabase) return this.getPermitsByCity(citySlug);
 
     try {
@@ -52,6 +41,15 @@ export class PermitsRepository {
             )
           )
         `);
+
+      // FIX (2026-10-04): a batch of placeholder rows from the pre-audit fabricated-seed era
+      // is still sitting in the live `permits` table, relabeled `_ARCHIVED_FABRICATED_SEED
+      // (<city>)` rather than deleted (11 cities, ~5,000+ rows, hundreds of millions in fake
+      // valuation -- confirmed directly against the table). Those rows were never wired into
+      // any UI before, but excluding them here, at the single shared read path every page goes
+      // through, guarantees they can never surface in city dropdowns, dashboard totals, or
+      // anywhere else -- rather than needing every consumer to remember to filter them.
+      query = query.not('city_region', 'ilike', '%ARCHIVED%');
 
       if (citySlug && citySlug !== 'all') {
         const target = citySlug.toLowerCase().trim();
@@ -74,24 +72,25 @@ export class PermitsRepository {
         }
       }
 
-      // AUDIT FIX (2026-10-03): Supabase/PostgREST applies a default row limit (observed
-      // returning as few as ~588 rows for Toronto out of 11,000+ actually in the table) when
-      // no explicit range/limit is set. Without this, large cities silently show only a
-      // partial, oldest-cut-off slice of their real permits -- not fake data, just incomplete.
-      // .range() sends an explicit Range header that overrides the default cap.
+      // AUDIT FIX (2026-10-03): this Supabase project enforces a server-side max-rows cap of
+      // 1000 (confirmed directly against the REST API), so a city with more permits than that
+      // only ever shows its 1000 most recently issued. .range() asks for more and is honored up
+      // to that cap -- without it, the client-side default cut large cities off even earlier.
+      // Raising the project's max-rows setting (or adding real pagination here) would show all
+      // of a city's permits; this is a reasonable interim cap, not a bug, so leaving as-is.
       const { data, error } = await query.order('issue_date', { ascending: false }).range(0, 4999);
-
-      console.warn('[Permits][read-diagnostic] query result', JSON.stringify({
-        hasError: Boolean(error),
-        errorMessage: error ? String((error as any).message || error) : null,
-        dataLength: data ? data.length : null
-      }));
 
       if (error || !data || data.length === 0) {
         return this.getPermitsByCity(citySlug);
       }
 
-      const mapped: Permit[] = data.map((row: any) => {
+      // Belt-and-suspenders on top of the query-level `.not(...)` above: PostgREST's NOT
+      // ILIKE excludes a row outright if city_region is NULL (three-valued SQL logic), and a
+      // defensive second check here costs nothing and means a future query change can't
+      // accidentally let an archived/fabricated row back in unnoticed.
+      const cleanData = data.filter((row: any) => !String(row.city_region || '').toUpperCase().includes('ARCHIVED'));
+
+      const mapped: Permit[] = cleanData.map((row: any) => {
         const existingFallback = this.cachedPermits.find(
           (p) => p.permit_number === row.permit_number
         );
@@ -107,11 +106,25 @@ export class PermitsRepository {
 
         const cRegion = row.city_region || existingFallback?.city_region || 'Kelowna';
         const derivedSlug = (row.city_slug || existingFallback?.city_slug || cRegion.toLowerCase().replace(/\s+/g, '-')).toLowerCase().trim();
+        // FIX (2026-10-04): the `permits` table has no `province` column at all (confirmed
+        // directly against its schema) -- `row.province` below is always undefined, so this
+        // map is the ONLY real source for it, not just a fallback. It previously only listed
+        // the original 17 Canadian cities, so every US city (and every Canadian city added
+        // since, like Halifax/Barrie/Delta) silently fell through to the 'BC' default below --
+        // which, among other things, broke Canadian/US filtering elsewhere in this file, since
+        // a US permit would resolve to a Canadian province code. Now matches every connector in
+        // registry.ts exactly (Canadian provinces and US states alike), so update this list
+        // whenever a city is added there.
         const provMap: Record<string, string> = {
-          vancouver: 'BC', surrey: 'BC', burnaby: 'BC', richmond: 'BC', coquitlam: 'BC', kelowna: 'BC',
+          vancouver: 'BC', surrey: 'BC', burnaby: 'BC', richmond: 'BC', coquitlam: 'BC', kelowna: 'BC', delta: 'BC',
           calgary: 'AB', edmonton: 'AB',
-          toronto: 'ON', mississauga: 'ON', brampton: 'ON', markham: 'ON', vaughan: 'ON', hamilton: 'ON', ottawa: 'ON', 'kitchener-waterloo': 'ON',
-          winnipeg: 'MB'
+          toronto: 'ON', mississauga: 'ON', brampton: 'ON', markham: 'ON', vaughan: 'ON', hamilton: 'ON', ottawa: 'ON', 'kitchener-waterloo': 'ON', barrie: 'ON',
+          winnipeg: 'MB',
+          halifax: 'NS',
+          'new-york': 'NY', 'los-angeles': 'CA', chicago: 'IL', 'san-francisco': 'CA', austin: 'TX',
+          'new-orleans': 'LA', 'fort-worth': 'TX', columbus: 'OH', charlotte: 'NC', seattle: 'WA',
+          denver: 'CO', 'washington-dc': 'DC', sacramento: 'CA', louisville: 'KY', albuquerque: 'NM',
+          minneapolis: 'MN', raleigh: 'NC', miami: 'FL', phoenix: 'AZ'
         };
 
         return {
@@ -123,7 +136,11 @@ export class PermitsRepository {
           application_date: row.application_date || row.issue_date,
           address: row.address,
           city_region: cRegion,
-          province: row.province || existingFallback?.province || provMap[derivedSlug] || 'BC',
+          // No more defaulting an unrecognized city to 'BC' -- that silently misclassified any
+          // city missing from provMap as Canadian. An unmapped city now resolves to '' instead,
+          // which isCanadianProvince() correctly treats as "not Canadian" (excluded from
+          // Canadian-scoped dropdowns/totals) rather than wrongly included.
+          province: row.province || existingFallback?.province || provMap[derivedSlug] || '',
           legal_description: row.legal_description || '',
           permit_type: row.permit_type || row.sub_type,
           work_class: row.work_class,
@@ -151,9 +168,10 @@ export class PermitsRepository {
       this.cachedPermits = enrichedMapped;
       return enrichedMapped;
     } catch (e) {
-      console.warn('[Permits][read-diagnostic] threw, falling back to static file', JSON.stringify({
-        errorMessage: e instanceof Error ? e.message : String(e)
-      }));
+      // Keep this log: silently falling back to the static bundled file is exactly the bug
+      // that caused the dashboard to look "live" while actually showing stale sample data
+      // (2026-10-03). If this ever fires again, the error message says why.
+      console.warn('[Permits] live Supabase read failed, falling back to static file:', e instanceof Error ? e.message : String(e));
       return this.getPermitsByCity(citySlug);
     }
   }
@@ -186,9 +204,17 @@ export class PermitsRepository {
   }
 
   /**
-   * Retrieves active cities with permit count and metrics
+   * Retrieves active cities with permit count and metrics.
+   *
+   * FIX (2026-10-04): this is Canadian-only by default now. The registry also ingests ~20 US
+   * cities into the same `permits` table (apparently for a separate/future purpose), and every
+   * current caller of this method is Canadian-branded UI (the city switcher, the dashboard's
+   * market grid and totals, the permits page filter) -- without this filter, a US city with a
+   * broken-looking slug would quietly appear in "Canadian" dropdowns, and US dollars would
+   * inflate "national" Canadian totals. Pass `includeAllCountries: true` if a future caller
+   * genuinely wants the full cross-border list.
    */
-  public static getActiveCities(): Array<{
+  public static getActiveCities(includeAllCountries = false): Array<{
     slug: string;
     name: string;
     province: string;
@@ -197,8 +223,9 @@ export class PermitsRepository {
     tier1Count: number;
   }> {
     const cityMap = new Map<string, { slug: string; name: string; province: string; permitCount: number; totalValue: number; tier1Count: number }>();
-    
+
     for (const p of this.cachedPermits) {
+      if (!includeAllCountries && !isCanadianProvince(p.province)) continue;
       const slug = (p.city_slug || (p.city_region || '').toLowerCase() || 'kelowna').toLowerCase().trim();
       const existing = cityMap.get(slug) || {
         slug,
@@ -244,11 +271,17 @@ export class PermitsRepository {
       verifiedRatio: c.permitCount > 0 ? (c.tier1Count / c.permitCount) : 0
     }));
 
-    const totalPermits = this.cachedPermits.length;
-    const totalPipelineValue = this.cachedPermits.reduce((acc, p) => acc + Number(p.estimated_value || p.value || 0), 0);
-    const totalVerifiedCount = this.cachedPermits.filter((p) => p.tier === 1 || p.verified_builder).length;
+    // FIX (2026-10-04): this method's own name/docstring say "Canadian" totals, but it was
+    // summing this.cachedPermits directly -- which also holds ~20 US cities' permits (see
+    // getActiveCities' comment above). Scoping to the same Canadian-only set as `cities` keeps
+    // the headline dashboard numbers consistent with the market grid shown alongside them.
+    const canadianPermits = this.cachedPermits.filter((p) => isCanadianProvince(p.province));
+
+    const totalPermits = canadianPermits.length;
+    const totalPipelineValue = canadianPermits.reduce((acc, p) => acc + Number(p.estimated_value || p.value || 0), 0);
+    const totalVerifiedCount = canadianPermits.filter((p) => p.tier === 1 || p.verified_builder).length;
     const overallVerifiedRatio = totalPermits > 0 ? totalVerifiedCount / totalPermits : 0;
-    const recentPermits = [...this.cachedPermits]
+    const recentPermits = [...canadianPermits]
       .sort((a, b) => (b.issue_date || b.approval_date || '').localeCompare(a.issue_date || a.approval_date || ''))
       .slice(0, 10);
 
