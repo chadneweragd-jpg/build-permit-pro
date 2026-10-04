@@ -54,17 +54,22 @@ export class CKANConnector implements CityConnector {
       while (hasMore) {
         const url = new URL(this.config.endpoint);
         if (isODS) {
-          // AUDIT FIX (2026-10-03): the `field:[date TO *]` Lucene-style range query this used
-          // to send gets rejected by Vancouver's OpenDataSoft API with a "Wrong date format"
-          // 400 error regardless of date formatting tried (plain date, full ISO datetime) --
-          // this API version's date-range syntax is its own `refine`/`rangefilter` mechanism,
-          // not a `q=` Lucene range. Simpler and more robust: just sort newest-first and take
-          // the most recent page; the daily cron's permit_number upsert is idempotent, so
-          // re-fetching recent records on every run is harmless, and this never breaks again
-          // if the exact query syntax changes on their end.
-          url.searchParams.set('rows', String(pageSize));
-          url.searchParams.set('start', String(offset));
-          url.searchParams.set('sort', `-${this.config.dateField || 'issue_date'}`);
+          // AUDIT FIX (2026-10-03 pt2): the first fix here (sort=-field + client-side filter)
+          // is CONFIRMED STILL BROKEN -- live testing showed it fetching 1000 records
+          // successfully but all dated 2017, because OpenDataSoft's v1 Search API silently
+          // ignores `sort=` on any field not explicitly marked "sortable" in the dataset's
+          // metadata, and Vancouver's `issuedate` field isn't. Switched to the v2 Explore API
+          // (registry.ts endpoint now points at /api/explore/v2.1/.../records), which supports
+          // real server-side ODSQL filtering and sorting on any field. Confirmed live:
+          // `where=issuedate>=date'2026-09-19'&order_by=issuedate desc` correctly returns only
+          // recent (Oct 2026) permits, newest first.
+          url.searchParams.set('limit', String(pageSize));
+          url.searchParams.set('offset', String(offset));
+          const odsDateField = this.config.dateField || 'issue_date';
+          url.searchParams.set('order_by', `${odsDateField} desc`);
+          if (sinceDate) {
+            url.searchParams.set('where', `${odsDateField}>=date'${sinceDate}'`);
+          }
         } else {
           url.searchParams.set('limit', String(pageSize));
           url.searchParams.set('offset', String(offset));
@@ -92,6 +97,10 @@ export class CKANConnector implements CityConnector {
           let pageRecords: any[] = [];
           if (data.records) pageRecords = data.records;
           else if (data.result && data.result.records) pageRecords = data.result.records;
+          // v2 Explore API response shape: { total_count, results: [...] } -- flat records,
+          // not nested under `.fields` like v1 (transformRecords already handles both via
+          // `item.fields || item`).
+          else if (Array.isArray(data.results)) pageRecords = data.results;
 
           if (Array.isArray(pageRecords) && pageRecords.length > 0) {
             allRecords.push(...pageRecords);
@@ -178,9 +187,17 @@ export class CKANConnector implements CityConnector {
       if (r.geo_point_2d && Array.isArray(r.geo_point_2d) && r.geo_point_2d.length >= 2) {
         lat = Number(r.geo_point_2d[0]);
         lon = Number(r.geo_point_2d[1]);
+      } else if (r.geo_point_2d && typeof r.geo_point_2d.lat === 'number' && typeof r.geo_point_2d.lon === 'number') {
+        // v2 Explore API shape: { lon, lat } object instead of a [lat, lon] array.
+        lat = r.geo_point_2d.lat;
+        lon = r.geo_point_2d.lon;
       } else if (r.geom && r.geom.coordinates && Array.isArray(r.geom.coordinates)) {
         lon = Number(r.geom.coordinates[0]);
         lat = Number(r.geom.coordinates[1]);
+      } else if (r.geom && r.geom.geometry && r.geom.geometry.coordinates && Array.isArray(r.geom.geometry.coordinates)) {
+        // v2 Explore API nests coordinates under geom.geometry.coordinates (GeoJSON Feature).
+        lon = Number(r.geom.geometry.coordinates[0]);
+        lat = Number(r.geom.geometry.coordinates[1]);
       } else if (r.latitude && r.longitude) {
         lat = parseFloat(r.latitude);
         lon = parseFloat(r.longitude);
