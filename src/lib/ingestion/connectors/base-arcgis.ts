@@ -10,6 +10,12 @@ export interface ArcGISConfig {
   dateField?: string;
   permitNumField?: string;
   addressField?: string;
+  /**
+   * EXPANSION (2026-10-04): some cities (e.g. Halifax) don't publish one combined address
+   * field -- the street number, name, type, and community are separate columns. When set,
+   * these are joined (space-separated, blanks dropped) instead of using `addressField`.
+   */
+  addressFields?: string[];
   contractorField?: string;
   applicantField?: string;
   subTypeField?: string;
@@ -148,7 +154,13 @@ export class ArcGISConnector implements CityConnector {
       const geom = feat.geometry || {};
 
       const pNum = attr[pField] || attr.PERMITNUMBER || attr.PERMIT_NUMBER || `BP-${this.citySlug.toUpperCase()}-${idx + 1}`;
-      let addr = attr[aField] || attr.ADDRESS || `${this.cityName}, ${this.province}`;
+      let addr: string;
+      if (this.config.addressFields && this.config.addressFields.length > 0) {
+        addr = this.config.addressFields.map((f) => attr[f]).filter(Boolean).join(' ').trim();
+      } else {
+        addr = attr[aField] || attr.ADDRESS || '';
+      }
+      if (!addr) addr = `${this.cityName}, ${this.province}`;
       addr = String(addr).replace(/,\s*$/, '').trim();
       if (!addr.toLowerCase().includes(this.cityName.toLowerCase())) {
         addr = `${addr}, ${this.cityName}, ${this.province}`;
